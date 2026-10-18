@@ -1,0 +1,510 @@
+# =============================================================================
+# İki Tekerlekli Ev İçi Hasta Destek Robotu: Modül A & E parametre dosyası
+# Hazırlayan: Sefa Nurali Uçak (23015008), 3. hafta, 18 Ekim 2026
+#
+# DURUM: Motor, teker ve batarya henüz alınmadı. Bu yüzden robotun bütün
+# FİZİKSEL parametreleri "tahmini"dir. Hiçbiri ölçülmedi.
+#
+# Her parametre aynı alanları taşır:
+#   deger   : sayısal değer (SI birim)
+#   birim   : birim
+#   durum   : "tahmini" | "ölçülmüş" | "şartname" | "öneri" | "sabit"
+#   kaynak  : değerin dayanağı
+#   aralik  : (isteğe bağlı) makul alt/üst sınır, duyarlılık analizinde kullanılır
+#   sorumlu : (isteğe bağlı) ölçülmüş değeri kimin vereceği
+#
+# Parça gelince: deger'i ölçülmüş değerle değiştir, durum = "ölçülmüş" yap,
+# kaynak'a ölçüm yöntemini yaz, sonra `python -m denge` ile dokümanı yeniden üret.
+#
+# Koordinatlar: orijin teker aksının orta noktası; x ileri, y sol,
+# z gövde ekseni boyunca yukarı (gövde dikken, θ = 0).
+# =============================================================================
+
+[meta]
+surum = "0.1"
+tarih = "2026-10-18"
+hazirlayan = "Sefa Nurali Uçak (23015008)"
+
+[sabit.g]
+deger = 9.80665
+birim = "m/s^2"
+durum = "sabit"
+kaynak = "Standart yerçekimi ivmesi"
+
+# -----------------------------------------------------------------------------
+# Tekerler (henüz alınmadı)
+# -----------------------------------------------------------------------------
+[teker.yaricap]
+deger = 0.040
+birim = "m"
+aralik = [0.0325, 0.050]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: hobi robot tekerleri yaygın olarak Ø65–Ø100 mm; nominal Ø80 mm seçildi."
+sorumlu = "Mete Özgen"
+
+[teker.kutle]
+deger = 0.060
+birim = "kg"
+aralik = [0.030, 0.120]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: kauçuk lastik + göbek + kaplin, teker başına 30–120 g."
+sorumlu = "Mete Özgen"
+
+[teker.atalet_katsayisi]
+deger = 0.5
+birim = "-"
+aralik = [0.5, 0.9]
+durum = "tahmini"
+kaynak = "J_w = k·m_w·r². Dolu disk için k = 0,5; kütlesi lastikte toplanan tekerde k 1'e yaklaşır."
+
+[teker.genislik]
+deger = 0.025
+birim = "m"
+aralik = [0.015, 0.040]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini (yalnız çizim için)."
+
+[teker.iz_genisligi]
+deger = 0.20
+birim = "m"
+aralik = [0.15, 0.25]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: iki teker merkezi arası = şasi genişliği (~0,16 m) + motor/göbek payı."
+sorumlu = "Mete Özgen"
+
+# -----------------------------------------------------------------------------
+# Motor dinamiği (motor seçilmedi, iki değer bilinmiyor; nominal = ihmal)
+# -----------------------------------------------------------------------------
+[motor.rotor_ataleti_yansimis]
+deger = 0.0
+birim = "kg*m^2"
+aralik = [0.0, 0.0025]
+durum = "tahmini"
+kaynak = "Bilinmiyor, nominalde ihmal edildi. Teker miline yansıyan değer J_rotor·N². Veri sayfasında varsa oradan alınacak, yoksa serbest yavaşlama (coast-down) deneyiyle tanılanacak. Aralığın üst sınırı kaba tahmin [doğrulanamadı]."
+sorumlu = "Mete Özgen (veri sayfası), Sefa (tanılama)"
+
+[motor.viskoz_surtunme]
+deger = 0.0
+birim = "N*m*s/rad"
+aralik = [0.0, 0.02]
+durum = "tahmini"
+kaynak = "Bilinmiyor, nominalde ihmal edildi. Teker–gövde arası redüktör viskoz sürtünmesi; motor seçilince tanılanacak. Aralık kaba tahmin [doğrulanamadı]."
+
+# -----------------------------------------------------------------------------
+# Batarya (Mete'nin seçimi bekleniyor)
+# -----------------------------------------------------------------------------
+[batarya.seri_hucre]
+deger = 3
+birim = "-"
+aralik = [3, 6]
+durum = "tahmini"
+kaynak = "Varsayım: 3S Li-ion. Şartname §4.1 ana besleme ≤ 24 V DC. Mete'nin seçimi bekleniyor."
+sorumlu = "Mete Özgen"
+
+[batarya.hucre_gerilimi_min]
+deger = 3.0
+birim = "V"
+aralik = [2.5, 3.3]
+durum = "tahmini"
+kaynak = "Li-ion hücre boşalma sonu (tipik ~3,0 V); gerçek değeri BMS kesim eşiği belirler."
+sorumlu = "Mete Özgen"
+
+[batarya.hucre_gerilimi_nominal]
+deger = 3.6
+birim = "V"
+aralik = [3.6, 3.7]
+durum = "tahmini"
+kaynak = "Li-ion hücre nominal gerilimi (3,6–3,7 V)."
+
+[batarya.hucre_gerilimi_max]
+deger = 4.2
+birim = "V"
+aralik = [4.1, 4.2]
+durum = "tahmini"
+kaynak = "Li-ion hücre tam dolu gerilimi (4,2 V)."
+
+# -----------------------------------------------------------------------------
+# Gövde bileşenleri: kütle bütçesi ve yerleşim (hepsi tahmini)
+# konum = [x, y, z] (bileşen kütle merkezi), boyut = [dx, dy, dz] (atalet için kutu yaklaşımı)
+# simetrik_y = true ise bileşen ±y'de birer adet olmak üzere iki tanedir.
+# -----------------------------------------------------------------------------
+[govde.motor]
+aciklama = "Redüktörlü DC motor + enkoder (stator gövdeye bağlı), 2 adet"
+simetrik_y = true
+
+[govde.motor.kutle]
+deger = 0.15
+birim = "kg"
+aralik = [0.08, 0.20]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: 25–37 mm gövdeli, enkoderli redüktörlü DC motorların tipik kütle aralığı (adet başına)."
+sorumlu = "Mete Özgen"
+
+[govde.motor.konum]
+deger = [0.0, 0.055, 0.0]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini yerleşim: motor mili teker aksıyla eş eksenli (z = 0), gövde tekerin iç tarafında."
+
+[govde.motor.boyut]
+deger = [0.037, 0.070, 0.037]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini motor zarfı: Ø37 × 70 mm sınıfı."
+
+[govde.sasi]
+aciklama = "Şasi yapısı: plakalar, aralayıcılar, motor braketleri"
+
+[govde.sasi.kutle]
+deger = 0.40
+birim = "kg"
+aralik = [0.25, 0.60]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: 3–4 katlı PLA/akrilik plaka + aralayıcı + braket; malzemeye göre 0,25–0,60 kg."
+sorumlu = "Mete Özgen"
+
+[govde.sasi.konum]
+deger = [0.0, 0.0, 0.115]
+birim = "m"
+durum = "tahmini"
+kaynak = "Gövde zarfının (z = −0,02…0,25 m) ortası; kütlenin yükseklik boyunca düzgün dağıldığı varsayıldı."
+
+[govde.sasi.boyut]
+deger = [0.08, 0.16, 0.27]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini gövde zarfı: 8 cm derinlik × 16 cm genişlik × 27 cm yükseklik."
+
+[govde.elektronik]
+aciklama = "MCU kartı, IMU, çift motor sürücü, regülatörler, BMS, kablolama"
+
+[govde.elektronik.kutle]
+deger = 0.20
+birim = "kg"
+aralik = [0.10, 0.30]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: kart + sürücü + regülatör + BMS + kablo/konnektör toplamı."
+sorumlu = "Mete Özgen, Ousmane Dicko"
+
+[govde.elektronik.konum]
+deger = [0.0, 0.0, 0.07]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini yerleşim: 1. kat (z ≈ 5–9 cm)."
+
+[govde.elektronik.boyut]
+deger = [0.07, 0.12, 0.04]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini zarf."
+
+[govde.batarya]
+aciklama = "Li-ion batarya paketi (BMS hariç)"
+
+[govde.batarya.kutle]
+deger = 0.30
+birim = "kg"
+aralik = [0.15, 0.45]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: 3S2P 18650 paket (6 hücre × ~45–50 g + sargı). 3S1P–4S2P için aralık 0,15–0,45 kg."
+sorumlu = "Mete Özgen"
+
+[govde.batarya.konum]
+deger = [0.0, 0.0, 0.15]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini yerleşim: 2. kat (z ≈ 12–18 cm). Bataryanın yüksekliği KM'yi en çok etkileyen karardır (bkz. doküman §5.4)."
+sorumlu = "Mete Özgen"
+
+[govde.batarya.boyut]
+deger = [0.04, 0.07, 0.055]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini 3S2P 18650 paket zarfı."
+
+[govde.acil_durdurma]
+aciklama = "Fiziksel acil durdurma / ana güç kesme anahtarı (şartname §4.1)"
+
+[govde.acil_durdurma.kutle]
+deger = 0.04
+birim = "kg"
+aralik = [0.02, 0.08]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: panel tipi mantar buton / anahtar."
+sorumlu = "Mete Özgen"
+
+[govde.acil_durdurma.konum]
+deger = [0.0, 0.065, 0.265]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini yerleşim: erişilebilir olsun diye üst plakada, kutu yuvasının yanında."
+
+[govde.acil_durdurma.boyut]
+deger = [0.03, 0.03, 0.03]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini zarf."
+
+[govde.ir_ve_sarj_kontaklari]
+aciklama = "IR alıcı dizisi + şarj temas pedleri / yaylı kontaklar"
+
+[govde.ir_ve_sarj_kontaklari.kutle]
+deger = 0.05
+birim = "kg"
+aralik = [0.02, 0.10]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini; Ömer Faruk'un istasyon/IR tasarımına bağlı."
+sorumlu = "Ömer Faruk Arslan"
+
+[govde.ir_ve_sarj_kontaklari.konum]
+deger = [0.045, 0.0, 0.01]
+birim = "m"
+durum = "tahmini"
+kaynak = "Varsayım: ön yüzde, istasyon yüksekliğine uysun diye alçakta. Önde mi arkada mı olacağı belli değil."
+sorumlu = "Ömer Faruk Arslan"
+
+[govde.ir_ve_sarj_kontaklari.boyut]
+deger = [0.01, 0.10, 0.03]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini zarf."
+
+# Gövde dış zarfı: yere değme açısı hesabı için (iki teker dışında bir parçanın
+# yere değmesi alt testi düşürür, şartname §7).
+[govde.zarf.x_aralik]
+deger = [-0.04, 0.04]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini gövde derinliği 8 cm, aksa göre simetrik."
+
+[govde.zarf.z_aralik]
+deger = [-0.02, 0.25]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini: alt plaka aksın 2 cm altında, üst plaka 25 cm yukarıda."
+
+# -----------------------------------------------------------------------------
+# Yük: ilaç kutusu ve taşıyıcı yuva (şartname §4.1: gövdeye monte edilmez)
+# -----------------------------------------------------------------------------
+[yuk.kutu.kutle]
+deger = 0.05
+birim = "kg"
+aralik = [0.02, 0.15]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: küçük karton ilaç kutusu (aspirin vb.). Kutu seçilince tartılacak."
+sorumlu = "Ekip (kutu seçimi), Mete Özgen (yuva)"
+
+[yuk.kutu.boyut]
+deger = [0.05, 0.10, 0.025]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini kutu ölçüsü [x, y, z]: 10 × 5 × 2,5 cm, yatık, uzun kenarı yanal (y). Kutu seçilince ölçülecek."
+
+[yuk.kutu.surtunme]
+deger = 0.3
+birim = "-"
+aralik = [0.2, 0.5]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: karton – PLA/akrilik statik sürtünme katsayısı."
+
+[yuk.yuva.kutle]
+deger = 0.05
+birim = "kg"
+aralik = [0.02, 0.10]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: 3B baskı / akrilik cep tipi yuva."
+sorumlu = "Mete Özgen"
+
+[yuk.yuva.duvar_yuksekligi]
+deger = 0.02
+birim = "m"
+aralik = [0.01, 0.025]
+durum = "öneri"
+kaynak = "Kutu yüksekliğinin ~%80'i [öneri]; kutunun KM'si duvar üst kenarının altında kalır."
+
+[yuk.yuva.bosluk]
+deger = 0.002
+birim = "m"
+aralik = [0.0, 0.010]
+durum = "öneri"
+kaynak = "Kutu ile yuva duvarı arası boşluk, her yönde [öneri]. Mete üretecek."
+sorumlu = "Mete Özgen"
+
+[yuk.yuva.x]
+deger = 0.0
+birim = "m"
+durum = "öneri"
+kaynak = "Yuva tam aksın üstünde [öneri]: kutu takılıp çıkarılınca denge açısı (trim) değişmesin."
+
+# Yuva için değerlendirilen üç yükseklik seçeneği (yuva tabanının z'si)
+[yuk.yuva.secenek.ust]
+deger = 0.25
+birim = "m"
+durum = "öneri"
+kaynak = "Üst plakanın üstü."
+
+[yuk.yuva.secenek.orta]
+deger = 0.18
+birim = "m"
+durum = "öneri"
+kaynak = "Batarya ile üst plaka arası (kat düzeninin değişmesini gerektirir)."
+
+[yuk.yuva.secenek.alt]
+deger = 0.025
+birim = "m"
+durum = "öneri"
+kaynak = "Motorların üstü, elektronik katının altı."
+
+[yuk.yuva.onerilen]
+deger = "ust"
+birim = "-"
+durum = "öneri"
+kaynak = "Doküman §5.5'teki karşılaştırmanın sonucu [öneri]."
+
+# -----------------------------------------------------------------------------
+# Zemin
+# -----------------------------------------------------------------------------
+[zemin.surtunme]
+deger = 0.7
+birim = "-"
+aralik = [0.5, 0.9]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: kauçuk teker ile düz, sert, kuru iç mekân zemini (şartname §7) arası statik sürtünme."
+
+# -----------------------------------------------------------------------------
+# Şartname değerleri (TR v14, 24 Eylül 2026)
+# -----------------------------------------------------------------------------
+[sartname.max_gerilim]
+deger = 24.0
+birim = "V"
+durum = "şartname"
+kaynak = "Şartname TR v14 §4.1 Güç: ana besleme en fazla 24 V DC."
+
+[sartname.pasif_test_acisi]
+deger = 10.0
+birim = "deg"
+durum = "şartname"
+kaynak = "Şartname TR v14 §4.1 Pasif kararlılık ön testi: +10° ve −10°."
+
+[sartname.pasif_test_suresi]
+deger = 5.0
+birim = "s"
+durum = "şartname"
+kaynak = "Şartname TR v14 §4.1: 5 s içinde dik konuma dönmemeli / pasif dik kalmamalı."
+
+[sartname.toparlanma_acisi]
+deger = 10.0
+birim = "deg"
+durum = "şartname"
+kaynak = "Şartname TR v14 §8 Ö1-4: yaklaşık +10° ve −10° başlangıç eğimi."
+
+[sartname.toparlanma_suresi]
+deger = 10.0
+birim = "s"
+durum = "şartname"
+kaynak = "Şartname TR v14 §8 Ö1-4: 10 s içinde toparlanma."
+
+[sartname.o1_mesafe]
+deger = 1.0
+birim = "m"
+durum = "şartname"
+kaynak = "Şartname TR v14 §8 Ö1-2/Ö1-3: yaklaşık 1 m ileri ve geri."
+
+[sartname.o1_bekleme]
+deger = 3.0
+birim = "s"
+durum = "şartname"
+kaynak = "Şartname TR v14 §8 Ö1-2/Ö1-3: 3 s durma."
+
+[sartname.o2_mesafe]
+deger = 0.5
+birim = "m"
+durum = "şartname"
+kaynak = "Şartname TR v14 §8 Ö2: ileri/geri komutunda yaklaşık 0,5 m."
+
+[sartname.o2_donus]
+deger = 90.0
+birim = "deg"
+durum = "şartname"
+kaynak = "Şartname TR v14 §8 Ö2: dönüş komutunda yaklaşık 90°."
+
+[sartname.komut_tepki_suresi]
+deger = 2.0
+birim = "s"
+durum = "şartname"
+kaynak = "Şartname TR v14 §7 ve §8 Ö2: fiziksel tepki 2 s içinde."
+
+# -----------------------------------------------------------------------------
+# Tasarım hedefleri [öneri]: şartnamede karşılığı olmayan seçimler
+# -----------------------------------------------------------------------------
+[hedef.o1_sure]
+deger = 4.0
+birim = "s"
+durum = "öneri"
+kaynak = "Şartnamede süre sınırı yok. 1 m için 4 s (ort. 0,25 m/s): iç mekân için güvenli, kameranın izleyebileceği hız [öneri]."
+
+[hedef.o2_sure]
+deger = 3.0
+birim = "s"
+durum = "öneri"
+kaynak = "Şartnamede süre sınırı yok. 0,5 m için 3 s [öneri]."
+
+[hedef.donus_sure]
+deger = 2.0
+birim = "s"
+durum = "öneri"
+kaynak = "Şartnamede süre sınırı yok. 90° yerinde dönüş için 2 s [öneri]."
+
+[hedef.profil_ivme_orani]
+deger = 0.25
+birim = "-"
+durum = "öneri"
+kaynak = "Trapez hız profili: sürenin %25'i hızlanma, %25'i yavaşlama [öneri]."
+
+[hedef.hiz_payi]
+deger = 1.5
+birim = "-"
+durum = "öneri"
+kaynak = "Motor, seyir tepe hızının 1,5 katına kadar tork verebilmeli: denge düzeltmeleri için hız payı [öneri]."
+
+[hedef.el_toparlanma_suresi]
+deger = 0.5
+birim = "s"
+durum = "öneri"
+kaynak = "El hesabındaki dinamik pay için θ'nın 10°'den 0°'a dönüş süresi (bang-bang profil) [öneri]."
+
+[hedef.referans_manevra_suresi]
+deger = 2.0
+birim = "s"
+durum = "öneri"
+kaynak = "Kontrolcüden bağımsız referans toparlanma manevrasının süresi (durağandan durağana) [öneri]. Şartname sınırı 10 s."
+
+[hedef.emniyet_katsayisi]
+deger = 2.0
+birim = "-"
+durum = "öneri"
+kaynak = "Tork emniyet katsayısı [öneri]: parametreler tahmini, kontrolcü aşımı, batarya gerilim düşümü, ölü bölge."
+
+[hedef.kontrol_frekansi]
+deger = 200.0
+birim = "Hz"
+durum = "öneri"
+kaynak = "Denge döngüsü frekansı [öneri]; kararsız kutbun (~10 rad/s) çok üstünde."
+
+[hedef.hiz_kestirim_penceresi]
+deger = 0.010
+birim = "s"
+durum = "öneri"
+kaynak = "Enkoderden hız kestirimi için sayım penceresi (200 Hz'de 2 örnek) [öneri]."
+
+[hedef.hiz_cozunurlugu]
+deger = 0.02
+birim = "m/s"
+durum = "öneri"
+kaynak = "Ö1'deki 3 s durmada hız kestiriminin bir sayımlık nicemleme adımı en fazla 2 cm/s olsun [öneri]."
+
+[hedef.yere_degme_min]
+deger = 25.0
+birim = "deg"
+durum = "öneri"
+kaynak = "±10° başlangıç + toparlanmadaki aşım payı. İki teker dışında bir parçanın yere değmesi alt testi düşürür (şartname §7) [öneri]."
