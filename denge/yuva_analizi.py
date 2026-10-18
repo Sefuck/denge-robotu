@@ -100,12 +100,13 @@ def kutu_yuksekligi_taramasi(tasarim, z_listesi, manevralar: dict) -> dict:
     """
     g_ivme = tasarim.d("sabit.g")
     x_k = tasarim.d("yuk.yuva.x")
-    sonuc = {"z": np.asarray(z_listesi, float), "l": [], "p_serbest": [], "tau_statik": []}
+    sonuc = {"z": np.asarray(z_listesi, float), "l": [], "dl": [], "p_serbest": [], "tau_statik": []}
     sonuc |= {f"alfa_{ad}": [] for ad in manevralar} | {f"fx_{ad}": [] for ad in manevralar}
     th0 = math.radians(tasarim.d("sartname.toparlanma_acisi"))
     for z in z_listesi:
         p = tasarim.model(kutulu=True, z_kutu=z)
         sonuc["l"].append(p.l)
+        sonuc["dl"].append(p.l - tasarim.model(kutulu=False, z_kutu=z).l)  # yuva aynı yerde, yalnız kutu eklenir
         sonuc["p_serbest"].append(model.kararsiz_kutup(p))
         sonuc["tau_statik"].append(p.m_b * p.g * p.l * math.sin(th0))
         for ad, y in manevralar.items():

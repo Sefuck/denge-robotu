@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from denge.kutle_merkezi import Bilesen, govde_ozellikleri
-from denge.parametreler import FIZIKSEL_BOLUMLER, Tasarim
+from denge.parametreler import Tasarim, fiziksel_mi
 
 
 def test_her_parametrede_birim_durum_kaynak_var(tasarim):
@@ -16,7 +16,7 @@ def test_her_parametrede_birim_durum_kaynak_var(tasarim):
 
 def test_fiziksel_parametrelerin_hepsi_tahmini(tasarim):
     """Parça alınmadı: robotun hiçbir fiziksel parametresi ölçülmüş olamaz."""
-    fiziksel = [(y, k) for y, k in tasarim.kayitlar() if any(y.startswith(b + ".") for b in FIZIKSEL_BOLUMLER)]
+    fiziksel = [(y, k) for y, k in tasarim.kayitlar() if fiziksel_mi(y)]
     assert len(fiziksel) >= 25
     assert all(k["durum"] == "tahmini" for _, k in fiziksel)
 

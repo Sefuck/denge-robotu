@@ -14,7 +14,7 @@ KOK = Path(__file__).resolve().parent.parent
 VARSAYILAN_YOL = KOK / "parametreler.toml"
 GECERLI_DURUMLAR = {"tahmini", "ölçülmüş", "şartname", "öneri", "sabit"}
 # Robotun kendisine ait fiziksel parametreler: ölçülene kadar "tahmini" olmak zorunda
-FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "zemin")
+FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin")
 
 BILESEN_ADLARI = {
     "motor": "Motor + redüktör + enkoder",
@@ -24,6 +24,11 @@ BILESEN_ADLARI = {
     "acil_durdurma": "Acil durdurma anahtarı",
     "ir_ve_sarj_kontaklari": "IR alıcı + şarj kontakları",
 }
+
+
+def fiziksel_mi(yol: str) -> bool:
+    """Robotun kendisine ait (ölçülene kadar tahmini) bir parametre mi?"""
+    return any(yol == b or yol.startswith(b + ".") for b in FIZIKSEL_BOLUMLER)
 
 
 def parametre_kayitlari(veri: dict, onek: str = "") -> list[tuple[str, dict]]:
@@ -48,7 +53,7 @@ def dogrula(veri: dict) -> None:
                 hatalar.append(f"{yol}: '{alan}' alanı eksik")
         if k.get("durum") not in GECERLI_DURUMLAR:
             hatalar.append(f"{yol}: geçersiz durum {k.get('durum')!r}")
-        if any(yol.startswith(b + ".") for b in FIZIKSEL_BOLUMLER) and k.get("durum") not in ("tahmini", "ölçülmüş"):
+        if fiziksel_mi(yol) and k.get("durum") not in ("tahmini", "ölçülmüş"):
             hatalar.append(f"{yol}: fiziksel parametre 'tahmini' ya da 'ölçülmüş' olmalı")
         if "aralik" in k and isinstance(k["deger"], (int, float)):
             alt, ust = k["aralik"]
