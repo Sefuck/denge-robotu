@@ -20,6 +20,11 @@ from .model import ModelParametreleri
 KGFCM = 0.0980665  # 1 kgf·cm = 0.0980665 N·m
 
 
+def _s(x: float, n: int = 3, bilimsel: bool = False) -> str:
+    """Ondalık virgüllü sayı (Türkçe çıktı)."""
+    return (f"{x:.{n}e}" if bilimsel else f"{x:.{n}f}").replace(".", ",")
+
+
 def rpm(v: float, r: float) -> float:
     """Teker çevresel hızı v [m/s] → teker devri [dev/dk]."""
     return v / (2 * math.pi * r) * 60.0
@@ -43,7 +48,7 @@ def hareket_tablosu(tasarim, p: ModelParametreleri) -> list[dict]:
     ):
         v, a = trapez_profil(mesafe, sure, oran)
         satirlar.append(
-            {"hareket": ad, "miktar": f"{mesafe:g} m", "sure": sure, "v_teker": v, "ivme": a, "rpm": rpm(v, p.r),
+            {"hareket": ad, "miktar": f"{mesafe:g} m".replace(".", ","), "sure": sure, "v_teker": v, "ivme": a, "rpm": rpm(v, p.r),
              # sabit ivmede (θ̈ = 0): τ_R + τ_L = M_x r a (iki motor eşit paylaşır)
              "tork_motor_basi": k["M_x"] * p.r * a / 2}
         )
@@ -120,16 +125,41 @@ def enkoder_tablosu(r: float, d: float, pencere: float, n_max: float, ppr_listes
     return satirlar
 
 
+def tepe_tork(p: ModelParametreleri, theta0: float, T: float) -> float:
+    """Referans toparlanma manevrasının doğrusal olmayan modeldeki tepe toplam torku [N m]."""
+    return float(np.max(np.abs(simulasyon.referans_toparlanma(p, theta0, T, n=401)["dogrusal_olmayan"]["u"])))
+
+
+def rotor_ataleti_esigi(p: ModelParametreleri, theta0: float, T: float, tork_siniri: float, J_ust: float = 0.01) -> float:
+    """Referans manevranın tepe toplam torkunu `tork_siniri`na eşitleyen yansıyan rotor ataleti J_m."""
+    alt, ust = 0.0, J_ust
+    if tepe_tork(p.degistir(J_m=alt), theta0, T) >= tork_siniri:
+        return 0.0
+    if tepe_tork(p.degistir(J_m=ust), theta0, T) < tork_siniri:
+        return math.inf
+    for _ in range(40):
+        orta = (alt + ust) / 2
+        alt, ust = (orta, ust) if tepe_tork(p.degistir(J_m=orta), theta0, T) < tork_siniri else (alt, orta)
+    return (alt + ust) / 2
+
+
 def gereksinimleri_hesapla(tasarim, kutulu: bool = True) -> dict:
-    """Motor seçimi için bütün gereksinimleri tek sözlükte toplar."""
+    """Motor seçimi için bütün gereksinimleri tek sözlükte toplar.
+
+    A  (önerilen): istenen el hesabı × emniyet katsayısı, referans manevranın tepe devrinde.
+    A' (asgari)  : zemine aktarılabilen en büyük tork (çekiş sınırı); yalnız yansıyan rotor
+                   ataleti J_m eşiğin altındaysa referans manevrayı emniyet katsayısıyla karşılar.
+    B  (seyir)   : seyir tepe hızı × hız payı devrinde, yavaşlama torku × emniyet katsayısı.
+    """
     p = tasarim.model(kutulu=kutulu)
     th0 = math.radians(tasarim.d("sartname.toparlanma_acisi"))
     SF = tasarim.d("hedef.emniyet_katsayisi")
     el = toparlanma_torku_el(p, th0, tasarim.d("hedef.el_toparlanma_suresi"))
     T_ref = tasarim.d("hedef.referans_manevra_suresi")
     ref = simulasyon.referans_toparlanma(p, th0, T_ref)
-    agresif = simulasyon.referans_toparlanma(p, th0, tasarim.d("hedef.el_toparlanma_suresi"))
     hareketler = hareket_tablosu(tasarim, p)
+    m_top = tasarim.toplam_kutle(kutulu=kutulu)
+    cekis = cekis_siniri(p, tasarim.d("zemin.surtunme"), m_top)
 
     v_ref = float(np.max(np.abs(ref["dogrusal_olmayan"]["xd"])))
     v_seyir = max(h["v_teker"] for h in hareketler)
@@ -137,26 +167,31 @@ def gereksinimleri_hesapla(tasarim, kutulu: bool = True) -> dict:
     n_A = rpm(v_ref, p.r)
     n_B = rpm(tasarim.d("hedef.hiz_payi") * v_seyir, p.r)
     tau_A = SF * el["toplam"] / 2
-    tau_A_asgari = SF * float(np.max(np.abs(agresif["dogrusal_olmayan"]["u"]))) / 2
     tau_B = SF * max(h["tork_motor_basi"] for h in hareketler)
-    m_top = tasarim.toplam_kutle(kutulu=kutulu)
     n_enk = max(n_A, n_B)
+    J_aralik = tasarim.kayit("motor.rotor_ataleti_yansimis")["aralik"]
     return {
         "p": p,
         "el": el,
         "SF": SF,
         "tutma_tam": tutma_torku_tam(p, th0),
         "ref": ref,
-        "agresif": agresif,
         "T_ref": T_ref,
         "hareketler": hareketler,
         "v_ref": v_ref,
         "v_seyir": v_seyir,
         "seyir_hareketi": i_seyir["hareket"],
         "nokta_A": (n_A, tau_A),
-        "nokta_A_asgari": (rpm(float(np.max(np.abs(agresif["dogrusal_olmayan"]["xd"]))), p.r), tau_A_asgari),
+        "nokta_A_asgari": (n_A, cekis / 2),
         "nokta_B": (n_B, tau_B),
-        "cekis_toplam": cekis_siniri(p, tasarim.d("zemin.surtunme"), m_top),
+        "J_m_esik": rotor_ataleti_esigi(p, th0, T_ref, cekis / SF),
+        "J_m_tablosu": [
+            {"J_m": J, "tutma": tutma_torku_tam(p.degistir(J_m=J), th0), "tepe_ref": tepe_tork(p.degistir(J_m=J), th0, T_ref),
+             "tepe_agresif": tepe_tork(p.degistir(J_m=J), th0, tasarim.d("hedef.el_toparlanma_suresi")),
+             "kutup": model.kararsiz_kutup(p.degistir(J_m=J))}
+            for J in sorted({0.0, 5e-4, 1e-3, J_aralik[1]})
+        ],
+        "cekis_toplam": cekis,
         "m_toplam": m_top,
         "enkoder": enkoder_gereksinimi(
             p.r, p.d, tasarim.d("hedef.hiz_cozunurlugu"), tasarim.d("hedef.hiz_kestirim_penceresi"), n_enk
@@ -180,6 +215,12 @@ class MotorAdayi:
     bosta_akim: float = 0.0  # [A]
     reduksiyon: float = float("nan")
     ppr: float = float("nan")  # motor milinde enkoder darbe/devir (tek kanal)
+    rotor_ataleti: float = float("nan")  # motor milinde rotor ataleti [kg m^2]
+
+    @property
+    def J_m(self) -> float:
+        """Teker miline yansıyan rotor ataleti J_rotor·N² [kg m^2]."""
+        return self.rotor_ataleti * self.reduksiyon**2
 
     def motor_modeli(self) -> model.MotorModeli:
         """Veri sayfasından teker milindeki K_t, K_e, R."""
@@ -206,23 +247,26 @@ def degerlendir(aday: MotorAdayi, gereksinim: dict, gerilimler: dict) -> list[di
     V = gerilimler["min"]
     n0, ts = aday.egriler(V)
     satirlar = []
-    for etiket, (n, tau) in (("A: ±10° toparlanma (önerilen)", gereksinim["nokta_A"]),
-                             ("A': ±10° toparlanma (asgari)", gereksinim["nokta_A_asgari"]),
+    for etiket, (n, tau) in (("A: ±10° toparlanma, el hesabı × SF (önerilen)", gereksinim["nokta_A"]),
+                             (f"A': çekiş sınırı (asgari; J_m ≤ {_s(gereksinim['J_m_esik'], 1, True)} kg·m² ise)", gereksinim["nokta_A_asgari"]),
                              ("B: seyir + hız payı", gereksinim["nokta_B"])):
         mevcut = aday.tork(n, V)
-        satirlar.append({"olcut": etiket, "gerek": f"{tau:.3f} N·m @ {n:.0f} dev/dk",
-                         "aday": f"{mevcut:.3f} N·m", "sonuc": mevcut >= tau})
+        satirlar.append({"olcut": etiket, "gerek": f"{_s(tau)} N·m @ {n:.0f} dev/dk",
+                         "aday": f"{_s(mevcut)} N·m", "sonuc": mevcut >= tau})
     if not math.isnan(aday.ppr) and not math.isnan(aday.reduksiyon):
         cpr = 4 * aday.ppr * aday.reduksiyon
         satirlar.append({"olcut": "Enkoder çözünürlüğü (x4)", "gerek": f"≥ {gereksinim['enkoder']['cpr_min']:.0f} sayım/teker devri",
                          "aday": f"{cpr:.0f}", "sonuc": cpr >= gereksinim["enkoder"]["cpr_min"]})
+    if not math.isnan(aday.J_m):
+        satirlar.append({"olcut": "Yansıyan rotor ataleti J_rotor·N² (A' için)", "gerek": f"≤ {_s(gereksinim['J_m_esik'], 2, True)} kg·m²",
+                         "aday": f"{_s(aday.J_m, 2, True)} kg·m²", "sonuc": aday.J_m <= gereksinim["J_m_esik"]})
     satirlar.append({"olcut": "Aşırı gerilim (batarya max / nominal)", "gerek": "≤ 1,2 [öneri]",
-                     "aday": f"{gerilimler['max'] / aday.gerilim:.2f}", "sonuc": gerilimler["max"] / aday.gerilim <= 1.2})
+                     "aday": _s(gerilimler['max'] / aday.gerilim, 2), "sonuc": gerilimler["max"] / aday.gerilim <= 1.2})
     i_tepe = aday.akim(gereksinim["nokta_A"][1])
     satirlar.append({"olcut": "Tepe akım, A noktasında (2 motor toplamı)", "gerek": "Mete: sürücü/sigorta boyutu",
-                     "aday": f"{2 * i_tepe:.2f} A (durma: {2 * aday.durma_akimi:.1f} A)", "sonuc": None})
-    satirlar.append({"olcut": f"Batarya min. geriliminde ({V:.1f} V) eğri", "gerek": "-",
-                     "aday": f"n0 = {n0:.0f} dev/dk, τs = {ts:.3f} N·m", "sonuc": None})
+                     "aday": f"{_s(2 * i_tepe, 2)} A (durma: {_s(2 * aday.durma_akimi, 1)} A)", "sonuc": None})
+    satirlar.append({"olcut": f"Batarya min. geriliminde ({_s(V, 1)} V) eğri", "gerek": "-",
+                     "aday": f"n0 = {n0:.0f} dev/dk, τs = {_s(ts)} N·m", "sonuc": None})
     return satirlar
 
 
@@ -239,14 +283,15 @@ def _ana():
     ap.add_argument("--bosta-akim", type=float, default=0.0, help="[A]")
     ap.add_argument("--reduksiyon", type=float, default=float("nan"))
     ap.add_argument("--ppr", type=float, default=float("nan"), help="motor milinde enkoder darbe/devir")
+    ap.add_argument("--rotor-ataleti", type=float, default=float("nan"), help="motor milinde rotor ataleti [g·cm²]")
     ap.add_argument("--parametreler", default=None, help="parametre dosyası (varsayılan: parametreler.toml)")
     a = ap.parse_args()
     tau = a.durma_torku * (KGFCM if a.tork_birimi == "kgcm" else 1.0)
-    aday = MotorAdayi(a.ad, a.gerilim, a.bosta_devir, tau, a.durma_akimi, a.bosta_akim, a.reduksiyon, a.ppr)
+    aday = MotorAdayi(a.ad, a.gerilim, a.bosta_devir, tau, a.durma_akimi, a.bosta_akim, a.reduksiyon, a.ppr, a.rotor_ataleti * 1e-7)
     tasarim = Tasarim.yukle(a.parametreler)
     gerek = gereksinimleri_hesapla(tasarim)
     gerilimler = tasarim.batarya_gerilimleri()
-    print(f"\nMotor adayı: {aday.ad}  (batarya {gerilimler['min']:.1f}–{gerilimler['max']:.1f} V, tüm torklar teker milinde)\n")
+    print(f"\nMotor adayı: {aday.ad}  (batarya {_s(gerilimler['min'], 1)}–{_s(gerilimler['max'], 1)} V, tüm torklar teker milinde)\n")
     print("| Ölçüt | Gereksinim | Aday | Sonuç |\n|---|---|---|---|")
     for s in degerlendir(aday, gerek, gerilimler):
         sonuc = "-" if s["sonuc"] is None else ("GEÇTİ" if s["sonuc"] else "KALDI")

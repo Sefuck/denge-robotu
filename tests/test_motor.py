@@ -88,3 +88,22 @@ def test_enkoder_gereksinimi():
     satir = motor.enkoder_tablosu(0.04, 0.2, 0.01, 120, [11], [30])[0]
     assert satir["cpr_teker"] == 4 * 11 * 30
     assert satir["dv"] == pytest.approx(2 * math.pi * 0.04 / 1320 / 0.01)
+
+
+def test_rotor_ataleti_esigi_cekis_sinirina_denk_gelir(tasarim):
+    """A' noktası: eşikteki J_m'de referans manevranın SF'li tepe torku çekiş sınırına eşit olmalı."""
+    gerek = motor.gereksinimleri_hesapla(tasarim)
+    p, SF, T = gerek["p"], gerek["SF"], gerek["T_ref"]
+    J = gerek["J_m_esik"]
+    assert 0 < J < tasarim.kayit("motor.rotor_ataleti_yansimis")["aralik"][1]
+    tepe = motor.tepe_tork(p.degistir(J_m=J), math.radians(10), T)
+    assert SF * tepe == pytest.approx(gerek["cekis_toplam"], rel=1e-4)
+    assert gerek["nokta_A_asgari"][1] == pytest.approx(gerek["cekis_toplam"] / 2)
+    # J_m arttıkça tutma torku ve referans tepe torku artar
+    tablo = gerek["J_m_tablosu"]
+    assert all(np.diff([x["tutma"] for x in tablo]) > 0) and all(np.diff([x["tepe_ref"] for x in tablo]) > 0)
+
+
+def test_aday_motorun_yansiyan_rotor_ataleti():
+    a = motor.MotorAdayi("x", 12.0, 300.0, 0.8, 3.0, 0.2, reduksiyon=30, ppr=11, rotor_ataleti=8e-7)
+    assert a.J_m == pytest.approx(8e-7 * 900)
