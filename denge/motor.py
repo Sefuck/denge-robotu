@@ -182,7 +182,9 @@ def gereksinimleri_hesapla(tasarim, kutulu: bool = True) -> dict:
         "v_seyir": v_seyir,
         "seyir_hareketi": i_seyir["hareket"],
         "nokta_A": (n_A, tau_A),
+        "nokta_A0": (n_A, el["toplam"] / 2),
         "nokta_A_asgari": (n_A, cekis / 2),
+        "sigorta": tasarim.d("elektrik.sigorta") if "elektrik" in tasarim.veri else None,
         "nokta_B": (n_B, tau_B),
         "J_m_esik": rotor_ataleti_esigi(p, th0, T_ref, cekis / SF),
         "J_m_tablosu": [
@@ -242,12 +244,71 @@ class MotorAdayi:
         return self.bosta_akim + tau / self.motor_modeli().K_t
 
 
+def aday_tasarimdan(tasarim) -> MotorAdayi:
+    """parametreler.toml'daki [motor_adayi] kaydı."""
+    d = lambda k: tasarim.d(f"motor_adayi.{k}")
+    return MotorAdayi(d("ad"), d("gerilim"), d("bosta_devir"), d("durma_torku"), d("durma_akimi"), d("bosta_akim"),
+                      d("reduksiyon"), d("ppr"))
+
+
+def seri_adaylari(tasarim) -> list[MotorAdayi]:
+    """[motor_serisi] tablosundaki her oran için bir aday (aynı motor gövdesi, aynı gerilim ve PPR)."""
+    d = lambda k: tasarim.d(f"motor_serisi.{k}")
+    V, ppr = tasarim.d("motor_adayi.gerilim"), tasarim.d("motor_adayi.ppr")
+    return [MotorAdayi(f"1:{N:g} ({n0:g} dev/dk)", V, n0, ts * KGFCM, d("durma_akimi"), d("bosta_akim"), N, ppr)
+            for N, n0, ts in zip(d("reduksiyon"), d("bosta_devir"), d("durma_torku_kgfcm"))]
+
+
+def oran_taramasi(adaylar: list[MotorAdayi], gereksinim: dict, gerilim: float) -> list[dict]:
+    """Her oranın gereksinim noktalarını verilen besleme geriliminde karşılayıp karşılamadığı."""
+    satirlar = []
+    for a in adaylar:
+        n0, ts = a.egriler(gerilim)
+        sonuc = {"aday": a, "n0": n0, "ts": ts, "cpr": 4 * a.ppr * a.reduksiyon}
+        for anahtar in ("nokta_A", "nokta_A0", "nokta_A_asgari", "nokta_B"):
+            n, tau = gereksinim[anahtar]
+            sonuc[anahtar] = (a.tork(n, gerilim), a.tork(n, gerilim) >= tau)
+        sonuc["tum_SF"] = sonuc["nokta_A"][1] and sonuc["nokta_B"][1]
+        sonuc["tum_SFsiz"] = sonuc["nokta_A0"][1] and sonuc["nokta_B"][1]
+        satirlar.append(sonuc)
+    return satirlar
+
+
+def oran_araligi(adaylar: list[MotorAdayi], gereksinim: dict, gerilim: float, anahtar: str = "nokta_A") -> dict:
+    """Seriye uydurulan sürekli modelle (τ_s ≈ c·N, n0 ≈ K/N, nominal gerilimde) `anahtar` ve B
+    noktalarını birlikte karşılayan oran aralığı. Uygun oran yoksa None döner."""
+    N = np.array([a.reduksiyon for a in adaylar])
+    ts = np.array([a.durma_torku for a in adaylar])
+    n0 = np.array([a.bosta_devir for a in adaylar])
+    c = float(N @ ts / (N @ N))  # orijinden geçen en küçük kareler
+    K = float(np.mean(n0 * N))
+    oran = gerilim / adaylar[0].gerilim
+    izgara = np.linspace(1.0, 150.0, 14901)
+    uygun = np.ones_like(izgara, bool)
+    for k in (anahtar, "nokta_B"):
+        n, tau = gereksinim[k]
+        n0_g = K / izgara * oran
+        uygun &= (c * izgara * oran * np.clip(1 - n / n0_g, 0, None)) >= tau
+    if not uygun.any():
+        return {"c": c, "K": K, "aralik": None}
+    secili = izgara[uygun]
+    return {"c": c, "K": K, "aralik": (float(secili.min()), float(secili.max())),
+            "devir_12V": (K / float(secili.max()), K / float(secili.min()))}
+
+
+def gereken_sf(aday: MotorAdayi, gereksinim: dict, gerilim: float) -> float:
+    """Adayın A noktasında sağladığı emniyet katsayısı (mevcut tork / katsayısız el hesabı)."""
+    n, tau0 = gereksinim["nokta_A0"]
+    return aday.tork(n, gerilim) / tau0
+
+
 def degerlendir(aday: MotorAdayi, gereksinim: dict, gerilimler: dict) -> list[dict]:
     """Adayı gereksinim noktalarına göre batarya min. geriliminde sınar; geçti/kaldı satırları."""
     V = gerilimler["min"]
     n0, ts = aday.egriler(V)
     satirlar = []
     for etiket, (n, tau) in (("A: ±10° toparlanma, el hesabı × SF (önerilen)", gereksinim["nokta_A"]),
+                             ("A₀: ±10° toparlanma, el hesabı, katsayısız", gereksinim["nokta_A0"]),
                              (f"A': çekiş sınırı (asgari; J_m ≤ {_s(gereksinim['J_m_esik'], 1, True)} kg·m² ise)", gereksinim["nokta_A_asgari"]),
                              ("B: seyir + hız payı", gereksinim["nokta_B"])):
         mevcut = aday.tork(n, V)
@@ -262,9 +323,12 @@ def degerlendir(aday: MotorAdayi, gereksinim: dict, gerilimler: dict) -> list[di
                          "aday": f"{_s(aday.J_m, 2, True)} kg·m²", "sonuc": aday.J_m <= gereksinim["J_m_esik"]})
     satirlar.append({"olcut": "Aşırı gerilim (batarya max / nominal)", "gerek": "≤ 1,2 [öneri]",
                      "aday": _s(gerilimler['max'] / aday.gerilim, 2), "sonuc": gerilimler["max"] / aday.gerilim <= 1.2})
-    i_tepe = aday.akim(gereksinim["nokta_A"][1])
-    satirlar.append({"olcut": "Tepe akım, A noktasında (2 motor toplamı)", "gerek": "Mete: sürücü/sigorta boyutu",
-                     "aday": f"{_s(2 * i_tepe, 2)} A (durma: {_s(2 * aday.durma_akimi, 1)} A)", "sonuc": None})
+    i_tepe = aday.akim(min(gereksinim["nokta_A"][1], aday.tork(gereksinim["nokta_A"][0], V)))
+    sigorta = gereksinim.get("sigorta")
+    satirlar.append({"olcut": "Tepe akım, A noktasında (2 motor toplamı)",
+                     "gerek": f"≤ sigorta {_s(sigorta, 1)} A" if sigorta else "Mete: sürücü/sigorta boyutu",
+                     "aday": f"{_s(2 * i_tepe, 2)} A (durma: {_s(2 * aday.durma_akimi, 1)} A)",
+                     "sonuc": (2 * i_tepe <= sigorta) if sigorta else None})
     satirlar.append({"olcut": f"Batarya min. geriliminde ({_s(V, 1)} V) eğri", "gerek": "-",
                      "aday": f"n0 = {n0:.0f} dev/dk, τs = {_s(ts)} N·m", "sonuc": None})
     return satirlar
@@ -275,20 +339,27 @@ def _ana():
 
     ap = argparse.ArgumentParser(description="Motor adayını 3. hafta gereksinimlerine göre değerlendirir.")
     ap.add_argument("--ad", default="Aday")
-    ap.add_argument("--gerilim", type=float, required=True, help="nominal gerilim [V]")
-    ap.add_argument("--bosta-devir", type=float, required=True, help="boşta çıkış devri [dev/dk]")
-    ap.add_argument("--durma-torku", type=float, required=True)
+    ap.add_argument("--dosyadaki-aday", action="store_true", help="parametreler.toml'daki [motor_adayi] kaydını kullan")
+    ap.add_argument("--oran-taramasi", action="store_true", help="[motor_serisi] oranlarını da tara")
+    ap.add_argument("--gerilim", type=float, help="nominal gerilim [V]")
+    ap.add_argument("--bosta-devir", type=float, help="boşta çıkış devri [dev/dk]")
+    ap.add_argument("--durma-torku", type=float)
     ap.add_argument("--tork-birimi", choices=["Nm", "kgcm"], default="kgcm")
-    ap.add_argument("--durma-akimi", type=float, required=True, help="[A]")
+    ap.add_argument("--durma-akimi", type=float, help="[A]")
     ap.add_argument("--bosta-akim", type=float, default=0.0, help="[A]")
     ap.add_argument("--reduksiyon", type=float, default=float("nan"))
     ap.add_argument("--ppr", type=float, default=float("nan"), help="motor milinde enkoder darbe/devir")
     ap.add_argument("--rotor-ataleti", type=float, default=float("nan"), help="motor milinde rotor ataleti [g·cm²]")
     ap.add_argument("--parametreler", default=None, help="parametre dosyası (varsayılan: parametreler.toml)")
     a = ap.parse_args()
-    tau = a.durma_torku * (KGFCM if a.tork_birimi == "kgcm" else 1.0)
-    aday = MotorAdayi(a.ad, a.gerilim, a.bosta_devir, tau, a.durma_akimi, a.bosta_akim, a.reduksiyon, a.ppr, a.rotor_ataleti * 1e-7)
     tasarim = Tasarim.yukle(a.parametreler)
+    if a.dosyadaki_aday:
+        aday = aday_tasarimdan(tasarim)
+    else:
+        if None in (a.gerilim, a.bosta_devir, a.durma_torku, a.durma_akimi):
+            ap.error("--dosyadaki-aday yoksa --gerilim, --bosta-devir, --durma-torku ve --durma-akimi gerekli")
+        tau = a.durma_torku * (KGFCM if a.tork_birimi == "kgcm" else 1.0)
+        aday = MotorAdayi(a.ad, a.gerilim, a.bosta_devir, tau, a.durma_akimi, a.bosta_akim, a.reduksiyon, a.ppr, a.rotor_ataleti * 1e-7)
     gerek = gereksinimleri_hesapla(tasarim)
     gerilimler = tasarim.batarya_gerilimleri()
     print(f"\nMotor adayı: {aday.ad}  (batarya {_s(gerilimler['min'], 1)}–{_s(gerilimler['max'], 1)} V, tüm torklar teker milinde)\n")
@@ -296,7 +367,15 @@ def _ana():
     for s in degerlendir(aday, gerek, gerilimler):
         sonuc = "-" if s["sonuc"] is None else ("GEÇTİ" if s["sonuc"] else "KALDI")
         print(f"| {s['olcut']} | {s['gerek']} | {s['aday']} | {sonuc} |")
-    print("\nNot: gereksinimler tahmini parametrelere dayanır (parametreler.toml).")
+    print(f"\nA noktasında sağlanan emniyet katsayısı: {_s(gereken_sf(aday, gerek, gerilimler['min']), 2)} "
+          f"(hedef {_s(gerek['SF'], 1)})")
+    if a.oran_taramasi:
+        print(f"\nOran taraması (batarya min. gerilimi {_s(gerilimler['min'], 1)} V; tork teker milinde, motor başına):\n")
+        print("| Oran | n0 [dev/dk] | τs [N·m] | τ @ A [N·m] | A (SF) | A₀ | B | Enkoder sayımı |\n|---|---:|---:|---:|---|---|---|---:|")
+        for x in oran_taramasi(seri_adaylari(tasarim), gerek, gerilimler["min"]):
+            e = lambda k: "GEÇTİ" if x[k][1] else "KALDI"
+            print(f"| {x['aday'].ad} | {x['n0']:.0f} | {_s(x['ts'])} | {_s(x['nokta_A'][0])} | {e('nokta_A')} | {e('nokta_A0')} | {e('nokta_B')} | {x['cpr']:.0f} |")
+    print("\nNot: gereksinimler tahmini/site/referans parametrelere dayanır (parametreler.toml).")
 
 
 if __name__ == "__main__":

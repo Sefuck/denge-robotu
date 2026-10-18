@@ -71,7 +71,8 @@ def test_motor_adayi_degerlendirme(tasarim):
     s_guclu = {s["olcut"]: s["sonuc"] for s in motor.degerlendir(guclu, gerek, V)}
     s_zayif = {s["olcut"]: s["sonuc"] for s in motor.degerlendir(zayif, gerek, V)}
     assert all(v for k, v in s_guclu.items() if v is not None)
-    assert not any(v for k, v in s_zayif.items() if v is not None and "gerilim" not in k)
+    # Zayıf motor tork, devir ve enkoder ölçütlerinin hepsinde kalır (gerilim ve sigorta satırları güvenlik kontrolüdür)
+    assert not any(v for k, v in s_zayif.items() if v is not None and "gerilim" not in k and "akım" not in k)
 
 
 def test_veri_sayfasindan_motor_modeli():
@@ -107,3 +108,33 @@ def test_rotor_ataleti_esigi_cekis_sinirina_denk_gelir(tasarim):
 def test_aday_motorun_yansiyan_rotor_ataleti():
     a = motor.MotorAdayi("x", 12.0, 300.0, 0.8, 3.0, 0.2, reduksiyon=30, ppr=11, rotor_ataleti=8e-7)
     assert a.J_m == pytest.approx(8e-7 * 900)
+
+
+def test_dosyadaki_aday_ve_veri_sayfasi_tutarliligi(tasarim):
+    a = motor.aday_tasarimdan(tasarim)
+    assert a.bosta_devir == 530 and a.ppr == 11 and a.reduksiyon == pytest.approx(18.8)
+    assert a.durma_torku == pytest.approx(2.6 * motor.KGFCM, rel=1e-3)
+    assert 4 * a.ppr * a.reduksiyon == pytest.approx(827.2)  # sitedeki "800–850 sayım" notu
+
+
+def test_aday_katsayisiz_gecer_katsayili_kalir(tasarim):
+    """Rapordaki Mete önerisinin dayanağı: boş bataryada 530 RPM adayı A₀'ı geçer, A'yı (SF) geçemez."""
+    g = motor.gereksinimleri_hesapla(tasarim)
+    V = tasarim.batarya_gerilimleri()
+    sonuc = {s["olcut"].split(":")[0]: s["sonuc"] for s in motor.degerlendir(motor.aday_tasarimdan(tasarim), g, V)}
+    assert sonuc["A₀"] and not sonuc["A"] and sonuc["B"]
+    assert 1.0 < motor.gereken_sf(motor.aday_tasarimdan(tasarim), g, V["min"]) < g["SF"]
+
+
+def test_oran_taramasi_fiziksel_olarak_tutarli(tasarim):
+    g = motor.gereksinimleri_hesapla(tasarim)
+    seri = motor.seri_adaylari(tasarim)
+    tarama = motor.oran_taramasi(seri, g, tasarim.batarya_gerilimleri()["min"])
+    n0 = [x["n0"] for x in tarama]
+    ts = [x["ts"] for x in tarama]
+    assert all(np.diff(n0) < 0) and all(np.diff(ts) > 0)  # oran büyüdükçe devir düşer, tork artar
+    # Çok yüksek oran B (seyir) noktasını, çok düşük oran A₀'ı karşılayamaz
+    assert not tarama[-1]["nokta_B"][1] and not tarama[0]["nokta_A0"][1]
+    # Sürekli model: nominal gerilimde uygun aralık 530 RPM'den yüksek oranlara uzanır
+    ara = motor.oran_araligi(seri, g, tasarim.batarya_gerilimleri()["nominal"])
+    assert ara["aralik"] is not None and ara["aralik"][0] < 30 < ara["aralik"][1]
