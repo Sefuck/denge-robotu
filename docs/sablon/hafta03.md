@@ -10,7 +10,7 @@
 
 > **Danışman planındaki teslimat:** "Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı."
 >
-> **Durum:** Motor, teker ve batarya henüz alınmadı. Bu belgedeki **bütün fiziksel parametreler tahminidir** (§2). Her birinin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrolcü tasarlanmadı: kontrol yöntemi 6. haftada seçilecek. Model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir.
+> **Durum:** Motor, teker ve batarya henüz alınmadı; **hiçbir fiziksel parametre ölçülmedi** (§2). Sürüm 0.2'de malzeme seçimleri cdtp-robot.netlify.app sitesinin Malzeme ve Şema bölümlerinden ("site"), motor veri sayfası değerleri rcdrone referans tablosundan ("[doğrulanamadı]") alındı; sitede olmayan değerler tahmini kaldı. Site başka bir gruba aittir ve bağlayıcı değildir. Her değerin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrolcü tasarlanmadı: kontrol yöntemi 6. haftada seçilecek. Model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir.
 
 ## Özet
 
@@ -19,22 +19,23 @@
 | Toplam kütle (kutulu / kutusuz) | @@m_toplam@@ / @@m_toplam_kutusuz@@ kg | §2 |
 | Aks → KM uzaklığı $l$ (kutusuz / kutulu, üst yuva) | @@l0@@ / @@l1@@ mm | §5.2 |
 | Açık çevrim kararsız kutup (kutulu) | +@@p@@ 1/s (zaman sabiti @@tau_zaman@@ ms) | §3.6 |
-| ±10°'den bırakılınca gövdenin yere değmesi (motorlar enerjisiz) | @@t_serbest@@ s (serbest teker) ile @@t_kilitli@@ s (kilitli teker) arası | §3.7 |
+| ±10°'den bırakılınca gövdenin yere değmesi (motorlar enerjisiz) | @@t_hepsi_min@@–@@t_hepsi_max@@ s (serbest/kilitli teker, ileri/geri) | §3.7 |
 | ±10° toparlanma torku, istenen el hesabı (iki motor toplamı) | @@el_toplam@@ N·m | §4.2 |
 | Aynı iş, tam model, $T$ = @@T_ref@@ s referans manevra ($J_m$ = 0 … @@jm_ust@@ kg·m²) | @@tepe_ref@@ … @@tepe_ref_jm_ust@@ N·m | §4.3 |
 | **Önerilen motor gereksinimi** (motor başına, teker milinde, batarya min. geriliminde) | **≥ @@tA@@ N·m (@@tA_kgfcm@@ kgf·cm) @ @@nA@@ dev/dk; boşta devir > @@nB@@ dev/dk** | §4.5 |
 | Enkoder | ≥ @@cpr_min@@ sayım / teker devri (x4 kod çözme sonrası) | §4.6 |
+| **Site adayı @@aday_ad@@** | Katsayısız @@aday_gecer_SFsiz@@, SF = @@SF@@ ile @@aday_gecer_SF@@ (boş bataryada SF @@sf_min@@); öneri: **@@en_iyi_ad@@** (SF @@en_iyi_sf@@) | §4.7 |
 | **Önerilen yuva** | Üst plakada, aksın tam üstünde ($x = y = 0$), kutu yatık ve uzun kenarı yanal; boşluk ≤ @@bosluk@@ mm, duvar ≈ @@duvar@@ mm | §5.5 |
 
 **Öne çıkan bulgular**
 
-1. **El hesabı ($m g l \sin 10° + J_O\ddot\theta$) muhafazakârdır, ama ne kadar muhafazakâr olduğu bilinmeyen motora bağlıdır.** Rotor ataleti ihmal edilirse ($J_m = 0$) tam modelde 10°'de tutma torku $m g l \sin 10°$'nin yalnızca %@@tutma_oran@@'idir, çünkü tekeri ileri iten tork gövdeyi de doğrultur. Ancak teker miline yansıyan rotor ataleti $J_m = J_\text{rotor} N^2$ arttıkça bu etki kaybolur: $J_m$ = @@jm_ust@@ kg·m²'de tutma torku @@tutma_jm_kat@@ katına çıkar ve referans manevra el hesabına yaklaşır. Motor seçilene kadar el hesabı × emniyet katsayısı tasarım değeri olarak tutuldu (§4.3).
+1. **El hesabı ($m g l \sin 10° + J_O\ddot\theta$) muhafazakârdır, ama ne kadar muhafazakâr olduğu bilinmeyen motora bağlıdır.** Rotor ataleti ihmal edilirse ($J_m = 0$) tam modelde 10°'de tutma torku $m g l \sin 10°$'nin yalnızca %@@tutma_oran@@'idir, çünkü tekeri ileri iten tork gövdeyi de doğrultur. Ancak teker miline yansıyan rotor ataleti $J_m = J_\text{rotor} N^2$ arttıkça bu etki kaybolur: $J_m$ = @@jm_ust@@ kg·m²'de tutma torku @@tutma_jm_kat@@ katına çıkar ve referans manevra @@jm_karsilastirma@@. Motor seçilene kadar el hesabı × emniyet katsayısı tasarım değeri olarak tutuldu (§4.3).
 2. **Çekiş sınırı:** Zemine aktarılabilecek en büyük toplam tork ≈ @@cekis@@ N·m'dir (μ = @@mu@@). Önerilen motor gereksinimi bunun üstündedir. Bu, böyle bir motorda tork darboğazı olmayacağı, sınırı zeminin koyacağı anlamına gelir. Kontrolcünün tork doyumu çekiş sınırına göre ayarlanmalıdır [öneri].
 3. **$\sqrt{g/l}$ bu robot için yanıltıcıdır.** Tekerler hafif olduğundan serbest tekerli açık çevrim kutbu KM yüksekliğiyle monoton değişmez: batarya @@bt_z_min@@ → @@bt_z_max@@ cm taşınınca kutup @@bt_p_min@@ … @@bt_p_max@@ 1/s aralığında kalır. $\sqrt{g/l}$ ise @@bt_kok_max@@ → @@bt_kok_min@@ 1/s düşüş öngörür. Buna karşılık 10°'deki statik tork %@@bt_tau_artis@@ artar (§5.4).
 4. **Kutunun dengeye etkisi küçüktür.** Kutu (@@kutu_kutle@@ g, tahmini) toplam kütlenin %@@kutu_orani@@'idir. Üst yuvada kutu eklenince $l$ @@dl_oner@@ mm artar, kutup %@@dp_oner@@ değişir. Bu yüzden aynı kazançlar kutulu ve kutusuz çalışmalıdır. Final testlerinin hepsi kutulu olduğundan kazançlar yine de kutuyla ayarlanmalıdır [öneri] (§5.2).
-5. **Yere değme açısı ±@@temas@@°'dir.** Bu sınırı gövdenin aksın altındaki köşeleri belirler. Toparlanmadaki aşım bu açıya yaklaşırsa iki teker dışında bir parça yere değer ve alt test düşer (şartname §7). Aksın altındaki parçalar teker yarıçapı içinde kalırsa hiç değmez [öneri] (§5.6).
-6. **Pasif kararlılık ön testi tasarım gereği sağlanır.** KM aksın üstünde olduğu sürece robot enerjisizken ±10°'den @@t_serbest@@–@@t_kilitli@@ s içinde düşer, yani 5 s sınırının yaklaşık @@pasif_kat@@ katı payla. KM aksın altına inerse robot pasif kararlı olur ve şartname §4.1 ihlal edilir; bu durum testlerde yakalanır (§3.7).
-7. **Mete'ye uyarı:** 6S Li-ion paket tam doluyken 25,2 V olur ve "ana besleme en fazla 24 V DC" sınırını aşabilir. Sınırın nominal mi tepe değer mi olduğu danışmana sorulmalıdır [doğrulanamadı]. 3S veya 4S güvenlidir (§4.5).
+5. **Yere değme açısı ileri @@temas@@°, geri @@temas_geri@@°'dir.** İleride sınırı @@temas_nokta@@ belirler. Toparlanmadaki aşım bu açıya yaklaşırsa iki teker dışında bir parça yere değer ve alt test düşer (şartname §7). Aksa teker yarıçapından yakın parçalar hiç değmez (motor braketleri böyle) [öneri] (§5.6).
+6. **Pasif kararlılık ön testi tasarım gereği sağlanır.** KM aksın üstünde olduğu sürece robot enerjisizken ±10°'den @@t_hepsi_min@@–@@t_hepsi_max@@ s içinde düşer, yani 5 s sınırının yaklaşık @@pasif_kat@@ katı payla. KM aksın altına inerse robot pasif kararlı olur ve şartname §4.1 ihlal edilir; bu durum testlerde yakalanır (§3.7).
+7. **Site adayı motor (@@aday_ad@@) katsayısız yeterli, SF = @@SF@@ ile değil.** Boş bataryada (@@V_min@@ V) A noktasında @@aday_tauA@@ N·m verir; katsayısız gereksinim @@tA0@@, SF'li @@tA@@ N·m. Sağladığı katsayı @@sf_min@@ (nominal gerilimde @@sf_nom@@). Aynı fiyattaki @@en_iyi_ad@@ varyantı boş bataryada SF @@en_iyi_sf@@ (nominalde @@en_iyi_sf_nom@@) sağlar, enkoder çözünürlüğünü de karşılar. Mete'ye öneri §4.7'de.
 
 ---
 
@@ -60,9 +61,9 @@
 
 ## 2. Parametreler
 
-### 2.1 Robotun fiziksel parametreleri (hepsi tahmini)
+### 2.1 Robotun fiziksel parametreleri (hiçbiri ölçülmedi)
 
-Aşağıdaki @@n_fiziksel@@ parametre `parametreler.toml` dosyasından otomatik alınmıştır. Hiçbiri ölçülmemiştir. Testler, fiziksel bir parametrenin "tahmini" ya da "ölçülmüş" dışında bir durumla girilmesini engeller.
+Aşağıdaki @@n_fiziksel@@ parametre `parametreler.toml` dosyasından otomatik alınmıştır. Durumlar: **site** = cdtp-robot.netlify.app malzeme listesi (başka bir grubun sitesi, bağlayıcı değil), **[doğrulanamadı]** = rcdrone satıcı referans tablosu (ürünle eşleştiği doğrulanamadı), **tahmini** = sitede olmayan, mühendislik tahmini. Testler, fiziksel bir parametrenin bu üçü ve "ölçülmüş" dışında bir durumla girilmesini engeller.
 
 @@tablo_fiziksel@@
 
@@ -253,11 +254,11 @@ $$
 
 ### 3.7 Açık çevrim düşme simülasyonu (±10°)
 
-Robot durağan hâlde ±10°'den bırakılır ve motorlar enerjisizdir ($u = 0$). Redüktörün geri sürülebilirliği motor seçilmeden bilinmediği için iki uç durum simüle edildi: **serbest teker** (redüktör serbest döner) ve **kilitli teker** (redüktör geri sürülemez, robot tek parça yuvarlanır). Simülasyon gövde yere değince durur (yere değme açısı ±@@temas@@°, §5.6).
+Robot durağan hâlde ±10°'den bırakılır ve motorlar enerjisizdir ($u = 0$). Redüktörün geri sürülebilirliği motor seçilmeden bilinmediği için iki uç durum simüle edildi: **serbest teker** (redüktör serbest döner) ve **kilitli teker** (redüktör geri sürülemez, robot tek parça yuvarlanır). Simülasyon gövde yere değince durur (yere değme açısı ileri @@temas@@°, geri @@temas_geri@@°, §5.6).
 
 ![Şekil 3](sekiller/sekil_03_dusme.png)
 
-*Şekil 3: ±10°'den açık çevrim düşme. Kesikli çizgi doğrusal model. Gövde serbest tekerde @@t_serbest@@ s'de, kilitli tekerde @@t_kilitli@@ s'de yere değer. ±10° düşmeler birbirinin aynadaki görüntüsüdür (test edildi).*
+*Şekil 3: ±10°'den açık çevrim düşme. Kesikli çizgi doğrusal model. İleri düşüşte gövde serbest tekerde @@t_serbest@@ s'de, kilitli tekerde @@t_kilitli@@ s'de yere değer; geri düşüş, yere değme açısı farklı olduğu için biraz daha uzun sürer. Dinamik olarak ±10° düşmeler birbirinin aynadaki görüntüsüdür (test edildi).*
 
 | Durum | Yere değme süresi | Aks yer değiştirmesi |
 |---|---:|---:|
@@ -265,7 +266,7 @@ Robot durağan hâlde ±10°'den bırakılır ve motorlar enerjisizdir ($u = 0$)
 | Doğrusal olmayan, kilitli teker | @@t_kilitli3@@ s | @@x_kilitli@@ cm (gövdeyle aynı yöne yuvarlanır) |
 | Doğrusal model ($\theta_0\cosh pt$), serbest teker | @@t_lin@@ s | - |
 
-**4. hafta pasif kararlılık ön testi için öngörü:** Hem serbest hem kilitli teker durumunda robot 5 s sınırının çok altında (@@t_serbest@@–@@t_kilitli@@ s) düşer ve dikliğe hiç yaklaşmaz. Bu sonuç $l > 0$ olduğu sürece geçerlidir. Model, KM aksın altına indirildiğinde ($l < 0$) kararsız kutbun kaybolduğunu ve robotun pasif kararlı hâle geldiğini de gösterir (test: `test_km_aks_altindaysa_robot_pasif_kararli_olur`). Bu yüzden ağır parçaların (batarya) aksın altına taşınmaması gerekir. 4. hafta toplantısında kronometreyle ölçülecek düşme süresi bu öngörüyle karşılaştırılacaktır [öneri].
+**4. hafta pasif kararlılık ön testi için öngörü:** Hem serbest hem kilitli teker durumunda, iki yönde de robot 5 s sınırının çok altında (@@t_hepsi_min@@–@@t_hepsi_max@@ s) düşer ve dikliğe hiç yaklaşmaz. Bu sonuç $l > 0$ olduğu sürece geçerlidir. Model, KM aksın altına indirildiğinde ($l < 0$) kararsız kutbun kaybolduğunu ve robotun pasif kararlı hâle geldiğini de gösterir (test: `test_km_aks_altindaysa_robot_pasif_kararli_olur`). Bu yüzden ağır parçaların (batarya) aksın altına taşınmaması gerekir. 4. hafta toplantısında kronometreyle ölçülecek düşme süresi bu öngörüyle karşılaştırılacaktır [öneri].
 
 Doğrusal model yere değme süresini %@@t_lin_fark@@ kısa öngörür; ±10° civarında iki model örtüşür (Şekil 3), yani bu bölgede doğrusal model kontrol tasarımı için yeterlidir.
 
@@ -357,7 +358,7 @@ Motor torku ve sürtünme teker ile gövde arasında iç kuvvet olduğundan $F$'
 
 @@tablo_jm_tork@@
 
-**Sonuç.** $J_m = 0$'da el hesabı referans manevranın @@el_kat@@ katıdır. $J_m$ = @@jm_ust@@ kg·m²'de ise referans manevra @@tepe_ref_jm_ust@@ N·m ister ve el hesabına yaklaşır. Aynı $J_m$'de $T$ = @@t_r@@ s'lik agresif bir toparlanma @@tepe_agr_jm_ust@@ N·m ister; bu çekiş sınırının üstündedir, yani fiziksel olarak yapılamaz. Motor seçilene kadar **el hesabı × emniyet katsayısı tasarım değeri olarak tutuldu**. Bu değer, referans manevrayı $J_m$'nin bütün tahmini aralığında karşılar. Yüksek redüksiyon oranı $J_m$'yi $N^2$ ile büyüttüğü için redüksiyon seçimi yalnız devir ve tork açısından değil, bu açıdan da değerlendirilmelidir [öneri].
+**Sonuç.** $J_m = 0$'da el hesabı referans manevranın @@el_kat@@ katıdır. $J_m$ = @@jm_ust@@ kg·m²'de ise referans manevra @@tepe_ref_jm_ust@@ N·m ister ve @@jm_karsilastirma@@. Aynı $J_m$'de $T$ = @@t_r@@ s'lik agresif bir toparlanma @@tepe_agr_jm_ust@@ N·m ister; bu çekiş sınırının üstündedir, yani fiziksel olarak yapılamaz. Motor seçilene kadar **el hesabı × emniyet katsayısı tasarım değeri olarak tutuldu**. Emniyet katsayılı değer (@@SF@@ × @@el_toplam@@ N·m), referans manevrayı $J_m$'nin bütün tahmini aralığında @@jm_sf_yeter@@. Yüksek redüksiyon oranı $J_m$'yi $N^2$ ile büyüttüğü için redüksiyon seçimi yalnız devir ve tork açısından değil, bu açıdan da değerlendirilmelidir [öneri].
 
 ### 4.4 Çekiş sınırı
 
@@ -397,7 +398,7 @@ Sınırdaki motorlar (batarya min. geriliminde):
 
 @@tablo_min_motor@@
 
-Batarya seçeneklerinin şartname §4.1 ile uyumu:
+Sitedeki batarya paketinin şartname §4.1 ile uyumu:
 
 @@tablo_batarya@@
 
@@ -438,6 +439,33 @@ Tepe devirde (@@n_max@@ dev/dk) sayım frekansı ≈ @@f_sayim@@ kHz'dir. Bir sa
 2. Sapma açısı iki tekerin farkından $\psi = r(\varphi_R - \varphi_L)/d$ olarak hesaplanır. Fark alındığında $\theta$ terimi sadeleşir.
 3. Kuadratür sayımı için donanım sayacı (STM32 zamanlayıcı enkoder kipi veya ESP32 PCNT gibi) önerilir. Tablodaki frekanslar kesme tabanlı sayım için de düşüktür, ama donanım sayacı işlemci yükünü sıfırlar [öneri].
 
+### 4.7 Site adayı: @@aday_ad@@ (Mete'ye öneri)
+
+Site malzeme listesi motor olarak JGB37-520 12 V 530 RPM, Hall enkoderli modeli seçmiş. Veri sayfası değerleri sitede yok; rcdrone listesindeki referans tablodan alındı ve **[doğrulanamadı]** olarak işaretlendi: oran 1:@@aday_N@@, boşta @@aday_n0@@ dev/dk, durma torku @@aday_ts_kgfcm@@ kgf·cm (@@aday_ts@@ N·m), durma akımı 2,4 A, boşta akım 0,15 A, 12 V'ta. Satıcı bu tabloyu "yalnız referans" diye veriyor. Aday, `python -m denge.motor --dosyadaki-aday --oran-taramasi` ile sınandı. Aday batarya min. geriliminde (@@V_min@@ V, site: "9,9 V boş pil") değerlendirildi; tork ve devir gerilimle orantılı ölçeklendi.
+
+@@tablo_aday@@
+
+A noktasında adayın sağladığı emniyet katsayısı (mevcut tork / katsayısız el hesabı): boş batarya @@sf_min@@, nominal @@sf_nom@@, tam dolu @@sf_max@@.
+
+**Oran taraması.** Aynı motor gövdesinin rcdrone referans serisindeki diğer oranları, boş batarya geriliminde aynı gereksinime karşı sınandı:
+
+@@tablo_oran@@
+
+Seriye uydurulan sürekli model (12 V'ta $\tau_s \approx$ @@fit_c@@ kgf·cm × N, $n_0 \approx$ @@fit_K@@ / N dev/dk) ile A (SF) ve B noktalarını birlikte karşılayan oran aralığı:
+
+- Boş batarya (@@V_min@@ V): @@oran_araligi_min@@.
+- Nominal (@@V_nom@@ V): @@oran_araligi_nom@@.
+
+**Mete'ye öneri [öneri]:**
+
+1. **530 RPM varyantı çalışır ama emniyet payı düşüktür.** ±10° toparlanma torkunu katsayısız karşılar; 2 emniyet katsayısıyla karşılamaz (boş bataryada @@sf_min@@, nominalde @@sf_nom@@). Bu torkla bile teker zeminin aktarabileceği torku (çekiş sınırı @@cekis_motor@@ N·m/motor) aşabildiği için toparlanmayı motor değil zemin sınırlar. Ancak bu, yansıyan rotor ataleti $J_m$ ≤ @@jm_esik_s@@ kg·m² ise geçerlidir ve $J_m$ henüz bilinmiyor. Enkoder 4 × 11 × @@aday_N@@ = @@cpr_aday@@ sayım/teker devri verir; @@cpr_min@@ hedefinin altındadır. Bu varyant alınırsa hız kestirim penceresi en az @@pencere_gerek@@ ms'ye çıkarılmalıdır (yazılımda; 200 Hz'de 3 örnek = 15 ms).
+2. **Tercih: aynı fiyattaki @@en_iyi_ad@@ varyantı.** Boş bataryada A noktasında @@en_iyi_tau@@ N·m verir: SF @@en_iyi_sf@@, yani hedefin %@@en_iyi_eksik@@ altında; nominal gerilimde SF @@en_iyi_sf_nom@@ ile karşılar. Referans serisinde boş bataryada hedefe en yakın oran budur; B noktasında yeterli hız payı bırakır ($n_0$ = @@en_iyi_n0@@ ≥ @@nB@@ dev/dk); enkoder @@en_iyi_cpr@@ sayım ile hedefi karşılar. Site de bu varyantı "daha çok tork" için alternatif olarak göstermektedir.
+3. **Bedeli:** Yansıyan rotor ataleti oranın karesiyle büyür (530 RPM'e göre ×@@en_iyi_oran2@@). $J_m$, kutbu yavaşlatır ama gereken torku artırır (§4.3). Motor gelince ilk iş serbest yavaşlama deneyiyle $J_m$'yi ölçmektir.
+4. **Sürekli yük düşüktür:** Dengede ortalama tork, 10°'deki tutma torkunun bile altındadır (@@tutma_motor@@ N·m/motor). Bu değer iki varyantın en yüksek verim noktası torkunun (530 RPM: @@aday_verim@@, önerilen: @@en_iyi_verim@@ N·m) altındadır. Satıcının "durma torkuna yakın sürekli çalıştırmayın" uyarısı yalnız kısa toparlanma tepelerinde zorlanır.
+5. **Sigorta:** A noktasında iki motorun tepe akımı 5 A sigortanın altında kalır; iki motor aynı anda kilitlenirse durma akımı 2 × 2,4 = 4,8 A ile sınıra yaklaşır (site de "ölç" diyor). Motor gelince teker elle tutulup akım ölçülmelidir.
+
+**Gerilim sürüşünde model.** Referans değerlerden teker milinde $K_t$ = @@Kt@@ N·m/A, $K_e$ = @@Ke@@ V·s/rad, $R$ = @@Ra@@ Ω çıkar [doğrulanamadı]. Sürücü gerilim kontrollü kullanılırsa zıt EMK motor başına $b$ ≈ @@b_emf@@ N·m·s/rad sönüm ekler ve açık çevrim kararsız kutup +@@p@@'den +@@p_gerilim@@ 1/s'ye iner (`model.gerilim_girisli_durum_uzay`).
+
 ## 5. İlaç kutusu yuvası kütle merkezi analizi
 
 ### 5.1 Yöntem
@@ -472,7 +500,7 @@ En ağır taşınabilir bileşen batarya olduğundan KM yüksekliği bataryanın
 
 *Şekil 8: KM yüksekliğinin etkisi. Solda kararsız kutup: tam model (serbest ve kilitli teker) ile noktasal kütle yaklaşımı $\sqrt{g/l}$. Ortada 10°'deki tork, sağda 10°'den yere değme süresi.*
 
-- **Düşme hızı.** Noktasal kütle ve sabit pivot için $p = \sqrt{g/l}$ olur ve KM yükseldikçe düşme yavaşlar. Bu formül modelde doğru sınır olarak çıkar (test: teker ataleti çok büyük ve $I_{yy} \to 0$ iken $p \to \sqrt{g/l}$). Bu robotta ise tekerler hafiftir ve $u = 0$ iken gövde kabaca kendi KM'si etrafında döner. Bu durumda $p \approx \sqrt{m_b g l / I_{yy}}$ olur ve $l$ ile birlikte $I_{yy}$ de değiştiği için kutup @@bt_p_min@@–@@bt_p_max@@ 1/s arasında hemen hemen sabit kalır. Kilitli teker kutbu da benzer biçimde düzdür. **Sonuç: KM'yi yükseltmek bu tasarımda kontrolü belirgin kolaylaştırmaz.**
+- **Düşme hızı.** Noktasal kütle ve sabit pivot için $p = \sqrt{g/l}$ olur ve KM yükseldikçe düşme yavaşlar. Bu formül modelde doğru sınır olarak çıkar (test: teker ataleti çok büyük ve $I_{yy} \to 0$ iken $p \to \sqrt{g/l}$). Bu robotta ise tekerler hafiftir ve $u = 0$ iken gövde kabaca kendi KM'si etrafında döner. Bu durumda $p \approx \sqrt{m_b g l / I_{yy}}$ olur ve $l$ ile birlikte $I_{yy}$ de değiştiği için kutup monoton değişmez, dar bir aralıkta (@@bt_p_min@@–@@bt_p_max@@ 1/s) kalır. Kilitli teker kutbu da benzer biçimde düzdür. **Sonuç: KM'yi yükseltmek bu tasarımda kontrolü belirgin kolaylaştırmaz.**
 - **Tork.** $m_b g l\sin 10°$, $l$ ile doğrusal artar (@@bt_tau_min@@ → @@bt_tau_max@@ N·m, +%@@bt_tau_artis@@). Tam modeldeki tutma torku da aynı yönde, daha az artar.
 - **Düşme süresi.** 10°'den yere değme süresi @@bt_t_min@@–@@bt_t_max@@ ms arasında kalır. Pasif test her yükseklikte sağlanır.
 - **Öneri:** Batarya orta katta tutulmalıdır. Aşağı indirmek torku azaltır ama aksın altına inmemelidir (§3.7, pasif test). Yukarı taşımak kontrol açısından kazanç sağlamadan torku artırır [öneri].
@@ -507,7 +535,7 @@ Bu özdeşlik doğrusal olmayan yörüngede test edildi. Kutu yüksekliği yaln�
 
 @@tablo_temas@@
 
-Toparlanma ±10°'den başlar ve aşım yapabilir. Önerilen alt sınır ≥ @@yere_degme_min@@°'dir [öneri]; tahmini gövdede en küçük açı ±@@temas@@° ile bu sağlanır. Aksın altındaki parçalar (alt plaka, IR/kontak modülü) teker yarıçapı içinde tutulursa sınır büyür. Mete'nin şasi çiziminde ve Ömer Faruk'un kontak yerleşiminde bu açı kontrol edilmelidir.
+Toparlanma ±10°'den başlar ve aşım yapabilir. Önerilen alt sınır ≥ @@yere_degme_min@@°'dir [öneri]; tahmini gövdede en küçük açılar ileri @@temas@@° (@@temas_nokta@@) ve geri @@temas_geri@@° (@@temas_nokta_geri@@) ile bu sağlanır. Alçak ve öne taşan parçalar (IR alıcıları, şarj kontakları) sınırı küçültür. Mete'nin şasi çiziminde ve Ömer Faruk'un kontak yerleşiminde bu açı kontrol edilmelidir.
 
 ## 6. Belirsizlik: hangi tahmin sonucu en çok değiştiriyor?
 
@@ -521,13 +549,13 @@ Aralığı tanımlı her fiziksel parametre, diğerleri nominalde tutularak aral
 
 | Girdi | Kimden | Neden gerekli / hangi sonucu değiştirir | Ne zaman |
 |---|---|---|---|
-| Batarya kimyası ve seri hücre sayısı | Mete Özgen | Gerilim aralığı → motor $n_0$, $\tau_s$ ölçeklemesi (§4.5); 6S'in 24 V sınırı (danışmana sorulmalı) | 3. hafta (Mete'nin BOM'u) |
+| Batarya: site 3S (3 × Orion 18650P) diyor; bizim ekibin seçimi ve BMS kesim gerilimi | Mete Özgen | Gerilim aralığı → motor $n_0$, $\tau_s$ ölçeklemesi (§4.5, §4.7); boş batarya gerilimi aday motorun emniyet payını belirler | 3. hafta (Mete'nin BOM'u) |
 | Batarya kütlesi ve boyutu | Mete Özgen | KM ve $I_{yy}$ (§5); duyarlılık tablosunda @@sira_batarya@@. sırada (§6) | 3. hafta |
 | Yerleşim: kat yükseklikleri, bataryanın ve elektroniğin konumu, şasi malzemesi ve zarf ölçüleri | Mete Özgen | KM yüksekliği (§5.4); yere değme açısı (§5.6); pasif test için KM aksın üstünde olmalı | 3.–4. hafta |
-| Motor adayı veri sayfası: nominal gerilim, boşta devir/akım, durma torku/akımı, redüksiyon, enkoder PPR, kütle, varsa rotor ataleti | Mete Özgen | A/A'/B noktaları, enkoder, $J_m$ (§4.5, §4.6, §3.8); `python -m denge.motor` ile sınanacak | 3. hafta |
+| Motor kararı: 530 RPM mı 333 RPM mi (§4.7 öneri); satıcının veri sayfası (oran, durma torku/akımı, varsa rotor ataleti) | Mete Özgen | Şu anki değerler rcdrone referansı [doğrulanamadı]; A/A'/B noktaları, enkoder, $J_m$ | 3. hafta |
 | Motor sürücüsü: sürekli/tepe akım, akım sınırı, enerjisizken serbest mi frenli mi | Mete Özgen | Tork sınırı; pasif testte serbest/kilitli teker durumu (§3.7) | 3.–4. hafta |
-| Ana hat sigortası değeri | Mete Özgen | A noktasındaki iki motor tepe akımı ile durma akımı arasında seçilmeli [öneri] | 3.–4. hafta |
-| Teker çapı, kütlesi ve iz genişliği | Mete Özgen | Devir (∝ 1/r), çekiş sınırı, enkoder CPR (∝ r), sapma modeli | 3. hafta |
+| Ana hat sigortası: site 5 A diyor | Mete Özgen | A noktasındaki tepe akım sigortanın altında; iki motor kilitlenmesi (4,8 A) sınırda, ölçülmeli | 4. hafta |
+| Teker: site 65 mm diyor; teker kütlesi ve iz genişliği | Mete Özgen | Devir (∝ 1/r), çekiş sınırı, enkoder CPR (∝ r), sapma modeli | 3. hafta |
 | Kutu yuvası iç ölçüsü, boşluk, duvar yüksekliği, kütlesi | Mete Özgen | §5.3 ve §5.5; yuva üretimi 4. hafta, iyileştirme 9. hafta | 4. hafta |
 | IR alıcı + şarj kontağı modülünün kütlesi, konumu (ön/arka) ve yüksekliği | Ömer Faruk Arslan | Trim açısı (şu an @@trim@@°), yere değme açısı (§5.6) | 3.–4. hafta |
 | İlaç kutusunun seçimi: ölçü ve kütle | Ekip | Yuva boyutu; kutu kütlesi duyarlılık tablosunda @@sira_kutu@@. sırada (§6) | 4. hafta öncesi |
@@ -546,7 +574,7 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 | Model doğru türetildi | Sembolik türetim = el ile yazılan denklemler; doğrusallaştırma = doğrusal olmayan modelin sayısal Jakobiyeni; $u = 0$, $b = 0$'da toplam enerji korunur (bağıl sapma < 10⁻⁸); ±10° simetrisi; küçük açıda doğrusal ve doğrusal olmayan model örtüşür | `test_model.py`, `test_simulasyon.py` |
 | Birimler | Formüller `pint` ile birimli büyüklüklerle yeniden hesaplanır; boyut ve değer karşılaştırılır ($p^2$ [1/s²], $K_\theta$ [1/(kg·m²)], torklar [N·m], devir, kgf·cm dönüşümü, enkoder) | `test_birimler.py` |
 | Parametre değişince sonuçlar mantıklı değişiyor | Bütün kütleler ×2 → KM ve kutup aynı, torklar ×2; $g$ ×4 → kutup ×2; sabit pivot + noktasal kütle → $\sqrt{g/l}$; batarya yukarı → $l$ ve statik tork artar; $r$ büyür → devir ∝ 1/r, CPR ∝ r; süre yarıya → devir ×2; $t_r$ yarıya → dinamik pay ×4; SF → tork doğrusal; $J_m$, $b$ artar → kutup yavaşlar; kutu ağırlaşır → Δl artar; kayma δ → trim doğrusal | `test_duyarlilik.py` |
-| Şartname kısıtları | Pasif test: ±10°'den 5 s içinde dikleşmez; KM aksın altına inerse ihlal yakalanır; batarya ≤ 24 V (6S uyarısı) | `test_simulasyon.py`, `test_parametreler.py` |
+| Şartname kısıtları | Pasif test: ±10°'den 5 s içinde dikleşmez; KM aksın altına inerse ihlal yakalanır; batarya ≤ 24 V | `test_simulasyon.py`, `test_parametreler.py` |
 | Parametre dosyasının bütünlüğü | Her parametrede birim/durum/kaynak var; fiziksel parametrelerin hepsi "tahmini"; hatalı dosya reddedilir | `test_parametreler.py` |
 | Motor hesapları | Tutma torku doğrusal olmayan modelde $\ddot\theta = 0$ verir; tutma ≤ referans manevra ≤ el hesabı; uzun manevrada tepe tork → tutma torku; sınır motor eğrisi noktalara teğet | `test_motor.py` |
 
@@ -556,8 +584,8 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 
 **Sonraki adımlar.**
 
-1. **4. hafta (Mete ile):** Şasi ve motorlar takılınca bileşenleri tartıp `parametreler.toml`'u güncellemek, belgeyi yeniden üretmek. Pasif kararlılık ön testinde düşme süresini (öngörü @@t_serbest@@–@@t_kilitli@@ s) video ve kronometreyle ölçmek. IMU'yu şasiye monte etmek.
-2. **Motor gelince:** Serbest yavaşlama deneyiyle $J_m$ ve $b$'yi tanılamak; durma torkunu ve boşta devri batarya geriliminde ölçmek.
+1. **4. hafta (Mete ile):** Şasi ve motorlar takılınca bileşenleri tartıp `parametreler.toml`'u güncellemek, belgeyi yeniden üretmek. Pasif kararlılık ön testinde düşme süresini (öngörü @@t_hepsi_min@@–@@t_hepsi_max@@ s) video ve kronometreyle ölçmek. IMU'yu şasiye monte etmek.
+2. **Motor gelince:** Serbest yavaşlama deneyiyle $J_m$ ve $b$'yi tanılamak; durma torkunu, durma akımını ve boşta devri batarya geriliminde ölçüp rcdrone referans değerlerinin ([doğrulanamadı]) yerine koymak.
 3. **5. hafta:** Kalman veya tamamlayıcı filtre. Enkoder bağıl açı düzeltmesi $x = r(\varphi_\text{enk} + \theta)$ ve trim kalibrasyonu da buraya eklenecek.
 4. **6. hafta:** Kontrol yöntemi seçimi (PID, LQR veya MPC). Bu belgedeki $(A, B, C, D)$, $G_\theta$, $G_x$ ve $(A_d, B_d)$ doğrudan kullanılır. Tork doyumu çekiş sınırına göre ayarlanır.
 
@@ -584,4 +612,6 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 1. Danışman ekip iş planı (`Danisman_Is_Plani.pdf`): Sefa Nurali Uçak 3. hafta görevi; 3. hafta toplantı teslimatı; haftalık bireysel değerlendirme rubriği; ortak kontrol noktaları.
 2. YTÜ EEF ÇDTP, *İki Tekerlekli Ev İçi Hasta Destek Robotu, Güncel Proje Teknik Şartnamesi*, TR v14, 24 Eylül 2026: §4.1, §4.2, §5.2, §5.3, §7, §8.
-3. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).
+3. cdtp-robot.netlify.app, *ÇDTP · Hasta Destek Robotu Proje Ortamı*, Malzeme ve Şema bölümleri (18 Ekim 2026'da okundu). Başka bir grubun sitesidir; bağlayıcı değildir, yalnız malzeme seçimi kaynağı olarak kullanıldı.
+4. rcdrone.top, *JGB37-520 DC Gear Motor with Hall Encoder*, "12V — 10000RPM Before Reduction (Reference Only)" tablosu (18 Ekim 2026'da okundu). Satıcı tabloyu yalnız referans olarak verir; değerler [doğrulanamadı].
+5. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).

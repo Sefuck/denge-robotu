@@ -8,8 +8,10 @@ Sefa Nurali Uçak (23015008): robot dinamiği, durum kestirimi, denge/hareket ko
 **[docs/hafta03_model_tork_km.md](docs/hafta03_model_tork_km.md)**: ters sarkaç matematiksel modeli,
 motor tork/devir hesapları ve ilaç kutusu yuvasının kütle merkezi analizi.
 
-Motor, teker ve batarya henüz alınmadı. Bütün fiziksel parametreler **tahminidir** ve tek dosyada,
-kaynaklarıyla birlikte tutulur: [`parametreler.toml`](parametreler.toml).
+Motor, teker ve batarya henüz alınmadı; hiçbir fiziksel parametre ölçülmedi. Bütün parametreler tek dosyada,
+kaynaklarıyla birlikte tutulur: [`parametreler.toml`](parametreler.toml). Durumlar: `site` (cdtp-robot.netlify.app
+malzeme listesi; başka bir grubun sitesi, bağlayıcı değil), `doğrulanamadı` (rcdrone motor referans tablosu),
+`tahmini` (sitede olmayan değerler).
 
 ## Kurulum
 
@@ -23,8 +25,9 @@ python3 -m venv .venv
 ```
 .venv/bin/python -m denge              # şekilleri ve dokümanı parametre dosyasından yeniden üretir (+ test özeti)
 .venv/bin/python -m pytest -q          # doğrulama testleri
+.venv/bin/python -m denge.motor --dosyadaki-aday --oran-taramasi   # site adayı (JGB37-520 530 RPM) + oran taraması
 .venv/bin/python -m denge.motor --gerilim 12 --bosta-devir 300 --durma-torku 8 \
-    --durma-akimi 3 --bosta-akim 0.2 --reduksiyon 30 --ppr 11   # aday motoru gereksinimlere göre sınar
+    --durma-akimi 3 --bosta-akim 0.2 --reduksiyon 30 --ppr 11   # başka bir adayı veri sayfası değerleriyle sınar
 ```
 
 Parça gelince: `parametreler.toml` içindeki değeri ölçülmüş değerle değiştir, `durum = "ölçülmüş"` yap,

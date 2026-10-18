@@ -27,7 +27,8 @@ SABLON = DOCS / "sablon" / "hafta03.md"
 CIKTI = DOCS / "hafta03_model_tork_km.md"
 
 KGFCM = motor.KGFCM
-DURUM_ETIKETI = {"tahmini": "tahmini", "ölçülmüş": "ölçülmüş", "şartname": "şartname", "öneri": "[öneri]", "sabit": "sabit"}
+DURUM_ETIKETI = {"tahmini": "tahmini", "site": "site", "doğrulanamadı": "[doğrulanamadı]", "ölçülmüş": "ölçülmüş",
+                 "şartname": "şartname", "öneri": "[öneri]", "sabit": "sabit"}
 
 
 # ---------------------------------------------------------------------------
@@ -233,13 +234,19 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
         y = sim.dogrusal_serbest_yanit(A, [0, 0, i * th0, 0], t)
         maske = np.abs(y[:, 2]) <= temas["ileri"] * 1.3
         dogrusal[i] = {"t": t[maske], "theta": y[maske, 2]}
-    sekiller.dusme(SEKIL / "sekil_03_dusme.png", serbest, kilitli, dogrusal, math.degrees(temas["ileri"]), tasarim.d("sartname.pasif_test_suresi"))
+    sekiller.dusme(SEKIL / "sekil_03_dusme.png", serbest, kilitli, dogrusal, (math.degrees(temas["ileri"]), math.degrees(temas["geri"])),
+                   tasarim.d("sartname.pasif_test_suresi"))
+    D["temas_geri"] = s(math.degrees(temas["geri"]), 1)
+    D["temas_nokta"] = min(temas["noktalar"], key=lambda x: x[1])[0]
+    D["temas_nokta_geri"] = min(temas["noktalar"], key=lambda x: x[2])[0]
     t_lin = sim.esige_ulasma_suresi(th0, temas["ileri"], math.sqrt(tf["p2"]))
     D |= {
         "temas": s(math.degrees(temas["ileri"]), 1), "t_serbest": s(serbest[1]["t_degme"]), "t_kilitli": s(kilitli[1]["t_degme"]),
         "x_serbest": s(100 * abs(serbest[1]["x"][-1]), 1), "x_kilitli": s(100 * abs(kilitli[1]["x"][-1]), 1),
         "t_lin": s(t_lin, 3), "t_serbest3": s(serbest[1]["t_degme"], 3), "t_lin_fark": s(100 * (1 - t_lin / serbest[1]["t_degme"]), 0), "t_kilitli3": s(kilitli[1]["t_degme"], 3),
-        "pasif_kat": s(tasarim.d("sartname.pasif_test_suresi") / kilitli[1]["t_degme"], 0),
+        "pasif_kat": s(tasarim.d("sartname.pasif_test_suresi") / max(kilitli[i]["t_degme"] for i in (1, -1)), 0),
+        "t_hepsi_min": s(min(x[i]["t_degme"] for x in (serbest, kilitli) for i in (1, -1))),
+        "t_hepsi_max": s(max(x[i]["t_degme"] for x in (serbest, kilitli) for i in (1, -1))),
     }
     D["tablo_temas"] = tablo(
         ["Gövde noktası", "İleri eğimde yere değme", "Geri eğimde yere değme"],
@@ -284,6 +291,8 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
         "jm_ust": s(jt[-1]["J_m"], 4), "tutma_jm_ust": s(jt[-1]["tutma"], 3), "tepe_ref_jm_ust": s(jt[-1]["tepe_ref"], 3),
         "tepe_agr_jm_ust": s(jt[-1]["tepe_agresif"], 3), "jm_esik": m(g["J_m_esik"], 2), "jm_esik_s": s(g["J_m_esik"], 4),
         "tutma_jm_kat": s(jt[-1]["tutma"] / jt[0]["tutma"], 1),
+        "jm_karsilastirma": "el hesabını aşar" if jt[-1]["tepe_ref"] > el["toplam"] else "el hesabına yaklaşır",
+        "jm_sf_yeter": "karşılar" if jt[-1]["tepe_ref"] <= SF * el["toplam"] else "karşılamaz",
         "v_ref": s(g["v_ref"], 2), "x_f": s(100 * ref["x_f"], 0), "th_min_ref": s(abs(math.degrees(ref["theta"].min())), 1),
         "xd_son": s(1000 * abs(ref["dogrusal_olmayan"]["xd"][-1]), 1),
         "cekis": s(g["cekis_toplam"], 3), "cekis_motor": s(g["cekis_toplam"] / 2, 3), "mu": s(tasarim.d("zemin.surtunme"), 1),
@@ -312,11 +321,12 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
         ts_a = float(motor.min_durma_torku(n0, [g["nokta_A_asgari"], g["nokta_B"]])[0])
         ornek.append([s(n0, 0), s(ts_o, 3), s(ts_o / KGFCM, 1), s(ts_a, 3), s(ts_a / KGFCM, 1)])
     D["tablo_min_motor"] = tablo(["Boşta devir $n_0$ [dev/dk]", "Önerilen $\\tau_s$ [N·m]", "[kgf·cm]", "Asgari $\\tau_s$ [N·m]", "[kgf·cm]"], ornek)
-    hucre = []
-    for n_s in (3, 4, 6):
-        v = tasarim.degistir({"batarya.seri_hucre": n_s}).batarya_gerilimleri()
-        hucre.append([f"{n_s}S Li-ion", s(v["min"], 1), s(v["nominal"], 1), s(v["max"], 1), "uygun" if v["max"] <= 24 else "**tam doluyken 24 V'u aşar** [doğrulanamadı: danışmana sorulmalı]"])
-    D["tablo_batarya"] = tablo(["Paket", "Boşalmış [V]", "Nominal [V]", "Tam dolu [V]", "Şartname §4.1 (≤ 24 V DC)"], hucre, ["l", "r", "r", "r", "l"])
+    D["tablo_batarya"] = tablo(
+        ["Paket", "Boş [V]", "Nominal [V]", "Tam dolu [V]", "Şartname §4.1 (≤ 24 V DC)"],
+        [[f"{tasarim.d('batarya.seri_hucre')}S Li-ion (site)", s(V["min"], 1), s(V["nominal"], 1), s(V["max"], 1),
+          "uygun" if V["max"] <= tasarim.d("sartname.max_gerilim") else "**aşıyor**"]],
+        ["l", "r", "r", "r", "l"],
+    )
     e = g["enkoder"]
     pencere = tasarim.d("hedef.hiz_kestirim_penceresi")
     D |= {"cpr_min": s(e["cpr_min"], 0), "ds_max": s(1000 * e["ds_max"], 2), "dv_hedef": s(tasarim.d("hedef.hiz_cozunurlugu"), 2),
@@ -336,6 +346,62 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
           "ot_rpm": s(motor.rpm(float(np.max(ot["dogrusal_olmayan"]["xd"])), p.r), 0), "ot_th": s(math.degrees(np.max(np.abs(ot["theta"]))), 1),
           "ot_tork": s(float(np.max(np.abs(ot["dogrusal_olmayan"]["u"]))), 3), "o1_sure": s(tasarim.d("hedef.o1_sure"), 0),
           "v_tr": s(v_tr, 3), "ot_oran": s(float(np.max(ot["dogrusal_olmayan"]["xd"])) / v_tr, 2)}
+
+    # -- Aday motor (site: JGB37-520 530 RPM; veri sayfası rcdrone [doğrulanamadı]) --
+    aday = motor.aday_tasarimdan(tasarim)
+    seri = motor.seri_adaylari(tasarim)
+    deg = motor.degerlendir(aday, g, V)
+    sonuc_metni = lambda x: "-" if x is None else ("**GEÇTİ**" if x else "**KALDI**")
+    D["tablo_aday"] = tablo(["Ölçüt", "Gereksinim", "Aday (batarya min. gerilimi)", "Sonuç"],
+                            [[x["olcut"], x["gerek"], x["aday"], sonuc_metni(x["sonuc"])] for x in deg], ["l", "l", "l", "c"])
+    sf = {k: motor.gereken_sf(aday, g, V[k]) for k in ("min", "nominal", "max")}
+    tarama_seri = motor.oran_taramasi(seri, g, V["min"])
+    D["tablo_oran"] = tablo(
+        ["Oran (12 V boşta devir)", "$n_0$ @ min. gerilim", "$\\tau_s$ @ min. gerilim [N·m]", "Tork @ A [N·m]", "Sağlanan SF", "A (SF)", "A₀", "B", "Enkoder [sayım]"],
+        [[x["aday"].ad.replace(".", ","), f"{x['n0']:.0f}", s(x["ts"], 3), s(x["nokta_A"][0], 3), s(x["nokta_A"][0] / g["nokta_A0"][1], 2),
+          sonuc_metni(x["nokta_A"][1]), sonuc_metni(x["nokta_A0"][1]), sonuc_metni(x["nokta_B"][1]), f"{x['cpr']:.0f}"] for x in tarama_seri],
+        ["l", "r", "r", "r", "r", "c", "c", "c", "r"],
+    )
+    gecen_B = [x for x in tarama_seri if x["nokta_B"][1]]
+    en_iyi = max(gecen_B, key=lambda x: x["nokta_A"][0])
+    ara_min = motor.oran_araligi(seri, g, V["min"])
+    ara_nom = motor.oran_araligi(seri, g, V["nominal"])
+    aday_N = aday.reduksiyon
+    cpr_aday = 4 * aday.ppr * aday.reduksiyon
+    pencere_gerek = 2 * math.pi * p.r / (tasarim.d("hedef.hiz_cozunurlugu") * cpr_aday)
+    mm = aday.motor_modeli()
+    b_emf = mm.K_t * mm.K_e / mm.R
+    A_V, *_ = model.gerilim_girisli_durum_uzay(p, mm)
+    D |= {
+        "aday_ad": aday.ad, "aday_N": s(aday_N, 1), "aday_n0": s(aday.bosta_devir, 0), "aday_ts": s(aday.durma_torku, 3),
+        "aday_ts_kgfcm": s(aday.durma_torku / KGFCM, 1), "aday_tauA": s(aday.tork(nA, V["min"]), 3),
+        "sf_min": s(sf["min"], 2), "sf_nom": s(sf["nominal"], 2), "sf_max": s(sf["max"], 2), "tA0": s(g["nokta_A0"][1], 3),
+        "aday_gecer_SF": "karşılıyor" if sf["min"] >= SF else "karşılamıyor",
+        "aday_gecer_SFsiz": "karşılıyor" if sf["min"] >= 1 else "karşılamıyor",
+        "en_iyi_ad": en_iyi["aday"].ad.replace(".", ","), "en_iyi_tau": s(en_iyi["nokta_A"][0], 3),
+        "en_iyi_sf": s(en_iyi["nokta_A"][0] / g["nokta_A0"][1], 2), "en_iyi_n0": s(en_iyi["n0"], 0),
+        "en_iyi_cpr": f"{en_iyi['cpr']:.0f}", "en_iyi_oran2": s((en_iyi["aday"].reduksiyon / aday_N) ** 2, 1),
+        "en_iyi_sf_nom": s(motor.gereken_sf(en_iyi["aday"], g, V["nominal"]), 2),
+        "en_iyi_eksik": s(100 * (1 - en_iyi["nokta_A"][0] / g["nokta_A"][1]), 0),
+        "cpr_aday": f"{cpr_aday:.0f}", "pencere_gerek": s(1000 * pencere_gerek, 1),
+        "Kt": s(mm.K_t, 3), "Ke": s(mm.K_e, 3), "Ra": s(mm.R, 1), "b_emf": s(b_emf, 4),
+        "p_gerilim": s(float(np.max(np.linalg.eigvals(A_V).real)), 2),
+        "fit_c": s(ara_min["c"] / KGFCM, 3), "fit_K": s(ara_min["K"], 0),
+    }
+    oran_min = V["min"] / aday.gerilim
+    N_yildiz = ara_min["K"] * oran_min / (2 * nA)  # A devrinde torku en büyük yapan oran
+    sf_tavan = ara_min["c"] * oran_min * N_yildiz / 2 / g["nokta_A0"][1]
+    D |= {"N_yildiz": s(N_yildiz, 0), "sf_tavan": s(sf_tavan, 2), "tutma_motor": s(g["tutma_tam"] / 2, 3),
+          "aday_verim": s(tasarim.d("motor_adayi.verim_torku"), 3),
+          "en_iyi_verim": s(tasarim.d("motor_serisi.verim_torku_kgfcm")[list(tasarim.d("motor_serisi.reduksiyon")).index(en_iyi["aday"].reduksiyon)] * KGFCM, 3)}
+    if ara_min["aralik"]:
+        D["oran_araligi_min"] = (f"≈ 1:{ara_min['aralik'][0]:.0f} – 1:{ara_min['aralik'][1]:.0f} "
+                                 f"(12 V'ta ≈ {ara_min['devir_12V'][0]:.0f}–{ara_min['devir_12V'][1]:.0f} dev/dk)")
+    else:
+        D["oran_araligi_min"] = (f"bulunamadı: bu motor gövdesiyle hiçbir oran boş bataryada SF = {s(SF, 1)} değerini sağlamıyor; "
+                                 f"en iyisi ≈ 1:{N_yildiz:.0f} oranında SF ≈ {s(sf_tavan, 2)}")
+    D["oran_araligi_nom"] = (f"≈ 1:{ara_nom['aralik'][0]:.0f} – 1:{ara_nom['aralik'][1]:.0f} (12 V'ta ≈ {ara_nom['devir_12V'][0]:.0f}–{ara_nom['devir_12V'][1]:.0f} dev/dk)"
+                             if ara_nom["aralik"] else "bulunamadı")
 
     # -- Kütle merkezi ve yuva --------------------------------------------------
     ka = yuva_analizi.com_karsilastirma(tasarim)

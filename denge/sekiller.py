@@ -127,12 +127,14 @@ def yerlesim(yol, tasarim, yuva_secenekleri: dict, km_kutusuz, km_kutulu, z_cp):
     for ad, z in yuva_secenekleri.items():
         ax1.plot([-0.11, -0.085], [z, z], color=TURUNCU if ad == tasarim.d("yuk.yuva.onerilen") else SOLUK, lw=1.4)
         ax1.text(-0.112, z, {"ust": "üst", "orta": "orta", "alt": "alt"}[ad], ha="right", va="center", fontsize=7.5, color=IKINCIL)
-    ax1.text(-0.0975, 0.305, "yuva\nseçenekleri", ha="center", fontsize=7.5, color=SOLUK)
+    z_ust = max(yuva_secenekleri.values())
+    ax1.text(-0.0975, z_ust + 0.03, "yuva\nseçenekleri", ha="center", fontsize=7.5, color=SOLUK)
     ax1.set_xlim(-0.14, 0.24)
-    ax1.set_ylim(-0.05, 0.33)
+    ax1.set_ylim(-0.05, max(z1, z_ust) + 0.09)
     ax1.legend(loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=3, fontsize=7.5)
     ax1.annotate(f"KM\nkutusuz {sayi(1000 * km_kutusuz[2], 0)} mm\nkutulu {sayi(1000 * km_kutulu[2], 0)} mm",
-                 xy=(km_kutulu[0] - 0.006, km_kutulu[2]), xytext=(-0.138, 0.12), fontsize=7.5, color=IKINCIL, va="center",
+                 xy=(km_kutulu[0] - 0.006, km_kutulu[2]), xytext=(-0.138, (min(yuva_secenekleri.values()) + sorted(yuva_secenekleri.values())[1]) / 2),
+                 fontsize=7.5, color=IKINCIL, va="center",
                  arrowprops=dict(arrowstyle="-", color=EKSEN, lw=0.6))
     ax1.set_title("Yan görünüş (x–z)")
 
@@ -151,7 +153,7 @@ def yerlesim(yol, tasarim, yuva_secenekleri: dict, km_kutusuz, km_kutulu, z_cp):
     ax2.text(-d / 2, r + 0.008, "teker", ha="center", fontsize=7.5, color=IKINCIL)
     ax2.text(d / 2, r + 0.008, "teker", ha="center", fontsize=7.5, color=IKINCIL)
     ax2.set_xlim(-0.16, 0.16)
-    ax2.set_ylim(-0.08, 0.33)
+    ax2.set_ylim(-0.08, max(z1, z_ust) + 0.09)
     ax2.set_title("Ön görünüş (y–z)")
     _eksenler(ax1, ax2)
     fig.tight_layout()
@@ -188,8 +190,9 @@ def kutup_haritasi(yol, kutuplar_nominal, kutuplar_Jm, sifirlar_x, Jm_deger, kut
     _kaydet(fig, yol)
 
 
-def dusme(yol, serbest: dict, kilitli: dict, dogrusal: dict, temas_derece: float, pasif_sure: float):
-    """Şekil 3: ±10°'den açık çevrim düşme (θ ve x)."""
+def dusme(yol, serbest: dict, kilitli: dict, dogrusal: dict, temas_derece: tuple[float, float], pasif_sure: float):
+    """Şekil 3: ±10°'den açık çevrim düşme (θ ve x). temas_derece = (ileri, geri) yere değme açıları."""
+    ileri, geri = temas_derece
     stil()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.0, 3.4))
     for isaret in (+1, -1):
@@ -204,20 +207,22 @@ def dusme(yol, serbest: dict, kilitli: dict, dogrusal: dict, temas_derece: float
         ax2.plot(k["t"], 100 * k["x"], color=TURUNCU, label=ek + "Kilitli teker")
         for sim_ in (s, k):
             ax2.text(sim_["t"][-1] + 0.006, 100 * sim_["x"][-1], f"θ₀ = {'+' if isaret > 0 else '−'}10°", va="center", fontsize=7.5, color=IKINCIL)
-    for isaret in (+1, -1):
-        ax1.axhline(isaret * temas_derece, color=SOLUK, lw=0.8)
-    ax1.text(0.005, temas_derece + 2, f"gövde yere değer (±{sayi(temas_derece, 1)}°)", fontsize=7.5, color=IKINCIL)
-    ts, tk = serbest[1]["t"][-1], kilitli[1]["t"][-1]
-    ax1.text(ts + 0.01, -temas_derece + 4, f"{sayi(ts)} s", fontsize=8, color=MUREKKEP)
-    ax1.text(tk + 0.01, -temas_derece + 4, f"{sayi(tk)} s", fontsize=8, color=MUREKKEP)
-    ax1.set_xlim(0, tk * 1.25)
-    ax1.set_ylim(-temas_derece * 1.35, temas_derece * 1.35)
+    ax1.axhline(ileri, color=SOLUK, lw=0.8)
+    ax1.axhline(-geri, color=SOLUK, lw=0.8)
+    ax1.text(0.005, ileri + 2, f"gövde yere değer (ileri {sayi(ileri, 1)}°)", fontsize=7.5, color=IKINCIL)
+    ax1.text(0.005, -geri - 2, f"gövde yere değer (geri {sayi(geri, 1)}°)", fontsize=7.5, color=IKINCIL, va="top")
+    tk = max(kilitli[1]["t"][-1], kilitli[-1]["t"][-1])
+    for isaret, aci in ((1, ileri), (-1, -geri)):
+        for sim_ in (serbest[isaret], kilitli[isaret]):
+            ax1.text(sim_["t"][-1] + 0.008, aci - isaret * 5, f"{sayi(sim_['t'][-1])} s", fontsize=8, color=MUREKKEP, va="center")
+    ax1.set_xlim(0, tk * 1.3)
+    ax1.set_ylim(-geri * 1.25, ileri * 1.25)
     ax1.set_xlabel("t [s]")
     ax1.set_ylabel("θ [°]")
     ax1.set_title("Gövde eğimi: ±10°'den bırakma, motorlar enerjisiz")
     ax1.legend(loc="center right", fontsize=7)
-    ax1.text(tk * 1.23, temas_derece * 1.25, f"pasif test sınırı: {sayi(pasif_sure, 0)} s", ha="right", fontsize=7.5, color=SOLUK)
-    ax2.set_xlim(0, tk * 1.25)
+    ax1.text(tk * 1.28, ileri * 1.2, f"pasif test sınırı: {sayi(pasif_sure, 0)} s", ha="right", fontsize=7.5, color=SOLUK)
+    ax2.set_xlim(0, tk * 1.3)
     ax2.set_xlabel("t [s]")
     ax2.set_ylabel("Aks konumu x [cm]")
     ax2.set_title("Aks konumu: serbest teker gövdenin tersine kaçar")
