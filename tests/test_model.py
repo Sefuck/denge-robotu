@@ -2,7 +2,6 @@ import math
 
 import numpy as np
 import pytest
-import sympy as sp
 
 from denge import model
 
@@ -10,7 +9,7 @@ from denge import model
 def test_sembolik_turetim_el_ile_yazilan_denklemlerle_ayni():
     D = model.turet()
     for turetilen, el in zip(D["denklemler"], model.el_ile_yazilmis_denklemler()):
-        assert sp.simplify(sp.expand(turetilen - el)) == 0
+        assert model.sadelestir(turetilen - el, D["theta"]) == 0
 
 
 @pytest.mark.parametrize("durum", ["p", "p_kutusuz"])

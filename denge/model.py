@@ -50,6 +50,15 @@ DURUM_ADLARI = ("x", "v", "theta", "theta_d", "psi", "psi_d")
 # ---------------------------------------------------------------------------
 # Sembolik türetim
 # ---------------------------------------------------------------------------
+def sadelestir(ifade, *acilar):
+    """Açar ve sin²a → 1 − cos²a yazar. sp.simplify'ın aksine süresi Python hash
+    tohumuna (PYTHONHASHSEED) bağlı değildir; simplify bazı tohumlarda dakikalarca sürüyordu."""
+    ifade = sp.expand(ifade)
+    for a in acilar:
+        ifade = sp.expand(ifade.subs(sp.sin(a) ** 2, 1 - sp.cos(a) ** 2))
+    return ifade
+
+
 @lru_cache(maxsize=None)
 def turet() -> dict:
     """Doğrusal olmayan hareket denklemlerini sembolik olarak türetir.
@@ -104,7 +113,7 @@ def turet() -> dict:
     )
     sym = dict(zip(("v", "w", "theta", "theta_d", "v_d", "w_d", "theta_dd"), sp.symbols("v w theta theta_d v_d w_d theta_dd", real=True)))
 
-    def sadelestir(ifadeler, S_kisit, nu):
+    def izdusur(ifadeler, S_kisit, nu):
         qd_k = S_kisit * nu
         qdd_k = qd_k.diff(t)
         ikinci = {sp.diff(q[i], t, 2): qdd_k[i] for i in (0, 1, 2, 4, 5)}
@@ -115,12 +124,15 @@ def turet() -> dict:
     def duzlestir(e):
         e = e.subs({sp.diff(v, t): sym["v_d"], sp.diff(w, t): sym["w_d"], sp.diff(th, t, 2): sym["theta_dd"]})
         e = e.subs({v: sym["v"], w: sym["w"], sp.diff(th, t): sym["theta_d"]}).subs(th, sym["theta"])
-        return sp.simplify(sp.expand(e))
+        e = sadelestir(e, psi, sym["theta"])
+        if e.has(psi):  # dönme simetrisi: denklemler sapma açısına bağlı olamaz
+            raise RuntimeError("Hareket denklemlerinde ψ kaldı; türetim hatalı")
+        return e
 
-    denklemler = sadelestir(E, S, sp.Matrix([v, w, thd]))
+    denklemler = izdusur(E, S, sp.Matrix([v, w, thd]))
     ivmeler = [sym["v_d"], sym["w_d"], sym["theta_dd"]]
     M = sp.Matrix(denklemler).jacobian(ivmeler)
-    h = sp.Matrix([sp.simplify(e.subs({a: 0 for a in ivmeler})) for e in denklemler])
+    h = sp.Matrix([sp.expand(e.subs({a: 0 for a in ivmeler})) for e in denklemler])
 
     birinci = {qd[i]: (S * sp.Matrix([v, w, thd]))[i] for i in (0, 1, 2, 4, 5)}
     T_nu = duzlestir(T.subs(birinci))
@@ -128,7 +140,7 @@ def turet() -> dict:
 
     # Tekerler gövdeye kilitli: φ̇ = θ̇, v = r·θ̇, ψ̇ = 0
     S_kilit = sp.Matrix([r * sp.cos(psi), r * sp.sin(psi), 0, 1, 1, 1])
-    kilitli = sadelestir(E, S_kilit, sp.Matrix([thd]))[0]
+    kilitli = izdusur(E, S_kilit, sp.Matrix([thd]))[0]
 
     return {
         "P": P,
@@ -136,7 +148,7 @@ def turet() -> dict:
         "tau_L": tau_L,
         **sym,
         "denklemler": denklemler,
-        "M": sp.simplify(M),
+        "M": M.applyfunc(lambda e: sadelestir(e, sym["theta"])),
         "h": h,
         "T": T_nu,
         "V": V_nu,
@@ -181,7 +193,7 @@ def _sayisal_fonksiyonlar():
     E_f = sp.lambdify([*durum, *par], D["T"] + D["V"], "numpy")
     kilitli = D["kilitli"]
     J_k = sp.diff(kilitli, D["theta_dd"])
-    h_k = sp.simplify(kilitli - J_k * D["theta_dd"])
+    h_k = sp.expand(kilitli - J_k * D["theta_dd"])
     Jk_f = sp.lambdify([D["theta"], *par], J_k, "numpy")
     hk_f = sp.lambdify([D["theta"], D["theta_d"], *par], h_k, "numpy")
     return M_f, h_f, E_f, Jk_f, hk_f
