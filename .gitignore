@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Kaynak PDF'ler yerelde tutulur (danışman planı öğrenci numaraları içerir; şartname ders materyali)
+kaynaklar/
+
+# Claude Code yerel ayarları
+.claude/
