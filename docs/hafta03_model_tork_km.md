@@ -10,7 +10,7 @@
 
 > **Danışman planındaki teslimat:** "Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı."
 >
-> **Durum:** Motor, teker ve batarya henüz alınmadı; **hiçbir fiziksel parametre ölçülmedi** (§2). Sürüm 0.2'de malzeme seçimleri cdtp-robot.netlify.app sitesinin Malzeme ve Şema bölümlerinden ("site"), motor veri sayfası değerleri rcdrone referans tablosundan ("[doğrulanamadı]") alındı; sitede olmayan değerler tahmini kaldı. Site başka bir gruba aittir ve bağlayıcı değildir. Her değerin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrolcü tasarlanmadı: kontrol yöntemi 6. haftada seçilecek. Model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir.
+> **Durum:** Motor, teker ve batarya henüz alınmadı; **hiçbir fiziksel parametre ölçülmedi** (§2). Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek. Bu değerler belgede "ön liste" diye işaretlidir. Motor veri sayfası değerleri rcdrone referans tablosundan alındı ("[doğrulanamadı]"); listede olmayan değerler tahmini kaldı. Her değerin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrolcü tasarlanmadı: kontrol yöntemi 6. haftada seçilecek. Model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir.
 
 ## Özet
 
@@ -24,7 +24,7 @@
 | Aynı iş, tam model, $T$ = 2,0 s referans manevra ($J_m$ = 0 … 0,0025 kg·m²) | 0,059 … 0,307 N·m | §4.3 |
 | **Önerilen motor gereksinimi** (motor başına, teker milinde, batarya min. geriliminde) | **≥ 0,196 N·m (2,0 kgf·cm) @ 111 dev/dk; boşta devir > 147 dev/dk** | §4.5 |
 | Enkoder | ≥ 1021 sayım / teker devri (x4 kod çözme sonrası) | §4.6 |
-| **Site adayı JGB37-520 12 V 530 RPM, Hall enkoderli** | Katsayısız karşılıyor, SF = 2,0 ile karşılamıyor (boş bataryada SF 1,60); öneri: **1:30 (333 dev/dk)** (SF 1,96) | §4.7 |
+| **Aday motor (ön liste): JGB37-520 12 V 530 RPM, Hall enkoderli** | Katsayısız karşılıyor, SF = 2,0 ile karşılamıyor (boş bataryada SF 1,60); öneri: **1:30 (333 dev/dk)** (SF 1,96) | §4.7 |
 | **Önerilen yuva** | Üst plakada, aksın tam üstünde ($x = y = 0$), kutu yatık ve uzun kenarı yanal; boşluk ≤ 2 mm, duvar ≈ 20 mm | §5.5 |
 
 **Öne çıkan bulgular**
@@ -35,7 +35,7 @@
 4. **Kutunun dengeye etkisi küçüktür.** Kutu (50 g, tahmini) toplam kütlenin %3,8'idir. Üst yuvada kutu eklenince $l$ 5,4 mm artar, kutup %−1,4 değişir. Bu yüzden aynı kazançlar kutulu ve kutusuz çalışmalıdır. Final testlerinin hepsi kutulu olduğundan kazançlar yine de kutuyla ayarlanmalıdır [öneri] (§5.2).
 5. **Yere değme açısı ileri 58,9°, geri 74,2°'dir.** İleride sınırı IR/kontak modülü alt köşe belirler. Toparlanmadaki aşım bu açıya yaklaşırsa iki teker dışında bir parça yere değer ve alt test düşer (şartname §7). Aksa teker yarıçapından yakın parçalar hiç değmez (motor braketleri böyle) [öneri] (§5.6).
 6. **Pasif kararlılık ön testi tasarım gereği sağlanır.** KM aksın üstünde olduğu sürece robot enerjisizken ±10°'den 0,24–0,40 s içinde düşer, yani 5 s sınırının yaklaşık 12 katı payla. KM aksın altına inerse robot pasif kararlı olur ve şartname §4.1 ihlal edilir; bu durum testlerde yakalanır (§3.7).
-7. **Site adayı motor (JGB37-520 12 V 530 RPM, Hall enkoderli) katsayısız yeterli, SF = 2,0 ile değil.** Boş bataryada (9,9 V) A noktasında 0,157 N·m verir; katsayısız gereksinim 0,098, SF'li 0,196 N·m. Sağladığı katsayı 1,60 (nominal gerilimde 1,86). Aynı fiyattaki 1:30 (333 dev/dk) varyantı boş bataryada SF 1,96 (nominalde 2,36) sağlar, enkoder çözünürlüğünü de karşılar. Mete'ye öneri §4.7'de.
+7. **Ön listedeki aday motor (JGB37-520 12 V 530 RPM, Hall enkoderli) katsayısız yeterli, SF = 2,0 ile değil.** Boş bataryada (9,9 V) A noktasında 0,157 N·m verir; katsayısız gereksinim 0,098, SF'li 0,196 N·m. Sağladığı katsayı 1,60 (nominal gerilimde 1,86). Aynı fiyattaki 1:30 (333 dev/dk) varyantı boş bataryada SF 1,96 (nominalde 2,36) sağlar, enkoder çözünürlüğünü de karşılar. Mete'ye öneri §4.7'de.
 
 ---
 
@@ -63,56 +63,56 @@
 
 ### 2.1 Robotun fiziksel parametreleri (hiçbiri ölçülmedi)
 
-Aşağıdaki 54 parametre `parametreler.toml` dosyasından otomatik alınmıştır. Durumlar: **site** = cdtp-robot.netlify.app malzeme listesi (başka bir grubun sitesi, bağlayıcı değil), **[doğrulanamadı]** = rcdrone satıcı referans tablosu (ürünle eşleştiği doğrulanamadı), **tahmini** = sitede olmayan, mühendislik tahmini. Testler, fiziksel bir parametrenin bu üçü ve "ölçülmüş" dışında bir durumla girilmesini engeller.
+Aşağıdaki 54 parametre `parametreler.toml` dosyasından otomatik alınmıştır. Durumlar: **ön liste** = ön malzeme listesi (cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek), **[doğrulanamadı]** = rcdrone satıcı referans tablosu (ürünle eşleştiği doğrulanamadı), **tahmini** = listede olmayan, mühendislik tahmini. Testler, fiziksel bir parametrenin bu üçü ve "ölçülmüş" dışında bir durumla girilmesini engeller.
 
 | Parametre | Değer | Birim | Aralık | Durum | Kaynak |
 | --- | ---: | --- | ---: | --- | --- |
-| `teker.yaricap` | 0,0325 | m | 0,03 – 0,05 | site | Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): 65 mm lastik tekerlek. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi. |
+| `teker.yaricap` | 0,0325 | m | 0,03 – 0,05 | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Malzeme): 65 mm lastik tekerlek. Mete'nin seçimiyle kesinleşecek; ölçülmedi. |
 | `teker.kutle` | 0,06 | kg | 0,03 – 0,12 | tahmini | Mühendislik tahmini: kauçuk lastik + göbek + kaplin, teker başına 30–120 g. |
 | `teker.atalet_katsayisi` | 0,5 | - | 0,5 – 0,9 | tahmini | J_w = k·m_w·r². Dolu disk için k = 0,5; kütlesi lastikte toplanan tekerde k 1'e yaklaşır. |
 | `teker.genislik` | 0,025 | m | 0,015 – 0,04 | tahmini | Mühendislik tahmini (yalnız çizim için). |
 | `teker.iz_genisligi` | 0,2 | m | 0,15 – 0,25 | tahmini | Mühendislik tahmini: iki teker merkezi arası = şasi genişliği (~0,16 m) + motor/göbek payı. |
 | `motor.rotor_ataleti_yansimis` | 0 | kg·m² | 0 – 0,0025 | tahmini | Bilinmiyor, nominalde ihmal edildi. Teker miline yansıyan değer J_rotor·N². Veri sayfasında varsa oradan alınacak, yoksa serbest yavaşlama (coast-down) deneyiyle tanılanacak. Aralığın üst sınırı kaba tahmin [doğrulanamadı]. |
 | `motor.viskoz_surtunme` | 0 | N·m·s/rad | 0 – 0,02 | tahmini | Bilinmiyor, nominalde ihmal edildi. Teker–gövde arası redüktör viskoz sürtünmesi; motor seçilince tanılanacak. Aralık kaba tahmin [doğrulanamadı]. |
-| `batarya.seri_hucre` | 3 | - | 3 – 6 | site | Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): 3 × Orion 18650P 2450 mAh Li-ion hücre, seri (3S). Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi. |
-| `batarya.hucre_gerilimi_min` | 3,3 | V | 2,5 – 3,3 | site | Site malzeme listesi (cdtp-robot.netlify.app › Şema › Hesaplar): '9,9 V boş pil' = 3 × 3,3 V. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi. |
-| `batarya.hucre_gerilimi_nominal` | 3,7 | V | 3,6 – 3,7 | site | Site malzeme listesi (cdtp-robot.netlify.app › Şema › Batarya ve BMS): 3 × 3,7 V = 11,1 V. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi. |
-| `batarya.hucre_gerilimi_max` | 4,2 | V | 4,1 – 4,2 | site | Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): dolu 12,6 V = 3 × 4,2 V. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi. |
-| `govde.motor.kutle` | 0,15 | kg | 0,08 – 0,2 | [doğrulanamadı] | rcdrone JGB37-520 listesi, 12 V / 10000 RPM referans serisi, 1:18,8 (530 RPM) satırı: 150 g [doğrulanamadı]. Motor modeli site malzeme listesinden (JGB37-520 12 V 530 RPM). |
+| `batarya.seri_hucre` | 3 | - | 3 – 6 | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Malzeme): 3 × Orion 18650P 2450 mAh Li-ion hücre, seri (3S). Mete'nin seçimiyle kesinleşecek; ölçülmedi. |
+| `batarya.hucre_gerilimi_min` | 3,3 | V | 2,5 – 3,3 | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Şema › Hesaplar): '9,9 V boş pil' = 3 × 3,3 V. Mete'nin seçimiyle kesinleşecek; ölçülmedi. |
+| `batarya.hucre_gerilimi_nominal` | 3,7 | V | 3,6 – 3,7 | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Şema › Batarya ve BMS): 3 × 3,7 V = 11,1 V. Mete'nin seçimiyle kesinleşecek; ölçülmedi. |
+| `batarya.hucre_gerilimi_max` | 4,2 | V | 4,1 – 4,2 | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Malzeme): dolu 12,6 V = 3 × 4,2 V. Mete'nin seçimiyle kesinleşecek; ölçülmedi. |
+| `govde.motor.kutle` | 0,15 | kg | 0,08 – 0,2 | [doğrulanamadı] | rcdrone JGB37-520 listesi, 12 V / 10000 RPM referans serisi, 1:18,8 (530 RPM) satırı: 150 g [doğrulanamadı]. Motor modeli ön malzeme listesinden (JGB37-520 12 V 530 RPM). |
 | `govde.motor.konum` | (0,000; 0,055; 0,000) | m | - | tahmini | Tahmini yerleşim: motor mili teker aksıyla eş eksenli (z = 0), gövde tekerin iç tarafında. |
 | `govde.motor.boyut` | (0,037; 0,070; 0,037) | m | - | tahmini | Tahmini motor zarfı: Ø37 × 70 mm sınıfı. |
-| `govde.sasi.kutle` | 0,34 | kg | 0,25 – 0,45 | tahmini | Tahmini: 3 × 3 mm pleksi plaka (site) 8 × 16 cm varsayımıyla ~135 g + 8 × (30 + 50 mm) M3 metal distans (site) ~100 g + 2 × 1,5 mm çelik L braket ~80 g + vida ~20 g. Tartılmadı. |
-| `govde.sasi.konum` | (0,000; 0,000; 0,105) | m | - | tahmini | Alt plaka altı (0,022 m) ile üst plaka üstü (0,188 m) arasının ortası; kat düzeni site (3 kat, katlar arası 80 mm), alt plaka yüksekliği tahmini. |
-| `govde.sasi.boyut` | (0,080; 0,160; 0,166) | m | - | tahmini | Tahmini plaka ölçüsü 8 × 16 cm; yükseklik site kat düzeninden (2 × 80 mm + plaka kalınlıkları). |
-| `govde.elektronik.kutle` | 0,2 | kg | 0,1 – 0,3 | tahmini | Mühendislik tahmini: site malzeme listesindeki ESP32, 2 × BTS7960, LM2596, 3S BMS, MPU6050, kablo/XT60/klemens toplamı; kütleler sitede yok, tartılmadı. |
-| `govde.elektronik.konum` | (0,000; 0,000; 0,045) | m | - | tahmini | Tahmini: alt katta (alt plaka üstü 0,025 m). Site: IMU teker eksenine yakın ve ortada. |
+| `govde.sasi.kutle` | 0,34 | kg | 0,25 – 0,45 | tahmini | Tahmini: 3 × 3 mm pleksi plaka (ön liste) 8 × 16 cm varsayımıyla ~135 g + 8 × (30 + 50 mm) M3 metal distans (ön liste) ~100 g + 2 × 1,5 mm çelik L braket ~80 g + vida ~20 g. Tartılmadı. |
+| `govde.sasi.konum` | (0,000; 0,000; 0,105) | m | - | tahmini | Alt plaka altı (0,022 m) ile üst plaka üstü (0,188 m) arasının ortası; kat düzeni ön listeden (3 kat, katlar arası 80 mm), alt plaka yüksekliği tahmini. |
+| `govde.sasi.boyut` | (0,080; 0,160; 0,166) | m | - | tahmini | Tahmini plaka ölçüsü 8 × 16 cm; yükseklik ön listedeki kat düzeninden (2 × 80 mm + plaka kalınlıkları). |
+| `govde.elektronik.kutle` | 0,2 | kg | 0,1 – 0,3 | tahmini | Mühendislik tahmini: ön malzeme listesindeki ESP32, 2 × BTS7960, LM2596, 3S BMS, MPU6050, kablo/XT60/klemens toplamı; kütleler listede yok, tartılmadı. |
+| `govde.elektronik.konum` | (0,000; 0,000; 0,045) | m | - | tahmini | Tahmini: alt katta (alt plaka üstü 0,025 m). Ön liste: IMU teker eksenine yakın ve ortada. |
 | `govde.elektronik.boyut` | (0,070; 0,120; 0,040) | m | - | tahmini | Tahmini zarf. |
-| `govde.batarya.kutle` | 0,16 | kg | 0,13 – 0,22 | tahmini | Tahmini: site 3 hücre (3S1P, Orion 18650P) diyor; 3 × ~45–48 g (tipik 18650) + 3'lü pil yuvası. Tartılmadı. |
-| `govde.batarya.konum` | (0,000; 0,000; 0,116) | m | - | tahmini | Site: batarya orta katta önerilir, ilk denemede alt ve orta kat karşılaştırılacak. Orta plaka üstü 0,105 m + paket yarı yüksekliği (tahmini). |
-| `govde.batarya.boyut` | (0,060; 0,080; 0,021) | m | - | tahmini | Tahmini: 3 × 18650 (Ø18 × 65 mm, site sözlüğü) yan yana, 3'lü yuvada. |
-| `govde.acil_durdurma.kutle` | 0,04 | kg | 0,02 – 0,1 | tahmini | Mühendislik tahmini; site metal mantar buton seçmiş (Chint NP2-BE102), kütlesi sitede yok. |
-| `govde.acil_durdurma.konum` | (0,000; 0,065; 0,205) | m | - | tahmini | Site: acil stop üst katta, kolay erişilir. Konum tahmini (üst plaka üstü 0,188 m + yarım buton yüksekliği). |
+| `govde.batarya.kutle` | 0,16 | kg | 0,13 – 0,22 | tahmini | Tahmini: ön liste 3 hücre (3S1P, Orion 18650P) diyor; 3 × ~45–48 g (tipik 18650) + 3'lü pil yuvası. Tartılmadı. |
+| `govde.batarya.konum` | (0,000; 0,000; 0,116) | m | - | tahmini | Ön liste: batarya orta katta önerilir, ilk denemede alt ve orta kat karşılaştırılacak. Orta plaka üstü 0,105 m + paket yarı yüksekliği (tahmini). |
+| `govde.batarya.boyut` | (0,060; 0,080; 0,021) | m | - | tahmini | Tahmini: 3 × 18650 (Ø18 × 65 mm, ön liste sözlüğü) yan yana, 3'lü yuvada. |
+| `govde.acil_durdurma.kutle` | 0,04 | kg | 0,02 – 0,1 | tahmini | Mühendislik tahmini; ön liste metal mantar buton seçmiş (Chint NP2-BE102), kütlesi listede yok. |
+| `govde.acil_durdurma.konum` | (0,000; 0,065; 0,205) | m | - | tahmini | Ön liste: acil stop üst katta, kolay erişilir. Konum tahmini (üst plaka üstü 0,188 m + yarım buton yüksekliği). |
 | `govde.acil_durdurma.boyut` | (0,030; 0,030; 0,030) | m | - | tahmini | Tahmini zarf. |
 | `govde.ir_ve_sarj_kontaklari.kutle` | 0,05 | kg | 0,02 – 0,1 | tahmini | Mühendislik tahmini; Ömer Faruk'un istasyon/IR tasarımına bağlı. |
-| `govde.ir_ve_sarj_kontaklari.konum` | (0,045; 0,000; 0,035) | m | - | tahmini | Site: IR alıcılar ve şarj plakaları robotun önünde (sitenin bir yerinde plakalar 'arkada' deniyor; site kendi içinde tutarsız). Yükseklik tahmini (alt kat). |
+| `govde.ir_ve_sarj_kontaklari.konum` | (0,045; 0,000; 0,035) | m | - | tahmini | Ön liste: IR alıcılar ve şarj plakaları robotun önünde (listenin bir yerinde plakalar 'arkada' deniyor; liste kendi içinde tutarsız). Yükseklik tahmini (alt kat). |
 | `govde.ir_ve_sarj_kontaklari.boyut` | (0,010; 0,100; 0,030) | m | - | tahmini | Tahmini zarf. |
 | `govde.zarf.x_aralik` | (−0,040; 0,040) | m | - | tahmini | Tahmini gövde derinliği 8 cm, aksa göre simetrik. |
-| `govde.zarf.z_aralik` | (0,022; 0,188) | m | - | tahmini | Alt plaka altı 0,022 m (tahmini) ile üst plaka üstü 0,188 m; plakalar arası 80 mm site kat düzeninden. |
+| `govde.zarf.z_aralik` | (0,022; 0,188) | m | - | tahmini | Alt plaka altı 0,022 m (tahmini) ile üst plaka üstü 0,188 m; plakalar arası 80 mm ön listedeki kat düzeninden. |
 | `govde.braket_alt_kose` | (0,020; −0,022) | m | - | tahmini | Motor L braketinin en alt-ön köşesi (x, z). Braket alt plakanın altına asılı varsayıldı (tahmini); ölçü rcdrone L braket çiziminden: 1,5 mm, 40 mm geniş, 47 mm dikey [doğrulanamadı]. |
 | `yuk.kutu.kutle` | 0,05 | kg | 0,02 – 0,15 | tahmini | Aspirin 500 mg 20 tablet kutusu (ekip kararı). Ölçü ve kütlesi bulunamadı; mevcut tahmin korunuyor, kutu tartılınca güncellenecek. |
 | `yuk.kutu.boyut` | (0,050; 0,100; 0,025) | m | - | tahmini | Aspirin 500 mg 20 tablet kutusu; ölçüsü bulunamadı, tahmini ölçü [x, y, z] 5 × 10 × 2,5 cm (yatık, uzun kenarı yanal). Ölçülünce güncellenecek. |
 | `yuk.kutu.surtunme` | 0,3 | - | 0,2 – 0,5 | tahmini | Mühendislik tahmini: karton – PLA/akrilik statik sürtünme katsayısı. |
-| `yuk.yuva.kutle` | 0,05 | kg | 0,02 – 0,1 | tahmini | Mühendislik tahmini; site 3 mm pleksi cep diyor, kütlesi sitede yok. |
+| `yuk.yuva.kutle` | 0,05 | kg | 0,02 – 0,1 | tahmini | Mühendislik tahmini; ön liste 3 mm pleksi cep diyor, kütlesi listede yok. |
 | `zemin.surtunme` | 0,7 | - | 0,5 – 0,9 | tahmini | Mühendislik tahmini: kauçuk teker ile düz, sert, kuru iç mekân zemini (şartname §7) arası statik sürtünme. |
-| `elektrik.sigorta` | 5 | A | - | site | Site malzeme listesi (cdtp-robot.netlify.app › Malzeme ve Şema › Hesaplar): motor hattında 5 A bıçak sigorta; sık atarsa 7,5 A. Başka bir grubun sitesi: bağlayıcı değil. |
-| `motor_adayi.ad` | JGB37-520 12 V 530 RPM, Hall enkoderli | - | - | site | Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): 2 × JGB37-520 12 V 530 RPM, Hall enkoderli. Başka bir grubun sitesi: bağlayıcı değil. |
-| `motor_adayi.gerilim` | 12 | V | - | site | Site malzeme listesi: 12 V motor. |
-| `motor_adayi.bosta_devir` | 530 | dev/dk | - | site | Site malzeme listesi: 530 RPM (rcdrone referans tablosunda da 1:18,8 satırı 530 dev/dk). |
-| `motor_adayi.ppr` | 11 | darbe/devir | - | site | Site (Şema › yazılım notları): '11 darbe × dişli oranı × 4'; rcdrone: 11 PPR Hall enkoder. |
-| `motor_adayi.reduksiyon` | 18,8 | - | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 530 dev/dk satırı: oran 18,8 [doğrulanamadı]. Sitedeki 'teker turu başına ≈ 800–850 sayım' notuyla tutarlı (4 × 11 × 18,8 = 827). |
+| `elektrik.sigorta` | 5 | A | - | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Malzeme ve Şema › Hesaplar): motor hattında 5 A bıçak sigorta; sık atarsa 7,5 A. Mete'nin seçimiyle kesinleşecek. |
+| `motor_adayi.ad` | JGB37-520 12 V 530 RPM, Hall enkoderli | - | - | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Malzeme): 2 × JGB37-520 12 V 530 RPM, Hall enkoderli. Mete'nin seçimiyle kesinleşecek. |
+| `motor_adayi.gerilim` | 12 | V | - | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi): 12 V motor. Mete'nin seçimiyle kesinleşecek. |
+| `motor_adayi.bosta_devir` | 530 | dev/dk | - | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi): 530 RPM (rcdrone referans tablosunda da 1:18,8 satırı 530 dev/dk). Mete'nin seçimiyle kesinleşecek. |
+| `motor_adayi.ppr` | 11 | darbe/devir | - | ön liste | Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Şema › yazılım notları): '11 darbe × dişli oranı × 4'; rcdrone: 11 PPR Hall enkoder. Mete'nin seçimiyle kesinleşecek. |
+| `motor_adayi.reduksiyon` | 18,8 | - | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 530 dev/dk satırı: oran 18,8 [doğrulanamadı]. Ön listedeki 'teker turu başına ≈ 800–850 sayım' notuyla tutarlı (4 × 11 × 18,8 = 827). |
 | `motor_adayi.bosta_akim` | 0,15 | A | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: boşta akım 0,15 A [doğrulanamadı]. |
-| `motor_adayi.durma_torku` | 0,255 | N·m | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: durma torku 2,6 kgf·cm = 0,255 N·m (12 V) [doğrulanamadı]. Site: 'kilitlenme akımı satıcıda yazmıyor'. |
-| `motor_adayi.durma_akimi` | 2,4 | A | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: durma akımı 2,4 A [doğrulanamadı]. Site notu: JGB37-520 12 V için tipik 2–3 A. |
+| `motor_adayi.durma_torku` | 0,255 | N·m | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: durma torku 2,6 kgf·cm = 0,255 N·m (12 V) [doğrulanamadı]. Ön liste notu: 'kilitlenme akımı satıcıda yazmıyor'. |
+| `motor_adayi.durma_akimi` | 2,4 | A | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: durma akımı 2,4 A [doğrulanamadı]. Ön liste notu: JGB37-520 12 V için tipik 2–3 A. |
 | `motor_adayi.verim_torku` | 0,0657 | N·m | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: en yüksek verimde tork 0,67 kgf·cm = 0,066 N·m, 407 dev/dk, 0,65 A [doğrulanamadı]. Satıcı motorun bu yüke göre seçilmesini, durma torkuna yakın sürekli çalıştırılmamasını yazıyor. |
 | `motor_adayi.verim_devri` | 407 | dev/dk | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: yüklü devir 407 dev/dk [doğrulanamadı]. |
 | `motor_serisi.reduksiyon` | (6,250; 10,000; 18,800; 30,000; 56,000; 70,000; 90,000) | - | - | [doğrulanamadı] | rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi [doğrulanamadı]. Satıcı: bu seri yalnız referanstır; satın alınan varyantın oranı ayrıca doğrulanmalı. |
@@ -165,7 +165,7 @@ Gövde, tahmini bileşenlerin kütle ve konumlarından kurulmuştur (Şekil 1). 
 | `yuk.yuva.duvar_yuksekligi` | 0,02 | m | [öneri] | Kutu yüksekliğinin ~%80'i [öneri]; kutunun KM'si duvar üst kenarının altında kalır. |
 | `yuk.yuva.bosluk` | 0,002 | m | [öneri] | Kutu ile yuva duvarı arası boşluk, her yönde [öneri]. Mete üretecek. |
 | `yuk.yuva.x` | 0 | m | [öneri] | Yuva tam aksın üstünde [öneri]: kutu takılıp çıkarılınca denge açısı (trim) değişmesin. |
-| `yuk.yuva.secenek.ust` | 0,188 | m | [öneri] | Üst plakanın üstü (site: kutu en üstte). Alt plaka 0,025 m (tahmini) + 2 × 80 mm (site) + 3 mm plaka. |
+| `yuk.yuva.secenek.ust` | 0,188 | m | [öneri] | Üst plakanın üstü (ön liste: kutu en üstte). Alt plaka 0,025 m (tahmini) + 2 × 80 mm (ön liste) + 3 mm plaka. |
 | `yuk.yuva.secenek.orta` | 0,108 | m | [öneri] | Orta plakanın üstü, bataryanın yanında (alt plaka + 80 mm + 3 mm). |
 | `yuk.yuva.secenek.alt` | 0,028 | m | [öneri] | Alt plakanın üstü, elektronikle aynı katta. |
 | `yuk.yuva.onerilen` | ust | - | [öneri] | Doküman §5.5'teki karşılaştırmanın sonucu [öneri]. |
@@ -545,11 +545,11 @@ Sınırdaki motorlar (batarya min. geriliminde):
 | 367 | 0,281 | 2,9 | 0,210 | 2,1 |
 | 500 | 0,252 | 2,6 | 0,188 | 1,9 |
 
-Sitedeki batarya paketinin şartname §4.1 ile uyumu:
+Ön listedeki batarya paketinin şartname §4.1 ile uyumu:
 
 | Paket | Boş [V] | Nominal [V] | Tam dolu [V] | Şartname §4.1 (≤ 24 V DC) |
 | --- | ---: | ---: | ---: | --- |
-| 3S Li-ion (site) | 9,9 | 11,1 | 12,6 | uygun |
+| 3S Li-ion (ön liste) | 9,9 | 11,1 | 12,6 | uygun |
 
 **Mete için karşılaştırma şablonu.** Adayın veri sayfası değerleri komut satırına girilir; araç adayı batarya min. geriliminde A, A', B noktalarına, enkoder çözünürlüğüne ve aşırı gerilime göre sınar, sürücü ve sigorta boyutu için tepe akımı verir:
 
@@ -598,9 +598,9 @@ Tepe devirde (147 dev/dk) sayım frekansı ≈ 2,5 kHz'dir. Bir sayımın yol ka
 2. Sapma açısı iki tekerin farkından $\psi = r(\varphi_R - \varphi_L)/d$ olarak hesaplanır. Fark alındığında $\theta$ terimi sadeleşir.
 3. Kuadratür sayımı için donanım sayacı (STM32 zamanlayıcı enkoder kipi veya ESP32 PCNT gibi) önerilir. Tablodaki frekanslar kesme tabanlı sayım için de düşüktür, ama donanım sayacı işlemci yükünü sıfırlar [öneri].
 
-### 4.7 Site adayı: JGB37-520 12 V 530 RPM, Hall enkoderli (Mete'ye öneri)
+### 4.7 Aday motor: JGB37-520 12 V 530 RPM, Hall enkoderli (Mete'ye öneri)
 
-Site malzeme listesi motor olarak JGB37-520 12 V 530 RPM, Hall enkoderli modeli seçmiş. Veri sayfası değerleri sitede yok; rcdrone listesindeki referans tablodan alındı ve **[doğrulanamadı]** olarak işaretlendi: oran 1:18,8, boşta 530 dev/dk, durma torku 2,6 kgf·cm (0,255 N·m), durma akımı 2,4 A, boşta akım 0,15 A, 12 V'ta. Satıcı bu tabloyu "yalnız referans" diye veriyor. Aday, `python -m denge.motor --dosyadaki-aday --oran-taramasi` ile sınandı. Aday batarya min. geriliminde (9,9 V, site: "9,9 V boş pil") değerlendirildi; tork ve devir gerilimle orantılı ölçeklendi.
+Ön malzeme listesinde motor olarak JGB37-520 12 V 530 RPM, Hall enkoderli model yer alıyor. Veri sayfası değerleri listede yok; rcdrone listesindeki referans tablodan alındı ve **[doğrulanamadı]** olarak işaretlendi: oran 1:18,8, boşta 530 dev/dk, durma torku 2,6 kgf·cm (0,255 N·m), durma akımı 2,4 A, boşta akım 0,15 A, 12 V'ta. Satıcı bu tabloyu "yalnız referans" diye veriyor. Aday, `python -m denge.motor --dosyadaki-aday --oran-taramasi` ile sınandı. Aday batarya min. geriliminde (9,9 V, ön listedeki boş pil gerilimi) değerlendirildi; tork ve devir gerilimle orantılı ölçeklendi.
 
 | Ölçüt | Gereksinim | Aday (batarya min. gerilimi) | Sonuç |
 | --- | --- | --- | :---: |
@@ -635,10 +635,10 @@ Seriye uydurulan sürekli model (12 V'ta $\tau_s \approx$ 0,131 kgf·cm × N, $n
 **Mete'ye öneri [öneri]:**
 
 1. **530 RPM varyantı çalışır ama emniyet payı düşüktür.** ±10° toparlanma torkunu katsayısız karşılar; 2 emniyet katsayısıyla karşılamaz (boş bataryada 1,60, nominalde 1,86). Bu torkla bile teker zeminin aktarabileceği torku (çekiş sınırı 0,146 N·m/motor) aşabildiği için toparlanmayı motor değil zemin sınırlar. Ancak bu, yansıyan rotor ataleti $J_m$ ≤ 0,0009 kg·m² ise geçerlidir ve $J_m$ henüz bilinmiyor. Enkoder 4 × 11 × 18,8 = 827 sayım/teker devri verir; 1021 hedefinin altındadır. Bu varyant alınırsa hız kestirim penceresi en az 12,3 ms'ye çıkarılmalıdır (yazılımda; 200 Hz'de 3 örnek = 15 ms).
-2. **Tercih: aynı fiyattaki 1:30 (333 dev/dk) varyantı.** Boş bataryada A noktasında 0,192 N·m verir: SF 1,96, yani hedefin %2 altında; nominal gerilimde SF 2,36 ile karşılar. Referans serisinde boş bataryada hedefe en yakın oran budur; B noktasında yeterli hız payı bırakır ($n_0$ = 275 ≥ 147 dev/dk); enkoder 1320 sayım ile hedefi karşılar. Site de bu varyantı "daha çok tork" için alternatif olarak göstermektedir.
+2. **Tercih: aynı fiyattaki 1:30 (333 dev/dk) varyantı.** Boş bataryada A noktasında 0,192 N·m verir: SF 1,96, yani hedefin %2 altında; nominal gerilimde SF 2,36 ile karşılar. Referans serisinde boş bataryada hedefe en yakın oran budur; B noktasında yeterli hız payı bırakır ($n_0$ = 275 ≥ 147 dev/dk); enkoder 1320 sayım ile hedefi karşılar. Ön liste de bu varyantı "daha çok tork" için alternatif olarak gösteriyor.
 3. **Bedeli:** Yansıyan rotor ataleti oranın karesiyle büyür (530 RPM'e göre ×2,5). $J_m$, kutbu yavaşlatır ama gereken torku artırır (§4.3). Motor gelince ilk iş serbest yavaşlama deneyiyle $J_m$'yi ölçmektir.
 4. **Sürekli yük düşüktür:** Dengede ortalama tork, 10°'deki tutma torkunun bile altındadır (0,026 N·m/motor). Bu değer iki varyantın en yüksek verim noktası torkunun (530 RPM: 0,066, önerilen: 0,098 N·m) altındadır. Satıcının "durma torkuna yakın sürekli çalıştırmayın" uyarısı yalnız kısa toparlanma tepelerinde zorlanır.
-5. **Sigorta:** A noktasında iki motorun tepe akımı 5 A sigortanın altında kalır; iki motor aynı anda kilitlenirse durma akımı 2 × 2,4 = 4,8 A ile sınıra yaklaşır (site de "ölç" diyor). Motor gelince teker elle tutulup akım ölçülmelidir.
+5. **Sigorta:** A noktasında iki motorun tepe akımı 5 A sigortanın altında kalır; iki motor aynı anda kilitlenirse durma akımı 2 × 2,4 = 4,8 A ile sınıra yaklaşır (ön listede de "ölç" notu var). Motor gelince teker elle tutulup akım ölçülmelidir.
 
 **Gerilim sürüşünde model.** Referans değerlerden teker milinde $K_t$ = 0,113 N·m/A, $K_e$ = 0,203 V·s/rad, $R$ = 5,0 Ω çıkar [doğrulanamadı]. Sürücü gerilim kontrollü kullanılırsa zıt EMK motor başına $b$ ≈ 0,0046 N·m·s/rad sönüm ekler ve açık çevrim kararsız kutup +11,41'den +8,39 1/s'ye iner (`model.gerilim_girisli_durum_uzay`).
 
@@ -775,13 +775,13 @@ Aralığı tanımlı her fiziksel parametre, diğerleri nominalde tutularak aral
 
 | Girdi | Kimden | Neden gerekli / hangi sonucu değiştirir | Ne zaman |
 |---|---|---|---|
-| Batarya: site 3S (3 × Orion 18650P) diyor; bizim ekibin seçimi ve BMS kesim gerilimi | Mete Özgen | Gerilim aralığı → motor $n_0$, $\tau_s$ ölçeklemesi (§4.5, §4.7); boş batarya gerilimi aday motorun emniyet payını belirler | 3. hafta (Mete'nin BOM'u) |
+| Batarya: ön liste 3S (3 × Orion 18650P) diyor; bizim ekibin seçimi ve BMS kesim gerilimi | Mete Özgen | Gerilim aralığı → motor $n_0$, $\tau_s$ ölçeklemesi (§4.5, §4.7); boş batarya gerilimi aday motorun emniyet payını belirler | 3. hafta (Mete'nin BOM'u) |
 | Batarya kütlesi ve boyutu | Mete Özgen | KM ve $I_{yy}$ (§5); duyarlılık tablosunda 9. sırada (§6) | 3. hafta |
 | Yerleşim: kat yükseklikleri, bataryanın ve elektroniğin konumu, şasi malzemesi ve zarf ölçüleri | Mete Özgen | KM yüksekliği (§5.4); yere değme açısı (§5.6); pasif test için KM aksın üstünde olmalı | 3.–4. hafta |
 | Motor kararı: 530 RPM mı 333 RPM mi (§4.7 öneri); satıcının veri sayfası (oran, durma torku/akımı, varsa rotor ataleti) | Mete Özgen | Şu anki değerler rcdrone referansı [doğrulanamadı]; A/A'/B noktaları, enkoder, $J_m$ | 3. hafta |
 | Motor sürücüsü: sürekli/tepe akım, akım sınırı, enerjisizken serbest mi frenli mi | Mete Özgen | Tork sınırı; pasif testte serbest/kilitli teker durumu (§3.7) | 3.–4. hafta |
-| Ana hat sigortası: site 5 A diyor | Mete Özgen | A noktasındaki tepe akım sigortanın altında; iki motor kilitlenmesi (4,8 A) sınırda, ölçülmeli | 4. hafta |
-| Teker: site 65 mm diyor; teker kütlesi ve iz genişliği | Mete Özgen | Devir (∝ 1/r), çekiş sınırı, enkoder CPR (∝ r), sapma modeli | 3. hafta |
+| Ana hat sigortası: ön liste 5 A diyor | Mete Özgen | A noktasındaki tepe akım sigortanın altında; iki motor kilitlenmesi (4,8 A) sınırda, ölçülmeli | 4. hafta |
+| Teker: ön liste 65 mm diyor; teker kütlesi ve iz genişliği | Mete Özgen | Devir (∝ 1/r), çekiş sınırı, enkoder CPR (∝ r), sapma modeli | 3. hafta |
 | Kutu yuvası iç ölçüsü, boşluk, duvar yüksekliği, kütlesi | Mete Özgen | §5.3 ve §5.5; yuva üretimi 4. hafta, iyileştirme 9. hafta | 4. hafta |
 | IR alıcı + şarj kontağı modülünün kütlesi, konumu (ön/arka) ve yüksekliği | Ömer Faruk Arslan | Trim açısı (şu an −1,38°), yere değme açısı (§5.6) | 3.–4. hafta |
 | İlaç kutusunun seçimi: ölçü ve kütle | Ekip | Yuva boyutu; kutu kütlesi duyarlılık tablosunda 4. sırada (§6) | 4. hafta öncesi |
@@ -792,7 +792,7 @@ Aralığı tanımlı her fiziksel parametre, diğerleri nominalde tutularak aral
 
 Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 
-> **69 passed in 7.62s**
+> **78 passed in 7.74s**
 
 | İstenen kontrol | Nasıl yapıldı | Test dosyası |
 |---|---|---|
@@ -838,6 +838,6 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 1. Danışman ekip iş planı (`Danisman_Is_Plani.pdf`): Sefa Nurali Uçak 3. hafta görevi; 3. hafta toplantı teslimatı; haftalık bireysel değerlendirme rubriği; ortak kontrol noktaları.
 2. YTÜ EEF ÇDTP, *İki Tekerlekli Ev İçi Hasta Destek Robotu, Güncel Proje Teknik Şartnamesi*, TR v14, 24 Eylül 2026: §4.1, §4.2, §5.2, §5.3, §7, §8.
-3. cdtp-robot.netlify.app, *ÇDTP · Hasta Destek Robotu Proje Ortamı*, Malzeme ve Şema bölümleri (18 Ekim 2026'da okundu). Başka bir grubun sitesidir; bağlayıcı değildir, yalnız malzeme seçimi kaynağı olarak kullanıldı.
+3. cdtp-robot.netlify.app, *ÇDTP · Hasta Destek Robotu Proje Ortamı*, Malzeme ve Şema bölümleri (18 Ekim 2026'da okundu). Ön malzeme listesi bu referans listeden derlendi; Mete'nin seçimiyle kesinleşecek.
 4. rcdrone.top, *JGB37-520 DC Gear Motor with Hall Encoder*, "12V — 10000RPM Before Reduction (Reference Only)" tablosu (18 Ekim 2026'da okundu). Satıcı tabloyu yalnız referans olarak verir; değerler [doğrulanamadı].
 5. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).

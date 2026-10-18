@@ -12,3 +12,6 @@ kaynaklar/
 
 # Claude Code yerel ayarları
 .claude/
+
+# Toplantı için üretilen PDF'ler (python -m denge --pdf)
+docs/pdf/

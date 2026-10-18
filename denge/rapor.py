@@ -1,8 +1,9 @@
 """3. hafta dokümanını ve şekillerini parametre dosyasından üretir.
 
-Kullanım:  python -m denge            (şekiller + doküman + pytest özeti)
+Kullanım:  python -m denge            (şekiller + tam belge + toplantı özeti + pytest özeti)
            python -m denge --testsiz  (pytest çalıştırmadan)
-Şablon docs/sablon/hafta03.md içindeki @@anahtar@@ yer tutucuları doldurulur.
+           python -m denge --pdf      (ayrıca docs/pdf/ altına PDF; depoya eklenmez)
+Şablonlar (docs/sablon/hafta03.md, hafta03_ozet.md) içindeki @@anahtar@@ yer tutucuları doldurulur.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import math
 import re
 import subprocess
 import sys
+import unicodedata
 
 import numpy as np
 
@@ -25,9 +27,12 @@ DOCS = KOK / "docs"
 SEKIL = DOCS / "sekiller"
 SABLON = DOCS / "sablon" / "hafta03.md"
 CIKTI = DOCS / "hafta03_model_tork_km.md"
+OZET_SABLON = DOCS / "sablon" / "hafta03_ozet.md"
+OZET = DOCS / "hafta03_toplanti_ozeti.md"
+PDF_DIZINI = DOCS / "pdf"
 
 KGFCM = motor.KGFCM
-DURUM_ETIKETI = {"tahmini": "tahmini", "site": "site", "doğrulanamadı": "[doğrulanamadı]", "ölçülmüş": "ölçülmüş",
+DURUM_ETIKETI = {"tahmini": "tahmini", "ön liste": "ön liste", "doğrulanamadı": "[doğrulanamadı]", "ölçülmüş": "ölçülmüş",
                  "şartname": "şartname", "öneri": "[öneri]", "sabit": "sabit"}
 
 
@@ -88,6 +93,21 @@ def aralik_metni(k: dict) -> str:
 
 
 # ---------------------------------------------------------------------------
+def github_slug(baslik: str) -> str:
+    """GitHub'ın Markdown başlık çapası: küçük harf, noktalama atılır, boşluk → tire."""
+    kucuk = baslik.strip().lower()
+    return "".join(c for c in kucuk if c.isalnum() or c in " -_" or unicodedata.category(c).startswith("M")).replace(" ", "-")
+
+
+def bolum_baglari(metin: str, dosya: str) -> dict[str, str]:
+    """'## 4. …' ve '### 4.7 …' başlıklarından bag_4, bag_4_7 → 'dosya#çapa' sözlüğü."""
+    baglar = {}
+    for e in re.finditer(r"^#{2,3} (\d+(?:\.\d+)?)\.? .*$", metin, re.M):
+        baslik = e.group(0).lstrip("#").strip()
+        baglar["bag_" + e.group(1).replace(".", "_")] = f"{dosya}#{github_slug(baslik)}"
+    return baglar
+
+
 def pytest_ozeti() -> str:
     sonuc = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=KOK, capture_output=True, text=True)
     satirlar = [x for x in sonuc.stdout.strip().splitlines() if x.strip()]
@@ -323,7 +343,7 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
     D["tablo_min_motor"] = tablo(["Boşta devir $n_0$ [dev/dk]", "Önerilen $\\tau_s$ [N·m]", "[kgf·cm]", "Asgari $\\tau_s$ [N·m]", "[kgf·cm]"], ornek)
     D["tablo_batarya"] = tablo(
         ["Paket", "Boş [V]", "Nominal [V]", "Tam dolu [V]", "Şartname §4.1 (≤ 24 V DC)"],
-        [[f"{tasarim.d('batarya.seri_hucre')}S Li-ion (site)", s(V["min"], 1), s(V["nominal"], 1), s(V["max"], 1),
+        [[f"{tasarim.d('batarya.seri_hucre')}S Li-ion (ön liste)", s(V["min"], 1), s(V["nominal"], 1), s(V["max"], 1),
           "uygun" if V["max"] <= tasarim.d("sartname.max_gerilim") else "**aşıyor**"]],
         ["l", "r", "r", "r", "l"],
     )
@@ -347,7 +367,7 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
           "ot_tork": s(float(np.max(np.abs(ot["dogrusal_olmayan"]["u"]))), 3), "o1_sure": s(tasarim.d("hedef.o1_sure"), 0),
           "v_tr": s(v_tr, 3), "ot_oran": s(float(np.max(ot["dogrusal_olmayan"]["xd"])) / v_tr, 2)}
 
-    # -- Aday motor (site: JGB37-520 530 RPM; veri sayfası rcdrone [doğrulanamadı]) --
+    # -- Aday motor (ön liste: JGB37-520 530 RPM; veri sayfası rcdrone [doğrulanamadı]) --
     aday = motor.aday_tasarimdan(tasarim)
     seri = motor.seri_adaylari(tasarim)
     deg = motor.degerlendir(aday, g, V)
@@ -488,6 +508,9 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
     D["sira_batarya"] = str(sira.index("govde.batarya.kutle") + 1)
     D["duyarlilik_taban"] = f"kutup {s(taban[0])} 1/s, el hesabı {s(taban[1], 3)} N·m, tutma {s(taban[2], 3)} N·m"
     D["pytest"] = pytest_ozeti() if testler else "(bu üretimde testler çalıştırılmadı)"
+    gecen = re.search(r"(\d+) passed", D["pytest"])
+    D["pytest_kisa"] = (f"{gecen.group(1)} doğrulama testinin hepsi geçti" if gecen and "failed" not in D["pytest"]
+                        else ("testler bu üretimde çalıştırılmadı" if not testler else f"test sonucu: {D['pytest']}"))
     return D
 
 
@@ -502,14 +525,27 @@ def doldur(sablon: str, D: dict) -> str:
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--testsiz", action="store_true", help="pytest özetini atla")
+    ap.add_argument("--pdf", action="store_true", help="docs/pdf/ altına PDF de üret")
     ap.add_argument("--parametreler", default=None)
     a = ap.parse_args(argv)
     tasarim = Tasarim.yukle(a.parametreler)
     D = hesapla_ve_ciz(tasarim, testler=not a.testsiz)
+    uyari = "<!-- Otomatik üretildi (python -m denge). Düzenlemek için docs/sablon/{} ve parametreler.toml dosyalarını değiştirin. -->\n"
     metin = doldur(SABLON.read_text(encoding="utf-8"), D).split("\n", 1)[1]  # şablon uyarısı satırını at
-    uyari = "<!-- Otomatik üretildi (python -m denge). Düzenlemek için docs/sablon/hafta03.md ve parametreler.toml dosyalarını değiştirin. -->\n"
-    CIKTI.write_text(uyari + metin, encoding="utf-8")
-    print(f"Doküman: {CIKTI.relative_to(KOK)}\nŞekiller: {SEKIL.relative_to(KOK)}/\nTestler: {D['pytest']}")
+    CIKTI.write_text(uyari.format(SABLON.name) + metin, encoding="utf-8")
+    D |= bolum_baglari(metin, CIKTI.name)
+    ozet = doldur(OZET_SABLON.read_text(encoding="utf-8"), D).split("\n", 1)[1]
+    OZET.write_text(uyari.format(OZET_SABLON.name) + ozet, encoding="utf-8")
+    print(f"Tam belge: {CIKTI.relative_to(KOK)}\nÖzet: {OZET.relative_to(KOK)}\nŞekiller: {SEKIL.relative_to(KOK)}/\nTestler: {D['pytest']}")
+    if a.pdf:
+        from . import pdf
+
+        for md, css, baslik in ((OZET, "pdf_ozet.css", "3. Hafta Toplantı Özeti"), (CIKTI, "pdf.css", "3. Hafta: Model, Motor, Kutu Yuvası")):
+            hedef = PDF_DIZINI / (md.stem + ".pdf")
+            sayfa = pdf.pdf_uret(md, hedef, DOCS / "sablon" / css, baslik)
+            print(f"PDF: {hedef.relative_to(KOK)} ({sayfa} sayfa)")
+            if md is OZET and sayfa > 1:
+                print("UYARI: özet bir sayfayı aşıyor")
 
 
 if __name__ == "__main__":
