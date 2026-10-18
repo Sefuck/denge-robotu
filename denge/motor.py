@@ -375,7 +375,7 @@ def _ana():
         for x in oran_taramasi(seri_adaylari(tasarim), gerek, gerilimler["min"]):
             e = lambda k: "GEÇTİ" if x[k][1] else "KALDI"
             print(f"| {x['aday'].ad} | {x['n0']:.0f} | {_s(x['ts'])} | {_s(x['nokta_A'][0])} | {e('nokta_A')} | {e('nokta_A0')} | {e('nokta_B')} | {x['cpr']:.0f} |")
-    print("\nNot: gereksinimler tahmini/site/referans parametrelere dayanır (parametreler.toml).")
+    print("\nNot: gereksinimler tahmini/ön liste/referans parametrelere dayanır (parametreler.toml).")
 
 
 if __name__ == "__main__":

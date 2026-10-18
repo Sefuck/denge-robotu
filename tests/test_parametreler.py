@@ -15,21 +15,21 @@ def test_her_parametrede_birim_durum_kaynak_var(tasarim):
 
 
 def test_fiziksel_parametrelerin_hicbiri_olculmus_degil(tasarim):
-    """Parça alınmadı: değerler site listesinden, satıcı referansından ya da tahminden gelir."""
+    """Parça alınmadı: değerler ön malzeme listesinden, satıcı referansından ya da tahminden gelir."""
     fiziksel = [(y, k) for y, k in tasarim.kayitlar() if fiziksel_mi(y)]
     assert len(fiziksel) >= 25
-    assert all(k["durum"] in ("tahmini", "site", "doğrulanamadı") for _, k in fiziksel)
+    assert all(k["durum"] in ("tahmini", "ön liste", "doğrulanamadı") for _, k in fiziksel)
     durumlar = [k["durum"] for _, k in fiziksel]
-    assert durumlar.count("site") >= 5 and durumlar.count("doğrulanamadı") >= 5
+    assert durumlar.count("ön liste") >= 5 and durumlar.count("doğrulanamadı") >= 5
 
 
 def test_site_ve_referans_kaynaklari_etiketli(tasarim):
     for yol, k in tasarim.kayitlar():
-        if k["durum"] == "site":
-            assert "site" in k["kaynak"].lower(), yol
+        if k["durum"] == "ön liste":  # kaynak gizlenmez: liste adresi kayıtta durur
+            assert "cdtp-robot.netlify.app" in k["kaynak"] and "Mete'nin seçimiyle kesinleşecek" in k["kaynak"], yol
         if k["durum"] == "doğrulanamadı":
             assert "[doğrulanamadı]" in k["kaynak"], yol
-    # Motor veri sayfası değerleri sitede yok: rcdrone referansı, doğrulanamadı
+    # Motor veri sayfası değerleri ön listede yok: rcdrone referansı, doğrulanamadı
     for alan in ("reduksiyon", "durma_torku", "durma_akimi", "bosta_akim"):
         k = tasarim.kayit(f"motor_adayi.{alan}")
         assert k["durum"] == "doğrulanamadı" and "rcdrone" in k["kaynak"]

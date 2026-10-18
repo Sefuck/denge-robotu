@@ -12,11 +12,12 @@ from .model import ModelParametreleri
 
 KOK = Path(__file__).resolve().parent.parent
 VARSAYILAN_YOL = KOK / "parametreler.toml"
-GECERLI_DURUMLAR = {"tahmini", "site", "doğrulanamadı", "ölçülmüş", "şartname", "öneri", "sabit"}
+GECERLI_DURUMLAR = {"tahmini", "ön liste", "doğrulanamadı", "ölçülmüş", "şartname", "öneri", "sabit"}
 # Robotun kendisine ait fiziksel parametreler: ölçülene kadar ölçülmüş sayılamaz.
-# "site": başka bir grubun malzeme listesi (bağlayıcı değil); "doğrulanamadı": satıcı referans tablosu.
+# "ön liste": cdtp-robot.netlify.app referans malzeme listesinden derlenen ön liste (Mete'nin seçimiyle
+# kesinleşecek); "doğrulanamadı": satıcı referans tablosu.
 FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi")
-FIZIKSEL_DURUMLAR = ("tahmini", "site", "doğrulanamadı", "ölçülmüş")
+FIZIKSEL_DURUMLAR = ("tahmini", "ön liste", "doğrulanamadı", "ölçülmüş")
 
 BILESEN_ADLARI = {
     "motor": "Motor + redüktör + enkoder",
@@ -59,8 +60,8 @@ def dogrula(veri: dict) -> None:
             hatalar.append(f"{yol}: fiziksel parametrenin durumu {FIZIKSEL_DURUMLAR} içinden olmalı")
         if k.get("durum") == "doğrulanamadı" and "[doğrulanamadı]" not in k.get("kaynak", ""):
             hatalar.append(f"{yol}: 'doğrulanamadı' durumundaki kaynakta [doğrulanamadı] etiketi olmalı")
-        if k.get("durum") == "site" and "site" not in k.get("kaynak", "").lower():
-            hatalar.append(f"{yol}: 'site' durumundaki kaynak siteyi anmalı")
+        if k.get("durum") == "ön liste" and "cdtp-robot.netlify.app" not in k.get("kaynak", ""):
+            hatalar.append(f"{yol}: 'ön liste' durumundaki kaynakta liste adresi (cdtp-robot.netlify.app) olmalı")
         if "aralik" in k and isinstance(k["deger"], (int, float)):
             alt, ust = k["aralik"]
             if not alt <= k["deger"] <= ust:

@@ -114,7 +114,7 @@ def test_dosyadaki_aday_ve_veri_sayfasi_tutarliligi(tasarim):
     a = motor.aday_tasarimdan(tasarim)
     assert a.bosta_devir == 530 and a.ppr == 11 and a.reduksiyon == pytest.approx(18.8)
     assert a.durma_torku == pytest.approx(2.6 * motor.KGFCM, rel=1e-3)
-    assert 4 * a.ppr * a.reduksiyon == pytest.approx(827.2)  # sitedeki "800–850 sayım" notu
+    assert 4 * a.ppr * a.reduksiyon == pytest.approx(827.2)  # ön listedeki "800–850 sayım" notu
 
 
 def test_aday_katsayisiz_gecer_katsayili_kalir(tasarim):
