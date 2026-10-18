@@ -2,13 +2,16 @@
 # İki Tekerlekli Ev İçi Hasta Destek Robotu: Modül A & E parametre dosyası
 # Hazırlayan: Sefa Nurali Uçak (23015008), 3. hafta, 18 Ekim 2026
 #
-# DURUM: Motor, teker ve batarya henüz alınmadı. Bu yüzden robotun bütün
-# FİZİKSEL parametreleri "tahmini"dir. Hiçbiri ölçülmedi.
+# DURUM: Motor, teker ve batarya henüz alınmadı; hiçbir fiziksel parametre ölçülmedi.
+# Sürüm 0.2: malzeme seçimleri cdtp-robot.netlify.app (Malzeme, Şema) sitesinden,
+# motor veri sayfası değerleri rcdrone referans tablosundan alındı. Sitede olmayanlar tahmini.
 #
 # Her parametre aynı alanları taşır:
 #   deger   : sayısal değer (SI birim)
 #   birim   : birim
-#   durum   : "tahmini" | "ölçülmüş" | "şartname" | "öneri" | "sabit"
+#   durum   : "tahmini" | "site" | "doğrulanamadı" | "ölçülmüş" | "şartname" | "öneri" | "sabit"
+#             site = başka bir grubun sitesindeki malzeme listesi (bağlayıcı değil, ölçülmedi)
+#             doğrulanamadı = satıcı referans tablosu, ürünle eşleştiği doğrulanamadı
 #   kaynak  : değerin dayanağı
 #   aralik  : (isteğe bağlı) makul alt/üst sınır, duyarlılık analizinde kullanılır
 #   sorumlu : (isteğe bağlı) ölçülmüş değeri kimin vereceği
@@ -21,7 +24,7 @@
 # =============================================================================
 
 [meta]
-surum = "0.1"
+surum = "0.2"
 tarih = "2026-10-18"
 hazirlayan = "Sefa Nurali Uçak (23015008)"
 
@@ -35,11 +38,11 @@ kaynak = "Standart yerçekimi ivmesi"
 # Tekerler (henüz alınmadı)
 # -----------------------------------------------------------------------------
 [teker.yaricap]
-deger = 0.040
+deger = 0.0325
 birim = "m"
-aralik = [0.0325, 0.050]
-durum = "tahmini"
-kaynak = "Mühendislik tahmini: hobi robot tekerleri yaygın olarak Ø65–Ø100 mm; nominal Ø80 mm seçildi."
+aralik = [0.030, 0.050]
+durum = "site"
+kaynak = "Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): 65 mm lastik tekerlek. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi."
 sorumlu = "Mete Özgen"
 
 [teker.kutle]
@@ -97,31 +100,31 @@ kaynak = "Bilinmiyor, nominalde ihmal edildi. Teker–gövde arası redüktör v
 deger = 3
 birim = "-"
 aralik = [3, 6]
-durum = "tahmini"
-kaynak = "Varsayım: 3S Li-ion. Şartname §4.1 ana besleme ≤ 24 V DC. Mete'nin seçimi bekleniyor."
+durum = "site"
+kaynak = "Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): 3 × Orion 18650P 2450 mAh Li-ion hücre, seri (3S). Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi."
 sorumlu = "Mete Özgen"
 
 [batarya.hucre_gerilimi_min]
-deger = 3.0
+deger = 3.3
 birim = "V"
 aralik = [2.5, 3.3]
-durum = "tahmini"
-kaynak = "Li-ion hücre boşalma sonu (tipik ~3,0 V); gerçek değeri BMS kesim eşiği belirler."
+durum = "site"
+kaynak = "Site malzeme listesi (cdtp-robot.netlify.app › Şema › Hesaplar): '9,9 V boş pil' = 3 × 3,3 V. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi."
 sorumlu = "Mete Özgen"
 
 [batarya.hucre_gerilimi_nominal]
-deger = 3.6
+deger = 3.7
 birim = "V"
 aralik = [3.6, 3.7]
-durum = "tahmini"
-kaynak = "Li-ion hücre nominal gerilimi (3,6–3,7 V)."
+durum = "site"
+kaynak = "Site malzeme listesi (cdtp-robot.netlify.app › Şema › Batarya ve BMS): 3 × 3,7 V = 11,1 V. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi."
 
 [batarya.hucre_gerilimi_max]
 deger = 4.2
 birim = "V"
 aralik = [4.1, 4.2]
-durum = "tahmini"
-kaynak = "Li-ion hücre tam dolu gerilimi (4,2 V)."
+durum = "site"
+kaynak = "Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): dolu 12,6 V = 3 × 4,2 V. Başka bir grubun sitesi: bağlayıcı değil, ölçülmedi."
 
 # -----------------------------------------------------------------------------
 # Gövde bileşenleri: kütle bütçesi ve yerleşim (hepsi tahmini)
@@ -136,8 +139,8 @@ simetrik_y = true
 deger = 0.15
 birim = "kg"
 aralik = [0.08, 0.20]
-durum = "tahmini"
-kaynak = "Mühendislik tahmini: 25–37 mm gövdeli, enkoderli redüktörlü DC motorların tipik kütle aralığı (adet başına)."
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi, 12 V / 10000 RPM referans serisi, 1:18,8 (530 RPM) satırı: 150 g [doğrulanamadı]. Motor modeli site malzeme listesinden (JGB37-520 12 V 530 RPM)."
 sorumlu = "Mete Özgen"
 
 [govde.motor.konum]
@@ -156,24 +159,24 @@ kaynak = "Tahmini motor zarfı: Ø37 × 70 mm sınıfı."
 aciklama = "Şasi yapısı: plakalar, aralayıcılar, motor braketleri"
 
 [govde.sasi.kutle]
-deger = 0.40
+deger = 0.34
 birim = "kg"
-aralik = [0.25, 0.60]
+aralik = [0.25, 0.45]
 durum = "tahmini"
-kaynak = "Mühendislik tahmini: 3–4 katlı PLA/akrilik plaka + aralayıcı + braket; malzemeye göre 0,25–0,60 kg."
+kaynak = "Tahmini: 3 × 3 mm pleksi plaka (site) 8 × 16 cm varsayımıyla ~135 g + 8 × (30 + 50 mm) M3 metal distans (site) ~100 g + 2 × 1,5 mm çelik L braket ~80 g + vida ~20 g. Tartılmadı."
 sorumlu = "Mete Özgen"
 
 [govde.sasi.konum]
-deger = [0.0, 0.0, 0.115]
+deger = [0.0, 0.0, 0.105]
 birim = "m"
 durum = "tahmini"
-kaynak = "Gövde zarfının (z = −0,02…0,25 m) ortası; kütlenin yükseklik boyunca düzgün dağıldığı varsayıldı."
+kaynak = "Alt plaka altı (0,022 m) ile üst plaka üstü (0,188 m) arasının ortası; kat düzeni site (3 kat, katlar arası 80 mm), alt plaka yüksekliği tahmini."
 
 [govde.sasi.boyut]
-deger = [0.08, 0.16, 0.27]
+deger = [0.08, 0.16, 0.166]
 birim = "m"
 durum = "tahmini"
-kaynak = "Tahmini gövde zarfı: 8 cm derinlik × 16 cm genişlik × 27 cm yükseklik."
+kaynak = "Tahmini plaka ölçüsü 8 × 16 cm; yükseklik site kat düzeninden (2 × 80 mm + plaka kalınlıkları)."
 
 [govde.elektronik]
 aciklama = "MCU kartı, IMU, çift motor sürücü, regülatörler, BMS, kablolama"
@@ -183,14 +186,14 @@ deger = 0.20
 birim = "kg"
 aralik = [0.10, 0.30]
 durum = "tahmini"
-kaynak = "Mühendislik tahmini: kart + sürücü + regülatör + BMS + kablo/konnektör toplamı."
+kaynak = "Mühendislik tahmini: site malzeme listesindeki ESP32, 2 × BTS7960, LM2596, 3S BMS, MPU6050, kablo/XT60/klemens toplamı; kütleler sitede yok, tartılmadı."
 sorumlu = "Mete Özgen, Ousmane Dicko"
 
 [govde.elektronik.konum]
-deger = [0.0, 0.0, 0.07]
+deger = [0.0, 0.0, 0.045]
 birim = "m"
 durum = "tahmini"
-kaynak = "Tahmini yerleşim: 1. kat (z ≈ 5–9 cm)."
+kaynak = "Tahmini: alt katta (alt plaka üstü 0,025 m). Site: IMU teker eksenine yakın ve ortada."
 
 [govde.elektronik.boyut]
 deger = [0.07, 0.12, 0.04]
@@ -202,25 +205,25 @@ kaynak = "Tahmini zarf."
 aciklama = "Li-ion batarya paketi (BMS hariç)"
 
 [govde.batarya.kutle]
-deger = 0.30
+deger = 0.16
 birim = "kg"
-aralik = [0.15, 0.45]
+aralik = [0.13, 0.22]
 durum = "tahmini"
-kaynak = "Mühendislik tahmini: 3S2P 18650 paket (6 hücre × ~45–50 g + sargı). 3S1P–4S2P için aralık 0,15–0,45 kg."
+kaynak = "Tahmini: site 3 hücre (3S1P, Orion 18650P) diyor; 3 × ~45–48 g (tipik 18650) + 3'lü pil yuvası. Tartılmadı."
 sorumlu = "Mete Özgen"
 
 [govde.batarya.konum]
-deger = [0.0, 0.0, 0.15]
+deger = [0.0, 0.0, 0.116]
 birim = "m"
 durum = "tahmini"
-kaynak = "Tahmini yerleşim: 2. kat (z ≈ 12–18 cm). Bataryanın yüksekliği KM'yi en çok etkileyen karardır (bkz. doküman §5.4)."
+kaynak = "Site: batarya orta katta önerilir, ilk denemede alt ve orta kat karşılaştırılacak. Orta plaka üstü 0,105 m + paket yarı yüksekliği (tahmini)."
 sorumlu = "Mete Özgen"
 
 [govde.batarya.boyut]
-deger = [0.04, 0.07, 0.055]
+deger = [0.06, 0.08, 0.021]
 birim = "m"
 durum = "tahmini"
-kaynak = "Tahmini 3S2P 18650 paket zarfı."
+kaynak = "Tahmini: 3 × 18650 (Ø18 × 65 mm, site sözlüğü) yan yana, 3'lü yuvada."
 
 [govde.acil_durdurma]
 aciklama = "Fiziksel acil durdurma / ana güç kesme anahtarı (şartname §4.1)"
@@ -228,16 +231,16 @@ aciklama = "Fiziksel acil durdurma / ana güç kesme anahtarı (şartname §4.1)
 [govde.acil_durdurma.kutle]
 deger = 0.04
 birim = "kg"
-aralik = [0.02, 0.08]
+aralik = [0.02, 0.10]
 durum = "tahmini"
-kaynak = "Mühendislik tahmini: panel tipi mantar buton / anahtar."
+kaynak = "Mühendislik tahmini; site metal mantar buton seçmiş (Chint NP2-BE102), kütlesi sitede yok."
 sorumlu = "Mete Özgen"
 
 [govde.acil_durdurma.konum]
-deger = [0.0, 0.065, 0.265]
+deger = [0.0, 0.065, 0.205]
 birim = "m"
 durum = "tahmini"
-kaynak = "Tahmini yerleşim: erişilebilir olsun diye üst plakada, kutu yuvasının yanında."
+kaynak = "Site: acil stop üst katta, kolay erişilir. Konum tahmini (üst plaka üstü 0,188 m + yarım buton yüksekliği)."
 
 [govde.acil_durdurma.boyut]
 deger = [0.03, 0.03, 0.03]
@@ -257,10 +260,10 @@ kaynak = "Mühendislik tahmini; Ömer Faruk'un istasyon/IR tasarımına bağlı.
 sorumlu = "Ömer Faruk Arslan"
 
 [govde.ir_ve_sarj_kontaklari.konum]
-deger = [0.045, 0.0, 0.01]
+deger = [0.045, 0.0, 0.035]
 birim = "m"
 durum = "tahmini"
-kaynak = "Varsayım: ön yüzde, istasyon yüksekliğine uysun diye alçakta. Önde mi arkada mı olacağı belli değil."
+kaynak = "Site: IR alıcılar ve şarj plakaları robotun önünde (sitenin bir yerinde plakalar 'arkada' deniyor; site kendi içinde tutarsız). Yükseklik tahmini (alt kat)."
 sorumlu = "Ömer Faruk Arslan"
 
 [govde.ir_ve_sarj_kontaklari.boyut]
@@ -278,10 +281,16 @@ durum = "tahmini"
 kaynak = "Tahmini gövde derinliği 8 cm, aksa göre simetrik."
 
 [govde.zarf.z_aralik]
-deger = [-0.02, 0.25]
+deger = [0.022, 0.188]
 birim = "m"
 durum = "tahmini"
-kaynak = "Tahmini: alt plaka aksın 2 cm altında, üst plaka 25 cm yukarıda."
+kaynak = "Alt plaka altı 0,022 m (tahmini) ile üst plaka üstü 0,188 m; plakalar arası 80 mm site kat düzeninden."
+
+[govde.braket_alt_kose]
+deger = [0.02, -0.022]
+birim = "m"
+durum = "tahmini"
+kaynak = "Motor L braketinin en alt-ön köşesi (x, z). Braket alt plakanın altına asılı varsayıldı (tahmini); ölçü rcdrone L braket çiziminden: 1,5 mm, 40 mm geniş, 47 mm dikey [doğrulanamadı]."
 
 # -----------------------------------------------------------------------------
 # Yük: ilaç kutusu ve taşıyıcı yuva (şartname §4.1: gövdeye monte edilmez)
@@ -291,14 +300,14 @@ deger = 0.05
 birim = "kg"
 aralik = [0.02, 0.15]
 durum = "tahmini"
-kaynak = "Mühendislik tahmini: küçük karton ilaç kutusu (aspirin vb.). Kutu seçilince tartılacak."
+kaynak = "Aspirin 500 mg 20 tablet kutusu (ekip kararı). Ölçü ve kütlesi bulunamadı; mevcut tahmin korunuyor, kutu tartılınca güncellenecek."
 sorumlu = "Ekip (kutu seçimi), Mete Özgen (yuva)"
 
 [yuk.kutu.boyut]
 deger = [0.05, 0.10, 0.025]
 birim = "m"
 durum = "tahmini"
-kaynak = "Tahmini kutu ölçüsü [x, y, z]: 10 × 5 × 2,5 cm, yatık, uzun kenarı yanal (y). Kutu seçilince ölçülecek."
+kaynak = "Aspirin 500 mg 20 tablet kutusu; ölçüsü bulunamadı, tahmini ölçü [x, y, z] 5 × 10 × 2,5 cm (yatık, uzun kenarı yanal). Ölçülünce güncellenecek."
 
 [yuk.kutu.surtunme]
 deger = 0.3
@@ -312,7 +321,7 @@ deger = 0.05
 birim = "kg"
 aralik = [0.02, 0.10]
 durum = "tahmini"
-kaynak = "Mühendislik tahmini: 3B baskı / akrilik cep tipi yuva."
+kaynak = "Mühendislik tahmini; site 3 mm pleksi cep diyor, kütlesi sitede yok."
 sorumlu = "Mete Özgen"
 
 [yuk.yuva.duvar_yuksekligi]
@@ -338,22 +347,22 @@ kaynak = "Yuva tam aksın üstünde [öneri]: kutu takılıp çıkarılınca den
 
 # Yuva için değerlendirilen üç yükseklik seçeneği (yuva tabanının z'si)
 [yuk.yuva.secenek.ust]
-deger = 0.25
+deger = 0.188
 birim = "m"
 durum = "öneri"
-kaynak = "Üst plakanın üstü."
+kaynak = "Üst plakanın üstü (site: kutu en üstte). Alt plaka 0,025 m (tahmini) + 2 × 80 mm (site) + 3 mm plaka."
 
 [yuk.yuva.secenek.orta]
-deger = 0.18
+deger = 0.108
 birim = "m"
 durum = "öneri"
-kaynak = "Batarya ile üst plaka arası (kat düzeninin değişmesini gerektirir)."
+kaynak = "Orta plakanın üstü, bataryanın yanında (alt plaka + 80 mm + 3 mm)."
 
 [yuk.yuva.secenek.alt]
-deger = 0.025
+deger = 0.028
 birim = "m"
 durum = "öneri"
-kaynak = "Motorların üstü, elektronik katının altı."
+kaynak = "Alt plakanın üstü, elektronikle aynı katta."
 
 [yuk.yuva.onerilen]
 deger = "ust"
@@ -370,6 +379,116 @@ birim = "-"
 aralik = [0.5, 0.9]
 durum = "tahmini"
 kaynak = "Mühendislik tahmini: kauçuk teker ile düz, sert, kuru iç mekân zemini (şartname §7) arası statik sürtünme."
+
+# -----------------------------------------------------------------------------
+# Elektrik koruma (site malzeme listesi)
+# -----------------------------------------------------------------------------
+[elektrik.sigorta]
+deger = 5.0
+birim = "A"
+durum = "site"
+kaynak = "Site malzeme listesi (cdtp-robot.netlify.app › Malzeme ve Şema › Hesaplar): motor hattında 5 A bıçak sigorta; sık atarsa 7,5 A. Başka bir grubun sitesi: bağlayıcı değil."
+
+# -----------------------------------------------------------------------------
+# Aday motor: JGB37-520 12 V 530 RPM (model site malzeme listesinden; veri
+# sayfası değerleri sitede yok, rcdrone referans tablosundan alındı)
+# -----------------------------------------------------------------------------
+[motor_adayi.ad]
+deger = "JGB37-520 12 V 530 RPM, Hall enkoderli"
+birim = "-"
+durum = "site"
+kaynak = "Site malzeme listesi (cdtp-robot.netlify.app › Malzeme): 2 × JGB37-520 12 V 530 RPM, Hall enkoderli. Başka bir grubun sitesi: bağlayıcı değil."
+
+[motor_adayi.gerilim]
+deger = 12.0
+birim = "V"
+durum = "site"
+kaynak = "Site malzeme listesi: 12 V motor."
+
+[motor_adayi.bosta_devir]
+deger = 530.0
+birim = "dev/dk"
+durum = "site"
+kaynak = "Site malzeme listesi: 530 RPM (rcdrone referans tablosunda da 1:18,8 satırı 530 dev/dk)."
+
+[motor_adayi.ppr]
+deger = 11
+birim = "darbe/devir"
+durum = "site"
+kaynak = "Site (Şema › yazılım notları): '11 darbe × dişli oranı × 4'; rcdrone: 11 PPR Hall enkoder."
+
+[motor_adayi.reduksiyon]
+deger = 18.8
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 530 dev/dk satırı: oran 18,8 [doğrulanamadı]. Sitedeki 'teker turu başına ≈ 800–850 sayım' notuyla tutarlı (4 × 11 × 18,8 = 827)."
+
+[motor_adayi.bosta_akim]
+deger = 0.15
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: boşta akım 0,15 A [doğrulanamadı]."
+
+[motor_adayi.durma_torku]
+deger = 0.2550
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: durma torku 2,6 kgf·cm = 0,255 N·m (12 V) [doğrulanamadı]. Site: 'kilitlenme akımı satıcıda yazmıyor'."
+
+[motor_adayi.durma_akimi]
+deger = 2.4
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: durma akımı 2,4 A [doğrulanamadı]. Site notu: JGB37-520 12 V için tipik 2–3 A."
+
+[motor_adayi.verim_torku]
+deger = 0.0657
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: en yüksek verimde tork 0,67 kgf·cm = 0,066 N·m, 407 dev/dk, 0,65 A [doğrulanamadı]. Satıcı motorun bu yüke göre seçilmesini, durma torkuna yakın sürekli çalıştırılmamasını yazıyor."
+
+[motor_adayi.verim_devri]
+deger = 407.0
+birim = "dev/dk"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi, 1:18,8 satırı: yüklü devir 407 dev/dk [doğrulanamadı]."
+
+# rcdrone referans serisinin diğer oranları (oran taraması için; aynı motor gövdesi, 12 V)
+[motor_serisi.reduksiyon]
+deger = [6.25, 10.0, 18.8, 30.0, 56.0, 70.0, 90.0]
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi [doğrulanamadı]. Satıcı: bu seri yalnız referanstır; satın alınan varyantın oranı ayrıca doğrulanmalı."
+
+[motor_serisi.bosta_devir]
+deger = [1600.0, 1000.0, 530.0, 333.0, 178.0, 142.0, 110.0]
+birim = "dev/dk"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi: boşta devir (12 V) [doğrulanamadı]."
+
+[motor_serisi.durma_torku_kgfcm]
+deger = [0.9, 1.6, 2.6, 4.0, 7.2, 8.8, 12.0]
+birim = "kgf*cm"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi: durma torku (12 V) [doğrulanamadı]."
+
+[motor_serisi.verim_torku_kgfcm]
+deger = [0.23, 0.4, 0.67, 1.0, 1.8, 2.2, 3.0]
+birim = "kgf*cm"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi: en yüksek verimde tork (12 V) [doğrulanamadı]."
+
+[motor_serisi.durma_akimi]
+deger = 2.4
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi: bütün oranlarda durma akımı 2,4 A, boşta akım 0,15 A [doğrulanamadı]."
+
+[motor_serisi.bosta_akim]
+deger = 0.15
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "rcdrone JGB37-520 listesi (rcdrone.top), 12 V / 10000 RPM referans serisi: bütün oranlarda boşta akım 0,15 A [doğrulanamadı]."
 
 # -----------------------------------------------------------------------------
 # Şartname değerleri (TR v14, 24 Eylül 2026)

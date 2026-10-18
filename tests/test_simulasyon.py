@@ -22,9 +22,11 @@ def test_enerji_korunur(p, temas):
 
 
 @pytest.mark.parametrize("mod", ["serbest", "kilitli"])
-def test_arti_eksi_10_derece_dusmeleri_simetrik(p, temas, mod):
-    a = sim.acik_cevrim_dusme(p, math.radians(10), mod=mod, yere_degme=temas)
-    b = sim.acik_cevrim_dusme(p, math.radians(-10), mod=mod, yere_degme=temas)
+def test_arti_eksi_10_derece_dusmeleri_simetrik(p, mod):
+    """Dinamik simetri: yere değme açıları eşit alınınca ±10° düşmeler aynadaki görüntüdür."""
+    simetrik = (math.radians(60), math.radians(60))
+    a = sim.acik_cevrim_dusme(p, math.radians(10), mod=mod, yere_degme=simetrik)
+    b = sim.acik_cevrim_dusme(p, math.radians(-10), mod=mod, yere_degme=simetrik)
     assert a["t_degme"] == pytest.approx(b["t_degme"], rel=1e-6)
     assert np.allclose(a["theta"], -b["theta"], atol=1e-8)
 

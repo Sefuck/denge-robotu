@@ -12,9 +12,11 @@ from .model import ModelParametreleri
 
 KOK = Path(__file__).resolve().parent.parent
 VARSAYILAN_YOL = KOK / "parametreler.toml"
-GECERLI_DURUMLAR = {"tahmini", "ölçülmüş", "şartname", "öneri", "sabit"}
-# Robotun kendisine ait fiziksel parametreler: ölçülene kadar "tahmini" olmak zorunda
-FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin")
+GECERLI_DURUMLAR = {"tahmini", "site", "doğrulanamadı", "ölçülmüş", "şartname", "öneri", "sabit"}
+# Robotun kendisine ait fiziksel parametreler: ölçülene kadar ölçülmüş sayılamaz.
+# "site": başka bir grubun malzeme listesi (bağlayıcı değil); "doğrulanamadı": satıcı referans tablosu.
+FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi")
+FIZIKSEL_DURUMLAR = ("tahmini", "site", "doğrulanamadı", "ölçülmüş")
 
 BILESEN_ADLARI = {
     "motor": "Motor + redüktör + enkoder",
@@ -53,8 +55,12 @@ def dogrula(veri: dict) -> None:
                 hatalar.append(f"{yol}: '{alan}' alanı eksik")
         if k.get("durum") not in GECERLI_DURUMLAR:
             hatalar.append(f"{yol}: geçersiz durum {k.get('durum')!r}")
-        if fiziksel_mi(yol) and k.get("durum") not in ("tahmini", "ölçülmüş"):
-            hatalar.append(f"{yol}: fiziksel parametre 'tahmini' ya da 'ölçülmüş' olmalı")
+        if fiziksel_mi(yol) and k.get("durum") not in FIZIKSEL_DURUMLAR:
+            hatalar.append(f"{yol}: fiziksel parametrenin durumu {FIZIKSEL_DURUMLAR} içinden olmalı")
+        if k.get("durum") == "doğrulanamadı" and "[doğrulanamadı]" not in k.get("kaynak", ""):
+            hatalar.append(f"{yol}: 'doğrulanamadı' durumundaki kaynakta [doğrulanamadı] etiketi olmalı")
+        if k.get("durum") == "site" and "site" not in k.get("kaynak", "").lower():
+            hatalar.append(f"{yol}: 'site' durumundaki kaynak siteyi anmalı")
         if "aralik" in k and isinstance(k["deger"], (int, float)):
             alt, ust = k["aralik"]
             if not alt <= k["deger"] <= ust:
@@ -196,4 +202,8 @@ class Tasarim:
         dx, _, dz = b["boyut"]["deger"]
         noktalar["IR/kontak modülü alt köşe"] = (x + dx / 2, z - dz / 2)
         noktalar["IR/kontak modülü üst köşe"] = (x + dx / 2, z + dz / 2)
+        if "braket_alt_kose" in self.veri["govde"]:
+            bx, bz = self.d("govde.braket_alt_kose")
+            noktalar["Motor braketi alt-ön köşe"] = (bx, bz)
+            noktalar["Motor braketi alt-arka köşe"] = (-bx, bz)
         return noktalar

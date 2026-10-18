@@ -14,11 +14,25 @@ def test_her_parametrede_birim_durum_kaynak_var(tasarim):
         assert k["birim"] and k["durum"] and k["kaynak"].strip(), yol
 
 
-def test_fiziksel_parametrelerin_hepsi_tahmini(tasarim):
-    """Parça alınmadı: robotun hiçbir fiziksel parametresi ölçülmüş olamaz."""
+def test_fiziksel_parametrelerin_hicbiri_olculmus_degil(tasarim):
+    """Parça alınmadı: değerler site listesinden, satıcı referansından ya da tahminden gelir."""
     fiziksel = [(y, k) for y, k in tasarim.kayitlar() if fiziksel_mi(y)]
     assert len(fiziksel) >= 25
-    assert all(k["durum"] == "tahmini" for _, k in fiziksel)
+    assert all(k["durum"] in ("tahmini", "site", "doğrulanamadı") for _, k in fiziksel)
+    durumlar = [k["durum"] for _, k in fiziksel]
+    assert durumlar.count("site") >= 5 and durumlar.count("doğrulanamadı") >= 5
+
+
+def test_site_ve_referans_kaynaklari_etiketli(tasarim):
+    for yol, k in tasarim.kayitlar():
+        if k["durum"] == "site":
+            assert "site" in k["kaynak"].lower(), yol
+        if k["durum"] == "doğrulanamadı":
+            assert "[doğrulanamadı]" in k["kaynak"], yol
+    # Motor veri sayfası değerleri sitede yok: rcdrone referansı, doğrulanamadı
+    for alan in ("reduksiyon", "durma_torku", "durma_akimi", "bosta_akim"):
+        k = tasarim.kayit(f"motor_adayi.{alan}")
+        assert k["durum"] == "doğrulanamadı" and "rcdrone" in k["kaynak"]
 
 
 @pytest.mark.parametrize(
@@ -28,6 +42,7 @@ def test_fiziksel_parametrelerin_hepsi_tahmini(tasarim):
         lambda v: v["teker"]["yaricap"].update(durum="uydurma"),
         lambda v: v["teker"]["yaricap"].update(deger=0.5),  # aralık dışı
         lambda v: v["teker"]["kutle"].update(durum="öneri"),  # fiziksel parametre öneri olamaz
+        lambda v: v["motor_adayi"]["durma_torku"].update(kaynak="rcdrone"),  # [doğrulanamadı] etiketi yok
     ],
 )
 def test_hatali_parametre_dosyasi_reddedilir(tasarim, bozma):
@@ -62,8 +77,8 @@ def test_kutu_kutusu_atalet_formulu():
     assert np.allclose(np.diag(g.atalet), m / 12 * np.array([dy**2 + dz**2, dx**2 + dz**2, dx**2 + dy**2]))
 
 
-def test_batarya_gerilimi_24V_kisitina_uygun(tasarim):
+def test_site_bataryasi_3S_ve_24V_kisitina_uygun(tasarim):
     v = tasarim.batarya_gerilimleri()
+    assert tasarim.d("batarya.seri_hucre") == 3
+    assert v["min"] == pytest.approx(9.9) and v["nominal"] == pytest.approx(11.1) and v["max"] == pytest.approx(12.6)
     assert v["max"] <= tasarim.d("sartname.max_gerilim")
-    # 6S Li-ion tam doluyken 25,2 V: şartnamedeki 24 V sınırını aşar (dokümanda uyarı)
-    assert tasarim.degistir({"batarya.seri_hucre": 6}).batarya_gerilimleri()["max"] > 24.0
