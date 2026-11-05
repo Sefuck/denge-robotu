@@ -3,6 +3,7 @@
 # Hazırlayan: Sefa Nurali Uçak (23015008), 3. hafta, 18 Ekim 2026
 #
 # DURUM: Motor, teker ve batarya henüz alınmadı; hiçbir fiziksel parametre ölçülmedi.
+# Sürüm 0.3: motor tipi parametre oldu (dosyanın sonu); tahrik.tip = "dc" iken hesaplar 0.2 ile aynı.
 # Sürüm 0.2: Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek.
 # Motor veri sayfası değerleri rcdrone referans tablosundan alındı. Listede olmayanlar tahmini.
 #
@@ -24,8 +25,8 @@
 # =============================================================================
 
 [meta]
-surum = "0.2"
-tarih = "2026-10-18"
+surum = "0.3"
+tarih = "2026-11-06"
 hazirlayan = "Sefa Nurali Uçak (23015008)"
 
 [sabit.g]
@@ -627,3 +628,410 @@ deger = 25.0
 birim = "deg"
 durum = "öneri"
 kaynak = "±10° başlangıç + toparlanmadaki aşım payı. İki teker dışında bir parçanın yere değmesi alt testi düşürür (şartname §7) [öneri]."
+
+# =============================================================================
+# Sürüm 0.3: motor tipi parametre oldu. tahrik.tip = "dc" iken bütün hesaplar sürüm 0.2 ile aynıdır.
+# Aşağıdaki bölümler yalnız step motor seçeneği içindir (belge §10). 5 Kasım 2026'da okunan kaynaklar.
+# =============================================================================
+[tahrik.tip]
+deger = "dc"
+birim = "-"
+durum = "öneri"
+kaynak = "Tasarimin modelinde kullanılan motor tipi: 'dc' (belge §1–§9, JGB37-520) ya da 'step' (belge §10, 17HS4401 + DRV8825). Karar verilince burası değiştirilir; 'step' seçilince motor kütlesi, zarfı ve rotor ataleti step adayından alınır."
+
+# -----------------------------------------------------------------------------
+# Step motor adayı (ekip 2 × DRV8825 aldı, motor alınmadı)
+# -----------------------------------------------------------------------------
+[step_adayi.ad]
+deger = "Nema 17 17HS4401 + DRV8825"
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "Ekip kararı: 2 × DRV8825 alındı, motor alınmadı. Model robo90 ürün sayfasından (robo90.com/17hs4401-nema-17-step-motor-3d-yazici-uyumlu) [doğrulanamadı]."
+sorumlu = "Mete Özgen"
+
+[step_adayi.sargi]
+deger = "robo90"
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "Aynı adla iki farklı sargı satılıyor; hangisinin geleceği belli değil [doğrulanamadı]. Motor gelince faz direnci ve endüktans ölçülerek seçilecek. Eğrinin alt/üst sınırı iki sargıyı da kapsar."
+sorumlu = "Mete Özgen (ölçüm)"
+
+[step_adayi.konum]
+deger = [0.0, 0.0605, 0.0]
+birim = "m"
+durum = "tahmini"
+kaynak = "Tahmini yerleşim: mil teker aksıyla eş eksenli (doğrudan tahrik, z = 0). y = iz genişliği/2 − teker genişliği/2 − 7 mm boşluk − gövde boyu/2 ≈ 60 mm."
+
+[step_adayi.adim_sayisi]
+deger = 200
+birim = "adım/devir"
+durum = "doğrulanamadı"
+kaynak = "1,8° adım açısı: MotionKing 17HS katalogu (17HS4401 satırı), robo90 ürün sayfası [doğrulanamadı]."
+
+[step_adayi.radyal_yuk_siniri]
+deger = 28.0
+birim = "N"
+durum = "doğrulanamadı"
+kaynak = "Benzer gövde JK42HS40 veri sayfası (Eckstein/JKongmotor): flanştan 20 mm'de en çok 28 N radyal kuvvet. 17HS4401 için değer bulunamadı [doğrulanamadı]."
+
+# Satışta görülen iki sargı. robo90 kaydı robo90 sayfasındaki 1,5 A / 1,8 Ω / 300 g / 38 mm değerleriyle eşleşen
+# samm kaydından tamamlandı; aynı ürün oldukları doğrulanamadı.
+[step_sargi.robo90.faz_akimi]
+deger = 1.5
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "robo90 ürün sayfası (Akım: 1.5A); market.samm.com 17HS4401 sayfası da aynı [doğrulanamadı]."
+
+[step_sargi.robo90.faz_direnci]
+deger = 1.8
+birim = "ohm"
+durum = "doğrulanamadı"
+kaynak = "robo90 ürün sayfası (İç Direnci: 1.8 ohm); samm da aynı [doğrulanamadı]."
+
+[step_sargi.robo90.enduktans]
+deger = 0.0042
+birim = "H"
+durum = "doğrulanamadı"
+kaynak = "market.samm.com 17HS4401 sayfası: 4,2 mH. robo90'da yok [doğrulanamadı]."
+
+[step_sargi.robo90.tutma_torku]
+deger = 0.40
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "market.samm.com 17HS4401 sayfası: 40 N·cm. robo90'da yok [doğrulanamadı]. İki faz anma akımındayken kabul edildi."
+
+[step_sargi.robo90.detent_torku]
+deger = 0.020
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "market.samm.com 17HS4401 sayfası: 2 N·cm. robo90'da yok [doğrulanamadı]."
+
+[step_sargi.robo90.rotor_ataleti]
+deger = 4.7e-6
+birim = "kg*m^2"
+durum = "doğrulanamadı"
+kaynak = "market.samm.com 17HS4401 sayfası: 47 g·cm². robo90'da yok [doğrulanamadı]."
+
+[step_sargi.robo90.kutle]
+deger = 0.30
+birim = "kg"
+durum = "doğrulanamadı"
+kaynak = "robo90 ürün sayfası (Ağırlık: 300 gram); samm da aynı [doğrulanamadı]. Tartılmadı."
+
+[step_sargi.robo90.boy]
+deger = 0.038
+birim = "m"
+durum = "doğrulanamadı"
+kaynak = "robo90 ürün sayfası (Motor Boyutu: 42x42x38mm) [doğrulanamadı]."
+
+[step_sargi.robo90.mil_capi]
+deger = 0.005
+birim = "m"
+durum = "doğrulanamadı"
+kaynak = "robo90 ve samm'da yok; MotionKing katalog çiziminden Ø5 mm [doğrulanamadı]. Motor gelince ölçülecek."
+
+[step_sargi.katalog.faz_akimi]
+deger = 1.7
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu (MK1106 Rev.04), 17HS4401 satırı; direnc.net veri sayfası ve Handson 17HS4401S aynı [doğrulanamadı]."
+
+[step_sargi.katalog.faz_direnci]
+deger = 1.5
+birim = "ohm"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu, 17HS4401 satırı [doğrulanamadı]."
+
+[step_sargi.katalog.enduktans]
+deger = 0.0028
+birim = "H"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu, 17HS4401 satırı: 2,8 mH [doğrulanamadı]."
+
+[step_sargi.katalog.tutma_torku]
+deger = 0.40
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu, 17HS4401 satırı: en az 40 N·cm (Handson 17HS4401S: 43 N·cm) [doğrulanamadı]. İki faz anma akımındayken kabul edildi."
+
+[step_sargi.katalog.detent_torku]
+deger = 0.022
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu, 17HS4401 satırı: en çok 2,2 N·cm [doğrulanamadı]."
+
+[step_sargi.katalog.rotor_ataleti]
+deger = 5.4e-6
+birim = "kg*m^2"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu, 17HS4401 satırı: 54 g·cm² [doğrulanamadı]."
+
+[step_sargi.katalog.kutle]
+deger = 0.28
+birim = "kg"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu, 17HS4401 satırı: 280 g [doğrulanamadı]."
+
+[step_sargi.katalog.boy]
+deger = 0.040
+birim = "m"
+durum = "doğrulanamadı"
+kaynak = "MotionKing 17HS katalogu, 17HS4401 satırı: 40 mm [doğrulanamadı]."
+
+[step_sargi.katalog.mil_capi]
+deger = 0.005
+birim = "m"
+durum = "doğrulanamadı"
+kaynak = "MotionKing katalog çizimi: Ø5 mm [doğrulanamadı]."
+
+# -----------------------------------------------------------------------------
+# Pull-out eğrisi: 17HS4401'in kendi eğrisi bulunamadı. Aşağıdakiler aynı sınıftan iki kardeş motorun
+# 24 V eğrileridir; 12 V ve 9,9 V tahmini bunlardan türetilir (denge/step.py). Bu motorun eğrisi DEĞİLDİR.
+# -----------------------------------------------------------------------------
+[step_egri.hs15_1504s.devir]
+deger = [60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0, 360.0, 390.0, 420.0, 450.0]
+birim = "dev/dk"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline, 17HS15-1504S_Torque_Curve.pdf (web.archive.org kopyası), 24 V, 1,5 A, 400 mikro adım/devir [doğrulanamadı]. Bu motorun eğrisi değil, kardeş motor."
+
+[step_egri.hs15_1504s.tork]
+deger = [0.37, 0.37, 0.37, 0.37, 0.36, 0.36, 0.36, 0.36, 0.35, 0.35, 0.34, 0.34, 0.33, 0.31]
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "Aynı eğriden şekil üzerinde okundu, okuma hatası ±0,5 N·cm [doğrulanamadı]."
+
+[step_egri.hs15_1504s.gerilim]
+deger = 24.0
+birim = "V"
+durum = "doğrulanamadı"
+kaynak = "Eğrinin test koşulu [doğrulanamadı]."
+
+[step_egri.hs15_1504s.akim]
+deger = 1.5
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Eğrinin test koşulu; faz başına etkin (rms) kabul edildi: düşük hız torku (37 N·cm) etiket torkuna (42 N·cm) yakın, 1,5 A tepe olsaydı etiketin %71'i (≈ 30 N·cm) civarında kalırdı [doğrulanamadı]."
+
+[step_egri.hs15_1504s.faz_direnci]
+deger = 2.0
+birim = "ohm"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline 17HS15-1504S teknik çizimi: 2,00 Ω [doğrulanamadı]."
+
+[step_egri.hs15_1504s.enduktans]
+deger = 0.0039
+birim = "H"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline 17HS15-1504S teknik çizimi: 3,90 mH [doğrulanamadı]."
+
+[step_egri.hs15_1504s.tutma_torku]
+deger = 0.42
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline 17HS15-1504S teknik çizimi: 0,42 N·m [doğrulanamadı]."
+
+[step_egri.hs15_1684s.devir]
+deger = [30.0, 90.0, 210.0, 300.0, 390.0, 510.0, 600.0, 690.0, 810.0, 990.0, 1110.0, 1200.0]
+birim = "dev/dk"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline, 17HS15-1684S_Torque_Curve.pdf (web.archive.org kopyası), DM542T sürücü, 24 V, 1,69 A, 2000 mikro adım/devir [doğrulanamadı]. Bu motorun eğrisi değil, kardeş motor."
+
+[step_egri.hs15_1684s.tork]
+deger = [0.36, 0.35, 0.38, 0.37, 0.36, 0.32, 0.29, 0.25, 0.22, 0.17, 0.13, 0.10]
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "Aynı eğriden şekil üzerinde okundu, okuma hatası ±0,5 N·cm [doğrulanamadı]."
+
+[step_egri.hs15_1684s.gerilim]
+deger = 24.0
+birim = "V"
+durum = "doğrulanamadı"
+kaynak = "Eğrinin test koşulu [doğrulanamadı]."
+
+[step_egri.hs15_1684s.akim]
+deger = 1.69
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Eğrinin test koşulu, etkin değer: DM542T akım tablosunda 2,37 A tepe = 1,69 A rms satırı [doğrulanamadı]."
+
+[step_egri.hs15_1684s.faz_direnci]
+deger = 1.65
+birim = "ohm"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline 17HS15-1684S teknik çizimi: 1,65 Ω [doğrulanamadı]."
+
+[step_egri.hs15_1684s.enduktans]
+deger = 0.0032
+birim = "H"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline 17HS15-1684S teknik çizimi: 3,20 mH [doğrulanamadı]."
+
+[step_egri.hs15_1684s.tutma_torku]
+deger = 0.36
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "StepperOnline 17HS15-1684S teknik çizimi: 0,36 N·m [doğrulanamadı]."
+
+[step_egri.rezonans_carpani]
+deger = 0.65
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "Düşük hızda rezonans düşümü için kötü durum: 17HS16-2004S1 (StepperOnline, 24 V, yarım adım) 400 pps'te 22, 600 pps'te 34 N·cm; JK42HS40-1004AC (24 V, tam adım) 500 pps'te ≈ 1,75, 700 pps'te ≈ 2,75 kg·cm. İkisinde de oran ≈ 0,65 [doğrulanamadı]."
+
+# Ölçüm gelince: üç listeyi doldur, durum = "ölçülmüş" yap, kaynak'a yöntemi yaz. Liste doluysa eğri olarak bunlar kullanılır.
+[step_egri.olcum.devir]
+deger = []
+birim = "dev/dk"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi. Yöntem belge §10.10'da; ölçülecek devirler 30–300 dev/dk."
+
+[step_egri.olcum.tork_12v]
+deger = []
+birim = "N*m"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi: 12,0 V, sürücü akım limiti step_hedef.akim_limiti."
+
+[step_egri.olcum.tork_9v9]
+deger = []
+birim = "N*m"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi: 9,9 V, sürücü akım limiti step_hedef.akim_limiti."
+
+# -----------------------------------------------------------------------------
+# DRV8825 (2 adet alındı) ve AS5600 (2 adet alındı)
+# -----------------------------------------------------------------------------
+[surucu.drv8825.rds_toplam]
+deger = 0.50
+birim = "ohm"
+aralik = [0.40, 0.64]
+durum = "doğrulanamadı"
+kaynak = "TI DRV8825 veri sayfası SLVSA73F §7.5: üst + alt FET, 25 °C'de tipik 0,2 + 0,2; 85 °C'de tipik 0,25 + 0,25, en çok 0,32 + 0,32 Ω. Kart klon olabilir [doğrulanamadı]."
+
+[surucu.drv8825.besleme_min]
+deger = 8.2
+birim = "V"
+durum = "doğrulanamadı"
+kaynak = "TI SLVSA73F §7.3 ve §7.5: çalışma aralığı 8,2–45 V, düşük gerilim kesmesi en çok 8,2 V [doğrulanamadı]."
+
+[surucu.drv8825.akim_sogutmasiz]
+deger = 1.5
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Pololu #2133 sayfası: soğutucusuz faz başına yaklaşık 1,5 A. Klon kartta daha düşük olabilir [doğrulanamadı]."
+
+[surucu.drv8825.akim_sogutmali]
+deger = 2.2
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Pololu #2133 sayfası: yeterli soğutmayla faz başına 2,2 A'e kadar [doğrulanamadı]."
+
+[surucu.drv8825.vref_kazanc]
+deger = 2.0
+birim = "A/V"
+durum = "doğrulanamadı"
+kaynak = "Pololu #2133 sayfası: akım limiti = 2 × VREF (0,100 Ω algılama direnci). TI: I = VREF / (5 · R_sense). Klon kartta direnç üzerinden doğrulanmalı [doğrulanamadı]."
+
+[surucu.drv8825.f_step_max]
+deger = 250000.0
+birim = "Hz"
+durum = "doğrulanamadı"
+kaynak = "TI SLVSA73F §7.6: en çok 250 kHz; STEP darbesi yüksek ve alçak en az 1,9 µs [doğrulanamadı]."
+
+[surucu.drv8825.r_theta_ja]
+deger = 31.6
+birim = "degC/W"
+durum = "doğrulanamadı"
+kaynak = "TI SLVSA73F §7.4: JEDEC yüksek-K kartta 31,6 °C/W. Küçük sürücü kartında daha kötüdür [doğrulanamadı]."
+
+[surucu.drv8825.tsd_min]
+deger = 150.0
+birim = "degC"
+durum = "doğrulanamadı"
+kaynak = "TI SLVSA73F §7.5: ısıl kapanma en az 150 °C [doğrulanamadı]."
+
+[surucu.motor_isinma_siniri]
+deger = 80.0
+birim = "degC"
+durum = "doğrulanamadı"
+kaynak = "MotionKing, StepperOnline ve benzer katalog sayfaları: anma akımında iki faz açıkken en çok 80 °C sıcaklık artışı. 17HS4401'de Handson sayfası da aynı [doğrulanamadı]."
+
+[sensor.as5600.cozunurluk]
+deger = 4096
+birim = "sayım/devir"
+durum = "doğrulanamadı"
+kaynak = "ams AS5600 veri sayfası v1-06: 12 bit. Sistem doğrusallık hatası ±1° (en iyi doğruya göre) [doğrulanamadı]."
+
+[sensor.as5600.gecikme]
+deger = 0.00055
+birim = "s"
+aralik = [0.000286, 0.0022]
+durum = "doğrulanamadı"
+kaynak = "ams AS5600 veri sayfası v1-06: yerleşme süresi SF = 00: 2,2 ms; 01: 1,1 ms; 10: 0,55 ms; 11: 0,286 ms [doğrulanamadı]. Seçilen 0,55 ms [öneri]."
+
+# -----------------------------------------------------------------------------
+# Güç ve maliyet karşılaştırması
+# -----------------------------------------------------------------------------
+[guc.batarya_kapasitesi]
+deger = 2.45
+birim = "A*h"
+durum = "ön liste"
+kaynak = "Ön malzeme listesi (cdtp-robot.netlify.app referans malzeme listesi › Malzeme): Orion 18650P 2450 mAh, 3S. Mete'nin seçimiyle kesinleşecek; ölçülmedi."
+
+[guc.lojik_gucu]
+deger = 2.0
+birim = "W"
+aralik = [1.0, 3.0]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: ESP32, MPU6050, IR alıcılar, regülatör kayıpları. Ölçülmedi. İki motor tipinde de aynı alındı."
+sorumlu = "Mete Özgen, Ousmane Dicko"
+
+[maliyet.step_motor]
+deger = 300.0
+birim = "TL"
+durum = "doğrulanamadı"
+kaynak = "robo90 ürün sayfası, 5 Kasım 2026: 250,00 TL + KDV = 300,00 TL [doğrulanamadı]. Fiyat değişebilir."
+
+[maliyet.dc_motor]
+deger = 665.41
+birim = "TL"
+durum = "doğrulanamadı"
+kaynak = "direnc.net JGB37-520 12V 333RPM Enkoderli Motor, 5 Kasım 2026: 665,41 TL KDV dahil [doğrulanamadı]. Fiyat değişebilir."
+
+[maliyet.bts7960]
+deger = 294.0
+birim = "TL"
+durum = "doğrulanamadı"
+kaynak = "robo90 BTS7960B sayfası, 5 Kasım 2026: 245,00 TL + KDV = 294,00 TL (robolink: 393,00 TL) [doğrulanamadı]. Fiyat değişebilir."
+
+# -----------------------------------------------------------------------------
+# Step motor için tasarım seçimleri [öneri]
+# -----------------------------------------------------------------------------
+[step_hedef.mikro_adim]
+deger = 16
+birim = "-"
+durum = "öneri"
+kaynak = "DRV8825 1/16 kipi [öneri]: 3200 adım/teker devri, hız çözünürlüğü hedefini karşılar; 1/32'nin çözünürlük dışında kazancı yok. Mod pinleri MODE2 = 1, MODE1 = MODE0 = 0."
+
+[step_hedef.akim_limiti]
+deger = 1.5
+birim = "A"
+durum = "öneri"
+kaynak = "DRV8825 akım limiti (faz başına tepe) [öneri]: soğutucusuz üst sınır. Bu ayarda faz başına etkin akım 1,06 A'dir."
+
+[step_hedef.akim_limiti_sogutmali]
+deger = 2.1
+birim = "A"
+durum = "öneri"
+kaynak = "Soğutucu + fanla seçenek [öneri]: √2 × 1,5 A; 1,5 A'lik sargıda etiket torkunu verir. Pololu sınırı 2,2 A'in altında."
+
+[step_hedef.planlama_suresi]
+deger = 0.008
+birim = "s"
+durum = "öneri"
+kaynak = "FastAccelStepper ileri planlama süresi [öneri]: varsayılan 20 ms; başlıktaki açıklama iki görev çevrimi, yani 8 ms'yi ideal sayıyor."
+
+[step_hedef.kayip_esigi]
+deger = 2.0
+birim = "tam adım"
+durum = "öneri"
+kaynak = "Komut ile AS5600 açısı arasındaki fark bu değeri aşarsa adım kaybı sayılır [öneri]: gerçek kayıp 4 tam adımdır (7,2°), yük altındaki normal gecikme 1 tam adımın altındadır."

@@ -16,7 +16,9 @@ GECERLI_DURUMLAR = {"tahmini", "ön liste", "doğrulanamadı", "ölçülmüş", 
 # Robotun kendisine ait fiziksel parametreler: ölçülene kadar ölçülmüş sayılamaz.
 # "ön liste": cdtp-robot.netlify.app referans malzeme listesinden derlenen ön liste (Mete'nin seçimiyle
 # kesinleşecek); "doğrulanamadı": satıcı referans tablosu.
-FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi")
+# Yalnız step motor seçeneğine ait bölümler (belge §10); DC tabloları bunları göstermez.
+STEP_BOLUMLERI = ("step_adayi", "step_sargi", "step_egri", "surucu", "sensor", "guc")
+FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi", *STEP_BOLUMLERI)
 FIZIKSEL_DURUMLAR = ("tahmini", "ön liste", "doğrulanamadı", "ölçülmüş")
 
 BILESEN_ADLARI = {
@@ -32,6 +34,10 @@ BILESEN_ADLARI = {
 def fiziksel_mi(yol: str) -> bool:
     """Robotun kendisine ait (ölçülene kadar tahmini) bir parametre mi?"""
     return any(yol == b or yol.startswith(b + ".") for b in FIZIKSEL_BOLUMLER)
+
+
+def step_parametresi_mi(yol: str) -> bool:
+    return any(yol == b or yol.startswith(b + ".") for b in STEP_BOLUMLERI)
 
 
 def parametre_kayitlari(veri: dict, onek: str = "") -> list[tuple[str, dict]]:
@@ -66,6 +72,8 @@ def dogrula(veri: dict) -> None:
             alt, ust = k["aralik"]
             if not alt <= k["deger"] <= ust:
                 hatalar.append(f"{yol}: {k['deger']} aralık dışında {k['aralik']}")
+    if veri.get("tahrik", {}).get("tip", {}).get("deger", "dc") not in ("dc", "step"):
+        hatalar.append("tahrik.tip: 'dc' ya da 'step' olmalı")
     if hatalar:
         raise ValueError("Parametre dosyası hatalı:\n  " + "\n  ".join(hatalar))
 
@@ -106,6 +114,15 @@ class Tasarim:
             dugum.pop("aralik", None)
         return Tasarim(yeni)
 
+    # -- motor tipi -----------------------------------------------------------
+    def tahrik_tasarimi(self, tip: str) -> Tasarim:
+        """Aynı tasarımın 'dc' ya da 'step' motorlu hâli (parametre dosyasına dokunmaz)."""
+        return self if self.d("tahrik.tip") == tip else self.degistir({"tahrik.tip": tip})
+
+    def step_sargisi(self) -> str:
+        """Seçili step sargısının parametre yolu, ör. 'step_sargi.robo90'."""
+        return f"step_sargi.{self.d('step_adayi.sargi')}"
+
     # -- yük ve yuva ----------------------------------------------------------
     def kutu_merkez_z(self, yuva: str | None = None) -> float:
         yuva = yuva or self.d("yuk.yuva.onerilen")
@@ -134,6 +151,11 @@ class Tasarim:
                 z = z_batarya
             boyut = tuple(b["boyut"]["deger"])
             m = b["kutle"]["deger"]
+            if ad == "motor" and self.d("tahrik.tip") == "step":  # redüktörsüz, teker doğrudan milde
+                etiket = "Step motor"
+                x, y, z = self.d("step_adayi.konum")
+                boyut = (0.042, self.d(f"{self.step_sargisi()}.boy"), 0.042)
+                m = self.d(f"{self.step_sargisi()}.kutle")
             if b.get("simetrik_y"):
                 liste.append(Bilesen(f"{etiket} (sol)", m, (x, y, z), boyut, ad))
                 liste.append(Bilesen(f"{etiket} (sağ)", m, (x, -y, z), boyut, ad))
@@ -173,7 +195,8 @@ class Tasarim:
             K_w=J_w / 2,  # ince disk: çap ekseni ataleti dönme ekseninin yarısı
             r=r,
             d=self.d("teker.iz_genisligi"),
-            J_m=self.d("motor.rotor_ataleti_yansimis"),
+            # Step motorda redüktör yok (N = 1): yansıyan atalet rotor ataletinin kendisidir.
+            J_m=self.d(f"{self.step_sargisi()}.rotor_ataleti") if self.d("tahrik.tip") == "step" else self.d("motor.rotor_ataleti_yansimis"),
             b=self.d("motor.viskoz_surtunme"),
             g=self.d("sabit.g"),
         )
