@@ -50,3 +50,20 @@ def test_github_slug():
 def test_uretilmis_ozette_yer_tutucu_ve_liste_adi_yok():
     ozet = (KOK / "docs" / "hafta03_toplanti_ozeti.md").read_text(encoding="utf-8")
     assert "@@" not in ozet and "netlify" not in ozet.lower()
+
+
+def test_step_bolumu_istenen_basliklari_ve_etiketleri_tasir():
+    tam = (SABLON / "hafta03.md").read_text(encoding="utf-8")
+    bolum = tam.split("## 10. Step motor")[1].split("## Ek A")[0]
+    assert "pull-out eğrisi bulunamadı" in bolum and "[doğrulanamadı]" in bolum
+    for ic in ("### 10.5 Adım kaçırma", "### 10.9 Pasif", "### 10.10 Ölçüm planı", "### 10.11 Karşılaştırma"):
+        assert ic in bolum
+    uretilen = (KOK / "docs" / "hafta03_model_tork_km.md").read_text(encoding="utf-8")
+    for baslik in ("Maliyet", "Tork payı", "Hız payı", "Konum çözünürlüğü", "Kütle", "Akım ve pil süresi", "Kontrol karmaşıklığı", "Riskler"):
+        assert f"**{baslik}**" in uretilen
+    assert "@@" not in uretilen
+
+
+def test_ozet_step_kararini_ve_olcum_sartini_anlatir():
+    ozet = (SABLON / "hafta03_ozet.md").read_text(encoding="utf-8")
+    assert "step" in ozet.lower() and "kardeş motorlardan tahmin edildi" in ozet and "ölçülmeden kesin değildir" in ozet

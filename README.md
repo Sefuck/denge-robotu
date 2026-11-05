@@ -8,7 +8,7 @@
 
 | Hafta | Danışman teslimatı | Özet | Tam belge | Durum |
 |---|---|---|---|---|
-| 3 | Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı | [Özet](docs/hafta03_toplanti_ozeti.md) | [Tam belge](docs/hafta03_model_tork_km.md) | Hazır (19 Ekim 2026 toplantısı); parametreler ölçülmedi |
+| 3 | Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı | [Özet](docs/hafta03_toplanti_ozeti.md) | [Tam belge](docs/hafta03_model_tork_km.md) | Hazır (19 Ekim 2026 toplantısı); step motor seçeneği §10'da eklendi; parametreler ölçülmedi |
 
 ---
 
@@ -36,9 +36,12 @@ PDF üretimi için ayrıca Google Chrome gerekir (pandoc, `pypandoc_binary` ile 
 .venv/bin/python -m denge --pdf        # ayrıca docs/pdf/ altına iki PDF üretir (depoya eklenmez)
 .venv/bin/python -m pytest -q          # doğrulama testleri
 .venv/bin/python -m denge.motor --dosyadaki-aday --oran-taramasi   # ön listedeki aday motor (JGB37-520 530 RPM) + oran taraması
+.venv/bin/python -m denge.step         # step motor (17HS4401 + DRV8825): tork-devir noktaları ve adım kaçırma payı
 .venv/bin/python -m denge.motor --gerilim 12 --bosta-devir 300 --durma-torku 8 \
     --durma-akimi 3 --bosta-akim 0.2 --reduksiyon 30 --ppr 11   # başka bir adayı veri sayfası değerleriyle sınar
 ```
+
+Motor tipi `parametreler.toml` içindeki `tahrik.tip` ile seçilir (`dc` / `step`). 17HS4401'in pull-out eğrisi ölçülünce `step_egri.olcum` alanları doldurulur; o zaman kardeş motorlardan türetilen geçici eğri yerine ölçüm kullanılır.
 
 Parça gelince: `parametreler.toml` içindeki değeri ölçülmüş değerle değiştir, `durum = "ölçülmüş"` yap,
 `kaynak` alanına ölçüm yöntemini yaz, sonra `python -m denge` ile belgeleri yeniden üret. Belgeler
@@ -51,13 +54,14 @@ Her hafta: yeni şablonları `docs/sablon/` altına ekle, yukarıdaki hafta tabl
 | Dosya | İçerik |
 |---|---|
 | `parametreler.toml` | Bütün parametreler: değer, birim, durum (tahmini / ön liste / doğrulanamadı / şartname / öneri / sabit), kaynak, aralık |
-| `denge/model.py` | Lagrange–d'Alembert türetimi (sympy), doğrusal olmayan model, doğrusallaştırma, A-B-C-D, transfer fonksiyonları, ayrıklaştırma |
-| `denge/simulasyon.py` | ±10° açık çevrim düşme (serbest/kilitli teker), düz çıkışla referans manevralar, ters dinamik |
+| `denge/model.py` | Lagrange–d'Alembert türetimi (sympy), doğrusal olmayan model, doğrusallaştırma, A-B-C-D, transfer fonksiyonları, ayrıklaştırma; ivme girişli (step) model |
+| `denge/simulasyon.py` | ±10° açık çevrim düşme (serbest/kilitli teker, detent), düz çıkışla referans manevralar, ters dinamik, ivme girişli yörünge |
 | `denge/motor.py` | Devir, toparlanma torku, çekiş, enkoder; aday motor değerlendirme ve oran taraması |
+| `denge/step.py` | Step motor seçeneği: geçici pull-out eğrisi, adım kaçırma payı, adım frekansı, güç ve pil süresi |
 | `denge/kutle_merkezi.py` | KM, atalet tensörü, yere değme açısı, yuvadaki özgül kuvvet |
 | `denge/yuva_analizi.py` | Kutulu/kutusuz KM, kutu kayması, KM yüksekliği taraması, yuva seçenekleri |
 | `denge/sekiller.py`, `denge/rapor.py`, `denge/pdf.py` | Şekiller, belge ve özet üretimi, PDF çevirisi |
 | `docs/sablon/` | Tam belge ve özet şablonları, PDF stilleri |
-| `tests/` | Model, simülasyon, birim (pint), duyarlılık, parametre dosyası ve ifade testleri |
+| `tests/` | Model, simülasyon, birim (pint), duyarlılık, step motor, parametre dosyası ve ifade testleri |
 
 Kaynak PDF'ler (`kaynaklar/`: danışman iş planı, şartname TR/EN v14, tanıtım sunumu) yerelde tutulur, depoya eklenmez.

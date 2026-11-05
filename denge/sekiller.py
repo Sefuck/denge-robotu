@@ -417,3 +417,86 @@ def oteleme(yol, ref: dict, v_trapez: float, T: float, mesafe: float):
     _eksenler(*axs)
     fig.tight_layout()
     _kaydet(fig, yol)
+
+
+# ---------------------------------------------------------------------------
+# Step motor seçeneği
+# ---------------------------------------------------------------------------
+def step_kardes(yol, egri):
+    """Şekil 10: kardeş motorların 24 V eğrileri ve geçici eğrinin kuralı."""
+    stil()
+    fig, axs = plt.subplots(1, 2, figsize=(7.4, 3.0))
+    renkler = (MAVI, TURUNCU)
+    adlar = {"hs15_1504s": "17HS15-1504S (1,5 A etkin)", "hs15_1684s": "17HS15-1684S (1,69 A etkin)"}
+    for k, renk in zip(egri.kardesler, renkler):
+        axs[0].plot(k.devir, 100 * k.tork, color=renk, marker="o", ms=4, label=adlar[k.ad])
+        axs[1].plot(k.s, k.h, color=renk, marker="o", ms=4, label=adlar[k.ad])
+    axs[0].set_title("Yayımlanmış eğriler, 24 V (bu motorun değil)")
+    axs[0].set_xlabel("Devir [dev/dk]")
+    axs[0].set_ylabel("Pull-out torku [N·cm]")
+    axs[0].set_ylim(0, 45)
+    axs[0].legend(loc="lower left")
+    s = np.linspace(0, egri._s.max(), 400)
+    axs[1].fill_between(s, egri.h_alt(s), egri.h_ust(s), color=DOLGU, zorder=0, label="Geçici eğrinin alt–üst sınırı")
+    axs[1].set_title("Gerilim payı devrine göre normal biçim")
+    axs[1].set_xlabel(r"n / $n_b$")
+    axs[1].set_ylabel("Tork / tutma torku")
+    axs[1].set_ylim(0, 1.15)
+    axs[1].legend(loc="lower left")
+    _eksenler(*axs)
+    fig.tight_layout()
+    _kaydet(fig, yol)
+
+
+def step_cekme(yol, egri, gerilimler: dict, I: float, noktalar: dict, manevralar: list, cekis_motor: float):
+    """Şekil 11: geçici pull-out eğrisi ile motordan istenen tork-devir noktaları; 12 V ve boş batarya."""
+    stil()
+    fig, axs = plt.subplots(1, 2, figsize=(7.4, 3.5), sharey=True)
+    n = np.linspace(0, 520, 521)
+    renkler = (MAVI, TURUNCU, CAMGOBEGI)
+    for ax, (etiket, V) in zip(axs, gerilimler.items()):
+        alt, ust = 100 * egri.alt(n, V, I), 100 * egri.ust(n, V, I)
+        var = alt > 0  # kardeş verisinin bittiği yerde çizim durur: bu devirlerin ötesi bilinmiyor
+        ax.fill_between(n[var], alt[var], ust[var], color=DOLGU, zorder=0, label="Geçici eğri: alt–üst sınır")
+        ax.plot(n[var], alt[var], color=MUREKKEP, lw=1.4)
+        ax.plot(n[ust > 0], ust[ust > 0], color=MUREKKEP, lw=0.8)
+        ax.plot(n[n < 300], egri.rezonans * alt[n < 300], color=SOLUK, ls=(0, (4, 2)), lw=1.0, label="Alt sınır × rezonans düşümü")
+        ax.axhline(100 * cekis_motor, color=SOLUK, lw=0.8)
+        ax.text(515, 100 * cekis_motor + 0.4, "çekiş sınırı", ha="right", fontsize=7.5, color=IKINCIL)
+        for m, renk in zip(manevralar[:3], renkler):
+            ax.plot(m["n"], 100 * m["tau"], color=renk, lw=1.2, label=m["ad"])
+        for ad, (nn, tt) in noktalar.items():
+            ax.plot(nn, 100 * tt, "o", color=MUREKKEP, ms=4.5, zorder=5)
+            ax.annotate(ad, (nn, 100 * tt), textcoords="offset points", xytext=(5, 3), fontsize=8, color=MUREKKEP)
+        ax.set_title(etiket)
+        ax.set_xlabel("Motor devri [dev/dk]")
+        ax.set_xlim(0, 520)
+        ax.set_ylim(0, 32)
+    axs[0].set_ylabel("Tork, motor başına [N·cm]")
+    _eksenler(*axs)
+    fig.tight_layout()
+    fig.legend(*axs[0].get_legend_handles_labels(), loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.02), fontsize=7.5)
+    _kaydet(fig, yol)
+
+
+def step_toparlanma(yol, y: dict, T: float):
+    """Şekil 12: ivme girişli ±10° toparlanma; giriş a(t), motorun devri ve torku çıktıdır."""
+    stil()
+    fig, axs = plt.subplots(2, 2, figsize=(7.4, 4.2), sharex=True)
+    t = y["t"]
+    n = y["w_b"] * 60 / (2 * math.pi)
+    axs[0, 0].plot(t, np.degrees(y["theta"]), color=MAVI)
+    axs[0, 0].set_title(f"Eğim θ [°], T = {sayi(T, 1)} s")
+    axs[0, 1].plot(t, y["a"], color=MAVI)
+    axs[0, 1].set_title("Giriş: teker ivmesi a [m/s²]")
+    axs[1, 0].plot(t, n, color=MAVI)
+    axs[1, 0].set_title("Çıktı: milin gövdeye göre devri [dev/dk]")
+    axs[1, 1].plot(t, 100 * y["u"] / 2, color=MAVI)
+    axs[1, 1].set_title("Çıktı: motor başına tork [N·cm]")
+    for ax in axs.flat:
+        ax.axhline(0, color=EKSEN, lw=0.8)
+    axs[1, 0].set_xlabel("t [s]")
+    axs[1, 1].set_xlabel("t [s]")
+    _eksenler(*axs.flat)
+    fig.tight_layout()
+    _kaydet(fig, yol)

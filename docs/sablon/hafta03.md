@@ -25,6 +25,7 @@
 | **Önerilen motor gereksinimi** (motor başına, teker milinde, batarya min. geriliminde) | **≥ @@tA@@ N·m (@@tA_kgfcm@@ kgf·cm) @ @@nA@@ dev/dk; boşta devir > @@nB@@ dev/dk** | §4.5 |
 | Enkoder | ≥ @@cpr_min@@ sayım / teker devri (x4 kod çözme sonrası) | §4.6 |
 | **Aday motor (ön liste): @@aday_ad@@** | Katsayısız @@aday_gecer_SFsiz@@, SF = @@SF@@ ile @@aday_gecer_SF@@ (boş bataryada SF @@sf_min@@); öneri: **@@en_iyi_ad@@** (SF @@en_iyi_sf@@) | §4.7 |
+| **Motor tipi: step seçeneği** (geçici eğri, [doğrulanamadı]) | Boş bataryada SF @@st_sf_alt@@–@@st_sf_ust@@ (DC 333 RPM: @@st_sf_dc@@); +@@st_dm@@ kg; pil ≈ @@st_h@@ saat (DC: ≈ @@st_h_dc@@); ≈ @@st_c_fark@@ TL ucuz. Öneri: bir motorla ölç, geçerse step + AS5600 | §10 |
 | **Önerilen yuva** | Üst plakada, aksın tam üstünde ($x = y = 0$), kutu yatık ve uzun kenarı yanal; boşluk ≤ @@bosluk@@ mm, duvar ≈ @@duvar@@ mm | §5.5 |
 
 **Öne çıkan bulgular**
@@ -36,6 +37,7 @@
 5. **Yere değme açısı ileri @@temas@@°, geri @@temas_geri@@°'dir.** İleride sınırı @@temas_nokta@@ belirler. Toparlanmadaki aşım bu açıya yaklaşırsa iki teker dışında bir parça yere değer ve alt test düşer (şartname §7). Aksa teker yarıçapından yakın parçalar hiç değmez (motor braketleri böyle) [öneri] (§5.6).
 6. **Pasif kararlılık ön testi tasarım gereği sağlanır.** KM aksın üstünde olduğu sürece robot enerjisizken ±10°'den @@t_hepsi_min@@–@@t_hepsi_max@@ s içinde düşer, yani 5 s sınırının yaklaşık @@pasif_kat@@ katı payla. KM aksın altına inerse robot pasif kararlı olur ve şartname §4.1 ihlal edilir; bu durum testlerde yakalanır (§3.7).
 7. **Ön listedeki aday motor (@@aday_ad@@) katsayısız yeterli, SF = @@SF@@ ile değil.** Boş bataryada (@@V_min@@ V) A noktasında @@aday_tauA@@ N·m verir; katsayısız gereksinim @@tA0@@, SF'li @@tA@@ N·m. Sağladığı katsayı @@sf_min@@ (nominal gerilimde @@sf_nom@@). Aynı fiyattaki @@en_iyi_ad@@ varyantı boş bataryada SF @@en_iyi_sf@@ (nominalde @@en_iyi_sf_nom@@) sağlar, enkoder çözünürlüğünü de karşılar. Mete'ye öneri §4.7'de.
+8. **Step motor hesapta yeterli görünüyor, ama eğrisi ölçülmedi.** 17HS4401'in pull-out eğrisi bulunamadı; kardeş motorlardan türetilen geçici eğriyle boş bataryada SF @@st_sf_alt@@–@@st_sf_ust@@ çıkar, rezonans çukuruna denk gelirse @@st_sf_rez@@. Giriş teker ivmesi olunca hareket modeli bilinmeyen motor parametrelerine bağlı kalmaz. Bedeli +@@st_dm@@ kg ve ≈ @@st_h@@ saat pil süresidir. DRV8825'in @@st_I@@ A limiti tepe değer olduğu için motor etiket torkunun %@@st_I_tam@@'ini verir. Karar eşiği ve ölçüm planı §10.10–10.11'de.
 
 ---
 
@@ -553,6 +555,8 @@ Aralığı tanımlı her fiziksel parametre, diğerleri nominalde tutularak aral
 | Batarya kütlesi ve boyutu | Mete Özgen | KM ve $I_{yy}$ (§5); duyarlılık tablosunda @@sira_batarya@@. sırada (§6) | 3. hafta |
 | Yerleşim: kat yükseklikleri, bataryanın ve elektroniğin konumu, şasi malzemesi ve zarf ölçüleri | Mete Özgen | KM yüksekliği (§5.4); yere değme açısı (§5.6); pasif test için KM aksın üstünde olmalı | 3.–4. hafta |
 | Motor kararı: 530 RPM mı 333 RPM mi (§4.7 öneri); satıcının veri sayfası (oran, durma torku/akımı, varsa rotor ataleti) | Mete Özgen | Şu anki değerler rcdrone referansı [doğrulanamadı]; A/A'/B noktaları, enkoder, $J_m$ | 3. hafta |
+| Motor tipi kararı (§10.11): bir adet 17HS4401 alınması, faz direnci/endüktansı ve pull-out ölçümü (12 V, @@V_min@@ V) | Mete Özgen, Sefa Nurali Uçak | Step motorun tork payı şu an [doğrulanamadı] geçici eğriye dayanıyor; karar eşiği §10.11 | Motor kararından önce |
+| Step seçilirse: çift milli motor bulunup bulunmadığı, 5 mm mil–teker bağlantısı, braket köşeleri, AS5600 mıknatısı ve montajı | Mete Özgen | §10.8 montaj seçenekleri; yerden pay yalnız @@st_kose_pay@@ mm | Motor kararıyla |
 | Motor sürücüsü: sürekli/tepe akım, akım sınırı, enerjisizken serbest mi frenli mi | Mete Özgen | Tork sınırı; pasif testte serbest/kilitli teker durumu (§3.7) | 3.–4. hafta |
 | Ana hat sigortası: ön liste 5 A diyor | Mete Özgen | A noktasındaki tepe akım sigortanın altında; iki motor kilitlenmesi (4,8 A) sınırda, ölçülmeli | 4. hafta |
 | Teker: ön liste 65 mm diyor; teker kütlesi ve iz genişliği | Mete Özgen | Devir (∝ 1/r), çekiş sınırı, enkoder CPR (∝ r), sapma modeli | 3. hafta |
@@ -576,6 +580,7 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 | Parametre değişince sonuçlar mantıklı değişiyor | Bütün kütleler ×2 → KM ve kutup aynı, torklar ×2; $g$ ×4 → kutup ×2; sabit pivot + noktasal kütle → $\sqrt{g/l}$; batarya yukarı → $l$ ve statik tork artar; $r$ büyür → devir ∝ 1/r, CPR ∝ r; süre yarıya → devir ×2; $t_r$ yarıya → dinamik pay ×4; SF → tork doğrusal; $J_m$, $b$ artar → kutup yavaşlar; kutu ağırlaşır → Δl artar; kayma δ → trim doğrusal | `test_duyarlilik.py` |
 | Şartname kısıtları | Pasif test: ±10°'den 5 s içinde dikleşmez; KM aksın altına inerse ihlal yakalanır; batarya ≤ 24 V | `test_simulasyon.py`, `test_parametreler.py` |
 | Parametre dosyasının bütünlüğü | Her parametrede birim/durum/kaynak var; fiziksel parametrelerin hepsi "tahmini"; hatalı dosya reddedilir | `test_parametreler.py` |
+| Step motor seçeneği | DC değerleri sürüm 0.2 ile aynı; ivme girişli kutup = tork modelindeki $X/U$ sıfırı, bağıl ivme girişli kutup = kilitli teker kutbu; $J_m$, $b$ ivme girişli modeli değiştirmez; $a(t)$ tam modelle tutarlı; eğri devirle artmaz, gerilimle düşmez; ölçüm girilince geçici eğri kullanılmaz; detent düşmeyi engellemez; birimler (`pint`) | `test_step.py` |
 | Motor hesapları | Tutma torku doğrusal olmayan modelde $\ddot\theta = 0$ verir; tutma ≤ referans manevra ≤ el hesabı; uzun manevrada tepe tork → tutma torku; sınır motor eğrisi noktalara teğet | `test_motor.py` |
 
 ## 9. Sınırlamalar ve sonraki adımlar
@@ -587,7 +592,226 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 1. **4. hafta (Mete ile):** Şasi ve motorlar takılınca bileşenleri tartıp `parametreler.toml`'u güncellemek, belgeyi yeniden üretmek. Pasif kararlılık ön testinde düşme süresini (öngörü @@t_hepsi_min@@–@@t_hepsi_max@@ s) video ve kronometreyle ölçmek. IMU'yu şasiye monte etmek.
 2. **Motor gelince:** Serbest yavaşlama deneyiyle $J_m$ ve $b$'yi tanılamak; durma torkunu, durma akımını ve boşta devri batarya geriliminde ölçüp rcdrone referans değerlerinin ([doğrulanamadı]) yerine koymak.
 3. **5. hafta:** Kalman veya tamamlayıcı filtre. Enkoder bağıl açı düzeltmesi $x = r(\varphi_\text{enk} + \theta)$ ve trim kalibrasyonu da buraya eklenecek.
-4. **6. hafta:** Kontrol yöntemi seçimi (PID, LQR veya MPC). Bu belgedeki $(A, B, C, D)$, $G_\theta$, $G_x$ ve $(A_d, B_d)$ doğrudan kullanılır. Tork doyumu çekiş sınırına göre ayarlanır.
+4. **6. hafta:** Kontrol yöntemi seçimi (PID, LQR veya MPC). Bu belgedeki $(A, B, C, D)$, $G_\theta$, $G_x$ ve $(A_d, B_d)$ doğrudan kullanılır. Tork doyumu çekiş sınırına göre ayarlanır. Step motor seçilirse giriş ivme olur (§10.3) ve doyum yerine ivme ve devir sınırı kullanılır (§10.5).
+5. **Motor tipi kararı:** Bir adet 17HS4401 ile §10.10'daki ölçüm; karar eşiği §10.11.
+
+## 10. Step motor seçeneği ve DC ile karşılaştırma
+
+> **Durum (@@tarih@@).** Ekip 2 adet DRV8825 ve 2 adet AS5600 aldı, motor alınmadı. Karar DC (JGB37-520 333 RPM + BTS7960) ile step motor (Nema 17 17HS4401 + DRV8825) arasındadır. Motor tipi parametre oldu (`tahrik.tip`); §1–§9'daki DC sonuçları sayısal olarak değişmedi. **17HS4401'in kendi pull-out eğrisi bulunamadı.** Bu bölümdeki tork payları, kardeş motorlardan türetilen geçici eğriye dayanır ve **[doğrulanamadı]** sayılır. Kesin karar, bir motorla yapılacak ölçüme bağlıdır (§10.10). Eğrinin durumu: @@st_egri_durumu@@.
+
+### 10.1 Motor verileri
+
+"17HS4401" adı tek bir ürünü göstermiyor; satışta en az iki farklı sargı var. robo90'ın verdiği değerler (1,5 A, 1,8 Ω, 300 g, 38 mm) samm sayfasıyla eşleşiyor; eksikleri samm'dan tamamlandı, ama aynı ürün oldukları doğrulanamadı. MotionKing kataloğunun 17HS4401 satırı ise 1,7 A ve 1,5 Ω'dur. Bütün değerler [doğrulanamadı]. Motor gelince faz direnci ve endüktansı ölçülerek hangi sargının geldiği anlaşılır. Tork alt sınırı iki sargıyı da kapsar.
+
+@@tablo_st_sargi@@
+
+Redüktör yoktur, teker doğrudan mile bağlanır. Bu yüzden rotor ataleti teker miline olduğu gibi yansır ($N = 1$, $J_m$ = @@st_Jm@@ g·cm²). DC motorda bu değer bilinmiyordu ve $N^2$ ile büyüyordu (§3.8, §4.3).
+
+### 10.2 Geçici pull-out eğrisi
+
+Türkçe, İngilizce ve Çince kaynaklarda, üretici ve satıcı sayfalarında ve forum ölçümlerinde 17HS4401 için pull-out eğrisi bulunamadı; 12 V eğrisi bu sınıftaki hiçbir motor için çıkmadı. En yakın veri, aynı sınıftan iki kardeş motorun 24 V eğrisidir (PDF'teki şekilden okundu, hata ±0,5 N·cm):
+
+@@tablo_st_kardes@@
+
+Geçici eğri bu verilerden şu kuralla türetildi [öneri]:
+
+1. Sürücü, $I$ tepe akımını ancak yeterli gerilim payı varsa basabilir. Payın bittiği devir $n_b$, zıt EMK, direnç düşümü ve endüktans geriliminden çıkar:
+
+   $$
+   \left(K_t\,\omega_b + I(R + R_s)\right)^2 + \left(50\,\omega_b L I\right)^2 = V^2,\qquad K_t = \frac{T_\text{tutma}}{\sqrt{2}\,I_\text{anma}},\qquad n_b = \frac{60\,\omega_b}{2\pi}
+   $$
+
+   Burada 50, 1,8°'lik motorun kutup çifti sayısı, $R_s$ DRV8825'in iç direncidir (üst + alt FET, @@st_Rds@@ Ω).
+
+2. Kardeş eğriler $n/n_b$ eksenine taşınınca aynı biçime oturur (Şekil 10): ikisi de $n_b$'de %@@st_kayip_nb@@ tork kaybeder, biri diğerinin biçimini en çok %@@st_capraz@@ hatayla öngörür.
+
+3. 17HS4401 için tork şöyle alındı: $h$, kardeş motorun torku bölü tutma torkudur.
+
+   $$
+   T(n;\,V, I) = K_t\, I\; h\!\left(\frac{n}{n_b(V, I)}\right)
+   $$
+
+   Alt sınır iki sargının ve iki kardeşin en kötüsü, üst sınır en iyisidir. Bu eğri ölçülünce parametre dosyasındaki `step_egri.olcum` alanları doldurulur ve onun yerine ölçüm kullanılır.
+
+**DRV8825 bu ayarda etiket torkunu vermez.** Sürücünün akım limiti faz başına *tepe* değerdir; etiketteki tutma torku ise iki fazda anma akımı içindir (bu satıcı sayfalarında yazmıyor, yaygın tanım kabul edildi). Kardeş eğriler bunu destekliyor: 1,69 A *etkin* akımda (DM542T tablosunda 2,37 A tepe) düşük hız torku etiket torkuna yakındır. Bu yüzden @@st_I@@ A limitte faz başına etkin akım @@st_I_etkin@@ A olur ve 1,5 A'lik sargı etiket torkunun %@@st_I_tam@@'ini verir: @@st_T_etiket@@ N·cm yerine @@st_T_a@@ N·cm (1,7 A'lik sargıda @@st_T_b@@ N·cm).
+
+![Şekil 10](sekiller/sekil_10_step_kardes.png)
+
+*Şekil 10: Solda kardeş motorların yayımlanmış 24 V eğrileri; bunlar 17HS4401'in eğrisi değildir. Sağda aynı eğriler gerilim payı devrine göre normalleştirilmiş hâlde; gri alan geçici eğrinin alt–üst sınırıdır.*
+
+Motor başına geçici pull-out torku, @@st_I@@ A limit:
+
+@@tablo_st_egri@@
+
+Payın bittiği devir $n_b$: 1,5 A'lik sargıda 12 V'ta @@st_nb_a_12@@, @@V_min@@ V'ta @@st_nb_a_9@@ dev/dk; 1,7 A'lik sargıda 12 V'ta @@st_nb_b_12@@, @@V_min@@ V'ta @@st_nb_b_9@@ dev/dk.
+
+**Bu eğrinin sınırları.** Biçim kuralı yalnız iki motorla ve yalnız 24 V'ta sınandı. 24 V'tan 12 V'a ölçekleme hiçbir veriyle doğrulanmadı; kardeş eğrilerde kullanılan sürücü de DRV8825 değildir. Ayrıca iki başka eğride (17HS16-2004S1 yarım adım, JK42HS40-1004AC tam adım) düşük hızda rezonans çukuru vardır ve tork yaklaşık @@st_rezonans@@ katına iner. 1/16 mikro adımda bu çukurun daha küçük olması beklenir, ama ölçülmedi. Bu yüzden tablolarda ayrı bir kötü durum sütunu olarak verildi.
+
+### 10.3 Step motorlu model: giriş teker ivmesi
+
+Pull-out sınırı aşılmadığı sürece step motor konum kaynağı gibi davranır. Tork artık seçilen giriş değil, hareketin sonucudur. Tork, iki hareket denkleminden elenince (§4.3'teki düz çıkış denklemi) şu kalır:
+
+$$
+c_1\,\ddot x + c_2\,\ddot\theta = m_b g l\,\theta,\qquad c_1 = M_x r + a_{12} = @@st_c1@@\ \text{kg·m},\qquad c_2 = a_{12} r + a_{22} = @@st_c2@@\ \text{kg·m²}
+$$
+
+$J_m$ ve $b$ bu katsayılarda sadeleşir. **Yani hareket denklemi bilinmeyen motor parametrelerine bağlı değildir;** bu parametreler yalnız motordan istenen torku değiştirir (test: `test_ivme_girisli_model_bilinmeyen_motora_bagli_degil`). Giriş $a = \ddot x$ [m/s²], durum $[x,\ \dot x,\ \theta,\ \dot\theta]^\mathsf{T}$, $C = I_4$, $D = 0$:
+
+$$
+A_a = \begin{bmatrix} 0&1&0&0\\0&0&0&0\\0&0&0&1\\0&0&m_b g l/c_2&0\end{bmatrix} = @@st_Aa@@,\qquad
+B_a = \begin{bmatrix}0\\1\\0\\-c_1/c_2\end{bmatrix} = @@st_Ba@@
+$$
+
+$$
+\frac{\Theta(s)}{A(s)} = \frac{-@@st_K_a@@}{s^2 - @@st_z2@@} = \frac{-@@st_K_a@@}{(s - @@st_z_m@@)(s + @@st_z_m@@)},\qquad \frac{X(s)}{A(s)} = \frac{1}{s^2}
+$$
+
+**Açık çevrim kutbu** seçilen giriş tanımına göre değişir, ama sağ yarı düzlemde kalır:
+
+| Girişi sıfır tutmak ne demek | Kararsız kutup [1/s] |
+|---|---:|
+| Teker merkezi ivmesiz, $a = 0$ (DC modeldeki $X/U$ sıfırıyla aynı) | +@@st_z@@ (zaman sabiti @@st_zaman@@ ms) |
+| Motor enerjili ve adım atmıyor, $\alpha = 0$: robot tek parça yuvarlanır (kilitli teker kutbu) | +@@st_pk@@ |
+| Karşılaştırma: tork girişi, mil serbest (aynı kütlede) | +@@st_pu@@ |
+
+**Sürücünün gerçek girişi.** Step sürücü, milin *gövdeye göre* dönüşünü komutlar: $\alpha = \ddot x/r - \ddot\theta$. Bu girişle $A_\alpha = @@st_Aal@@$, $B_\alpha = @@st_Bal@@$ olur (`model.bagil_ivme_girisli_durum_uzay`; $J_k = c_2 + c_1 r = @@st_Jk@@$ kg·m²). Pratikte kontrolcü $\dot x_k$ hızını üretir ve jiroskoptan gelen $\dot\theta$ ile adım frekansına çevrilir ($\mu$: mikro adım çarpanı):
+
+$$
+f_\text{step} = \frac{200\,\mu}{2\pi}\left(\frac{\dot x_k}{r} - \dot\theta\right)
+$$
+
+Sapma için $\ddot\psi = (a_R - a_L)/d$ olur, yani girişi fark ivmesi olan bir çift integratördür.
+
+**±10° toparlanma.** §4.3'teki referans manevra aynı kaldı; giriş $a(t)$ doğrusal olmayan denklemden cebirsel olarak bulundu. Bu $a(t)$ doğrusal olmayan modele uygulanınca $\theta(t)$ referansı izler (en büyük fark @@st_ileri_hata@@°). Tepe ivme @@st_a_tepe@@ m/s², tepe motor devri @@st_n_tepe@@ dev/dk, motor başına tepe tork @@st_tau_tepe@@ N·cm'dir; aks @@st_x_f@@ cm ilerler. Motor devri $\dot x/r - \dot\theta$ olduğu için gövdenin dönüşünü de içerir.
+
+![Şekil 11](sekiller/sekil_11_step_toparlanma.png)
+
+*Şekil 11: İvme girişli ±10° toparlanma, T = @@st_T_ref@@ s (+10° gösterildi; kontrolcü değildir). Üstte eğim ve giriş; altta girişin sonucu olan devir ve tork. Bu devir ve tork §10.5'te pull-out eğrisiyle karşılaştırılır.*
+
+### 10.4 Motor kütlesinin etkisi
+
+Değerler parametre dosyasından hesaplandı. Motor başına kütle 150 g'dan 300 g'a çıkar; elektronik kütlesi değiştirilmedi (BTS7960'tan DRV8825'e geçiş biraz hafifletir, hesaba katılmadı).
+
+@@tablo_st_kutle@@
+
+Motorlar aks üstünde olduğu için (z = 0) $m_b l$ çarpımı değişmez. Bu yüzden statik tork ve el hesabı aynı kalır, KM ise @@st_l_dc@@ mm'den @@st_l@@ mm'ye iner. Toplam kütle arttığı için çekiş sınırı da artar (motor başına @@st_cekis_motor@@ N·cm). Pasif test öngörüsü pek değişmez. KM aksın üstünde kaldığı için şartname §4.1 etkilenmez.
+
+### 10.5 Adım kaçırma kontrolü
+
+Pay, pull-out torkunun motordan istenen torka oranıdır; manevra boyunca en küçük değer alındı. Devir, milin gövdeye göre devridir. Torklar motor başınadır.
+
+@@tablo_st_pay@@
+
+![Şekil 12](sekiller/sekil_12_step_cekme.png)
+
+*Şekil 12: Geçici pull-out eğrisi (gri: alt–üst sınır, kesikli: alt sınır × rezonans düşümü) ile motordan istenen tork-devir yolları. Noktalar §4.5'teki gereksinimlerin step motorlu kütleyle yeniden hesaplanmış hâlidir. Kardeş verisinin bittiği devirde çizim durur; ötesi bilinmiyor. Bu eğri ölçüm değildir.*
+
+**Yorum:**
+
+- **Referans manevraların hepsi rahat.** Boş bataryada alt sınırda en küçük pay @@st_pay_man_min@@, rezonans düşümüyle @@st_pay_man_rez@@'tür. Bu manevralarda adım kaçması öngörülmüyor.
+- **El hesabı daha zorlayıcıdır.** İki kat emniyetli A noktası boş bataryada @@st_pay_A_alt@@–@@st_pay_A_ust@@ payla geçer; ama rezonans çukuruna denk gelirse @@st_pay_A_rez@@'e düşer. Katsayısız el hesabı (A₀) rezonansla da geçer. Sağlanan emniyet katsayısı @@st_sf_alt@@–@@st_sf_ust@@, rezonansla @@st_sf_rez@@'dir. DC 333 RPM aynı ölçüde @@st_sf_dc@@ verir.
+- **Bu devirlerde sınırı çoğunlukla zemin koyar.** Alt eğri @@st_nA@@ dev/dk'da çekiş sınırının @@st_pay_A2_alt@@ katıdır. Yani rezonans yoksa teker, adım kaçmadan önce kayar.
+- **Boş batarya bu devirlerde az etkilidir, yüksek hızı keser.** Gereken devirler $n_b$'nin altındadır. İki kat emniyetli tork (@@st_tA@@ N·cm) 12 V'ta @@st_n_sf12@@, @@V_min@@ V'ta @@st_n_sf@@ dev/dk'ya kadar alınır; katsayısız tork (@@st_tA0@@ N·cm) 12 V'ta @@st_n_a012@@, @@V_min@@ V'ta @@st_n_a0@@ dev/dk'ya kadar.
+
+**Yazılım sınırları [öneri].** Adım kaçırmak robotu düşürdüğü için komut üzerinde sınır gerekir: devir ≤ @@st_n_sf@@ dev/dk (@@st_v_sf@@ m/s) ve ivme ≤ @@st_a_tavan@@ m/s² (alt eğrideki torkun 2 kat emniyetli karşılığı; çekiş sınırı @@st_mug@@ m/s²). Ölçüm gelince bu değerler güncellenecektir.
+
+**Konum kaynağı varsayımının sınırı.** Rotor komuta rijit bağlı değildir, manyetik bir yay üstünde durur. Yük ataleti rotor ataletinin yaklaşık @@st_J_orani@@ katıdır ve bu sistemin doğal frekansı yaklaşık @@st_f_burulma@@ Hz çıkar (tam adımda ≈ @@st_n_burulma@@ dev/dk). İvme girişli model bu frekansın altında geçerlidir. Sönümü düşük olabileceği için kontrol bant genişliği bundan uzak tutulmalıdır [öneri]. Bu mod ölçülmedi.
+
+### 10.6 Adım frekansı ve ESP32
+
+@@tablo_st_mikro@@
+
+**Mikro adım önerisi: @@st_mikro@@ [öneri].** @@st_cpr@@ adım/teker devri, §4.6'daki hız çözünürlüğü hedefini karşılar. 1/4 ve altı karşılamaz. 1/32'nin ek bir hesap kazancı yoktur.
+
+**ESP32 üretebilir mi? Evet.** Yazılımda sınırlanan @@st_n_sf@@ dev/dk'da @@st_mikro@@ ile en çok @@st_f_sf@@ kHz gerekir. DRV8825 sınırı @@st_f_max@@ kHz'dir (STEP darbesi en az 1,9 µs). FastAccelStepper kütüphanesi ESP32'de MCPWM/PCNT veya RMT birimleriyle 200 kHz'e kadar adım üretir.
+
+**FastAccelStepper uygun mu? Uygun görünüyor, üç noktaya dikkatle.** Bunların hiçbiri henüz donanımda denenmedi.
+
+1. `moveByAcceleration()` ve `applySpeedAcceleration()` hareket sırasında ivme ve hız değiştirir. Bu, ivme girişli modele uyar.
+2. Komutlar bir kuyruktan geçer. Varsayılan ileri planlama 20 ms'dir ve kütüphane açıklaması 8 ms'yi ideal sayar (ayar yalnız motor dururken değişir). @@f_kontrol@@ Hz döngüyle toplam gecikme @@st_gecikme@@ ms olur, varsayılanda @@st_gecikme_var@@ ms. Bunun kararsız kutupla çarpımı @@st_pt@@ (varsayılanda @@st_pt_var@@) çıkar. Bu çarpım küçük olmalıdır; bu yüzden @@st_plan@@ ms önerilir [öneri].
+3. `getCurrentPosition()` darbeleri önden gider, yani kuyruğa alınmış adımları da sayar. AS5600 karşılaştırmasında bu fark düzeltilmelidir.
+
+### 10.7 DRV8825 akım ayarı, ısınma, pil süresi ve sigorta
+
+**Ayar.** Akım limiti = 2 × VREF (0,100 Ω algılama direnci), yani @@st_I@@ A için VREF = @@st_vref@@ V. Klon kartta direncin değeri okunmalıdır. TI, VREF 1 V'un altında doğruluğun düştüğünü belirtir; bu yüzden ayardan sonra faz akımı ölçülmelidir: tam adım kipinde faz başına ≈ @@st_I_etkin@@ A beklenir.
+
+@@tablo_st_akim@@
+
+Tork sütunu iki sargıyı da kapsar; kayıp, pil ve ısınma sütunları 1,5 A'lik sargı içindir. Pil akımı @@st_P_l@@ W lojik gücü de içerir (tahmini). Kayıplar anma direnci ve @@st_Rds@@ Ω sürücü direnciyle hesaplandı, sıcakken biraz artar. @@st_I@@ A'nın altında tork payı hızla erir, bu yüzden daha düşük bir ayar önerilmedi.
+
+**Isınma.** Sürücü başına @@st_P_s@@ W kayıp, TI'ın kart varsayımıyla (@@st_r_th@@ °C/W) yaklaşık @@st_dT_s@@ °C artış verir. Küçük kartta daha kötüdür ve Pololu da soğutmasız üst sınırı ≈ 1,5 A verir. Yani bu ayar sınırdadır ve akım sürekli aktığı için küçük bir soğutucu ve hava yolu önerilir [öneri]. Isıl kapanma en az @@st_tsd@@ °C'dedir. Motor yaklaşık @@st_dT_m@@ °C ısınır (katalogdaki 80 °C sınırına göre kaba hesap): metal brakete bağlanmalı, kutu ve pil motora değmemelidir [öneri]. @@st_I2@@ A seçeneği torku @@st_I_oran@@ katına çıkarır, ama soğutucu + fan ister, motor ≈ @@st_dT_m2@@ °C ısınır ve pil süresi @@st_h2@@ saate iner. Yalnız ölçüm düşük çıkarsa düşünülmelidir.
+
+**Dururken akım.** Step motor dururken de tam akım çeker; dengede motorlar kapatılamaz. Bu, DC ile en büyük farktır:
+
+@@tablo_st_guc@@
+
+DC'nin dengedeki akımı boşta akımdan alındı ve ölçülmedi. Pil süreleri nominal enerjiden hesaplandı; kesim gerilimi ve yaşlanma payı yoktur.
+
+**Sigorta ve besleme.** 5 A sigorta step motor için yeterlidir: en kötü durumda pil akımı @@st_I_bat_max@@ A'dir ve akım sürücüde sınırlı olduğu için kilitlenmede artmaz. DRV8825 en az @@st_V_min_s@@ V ister; boş bataryada @@st_V_pay@@ V pay kalır. Gerilim bu değerin altına düşerse sürücü kapanır ve robot düşer, bu yüzden Mete'nin BMS kesim gerilimi önemlidir. Pololu, motor beslemesine en az 47 µF elektrolitik kondansatör önerir.
+
+### 10.8 Enkoder yerine adım sayımı ve AS5600
+
+@@tablo_st_coz@@
+
+**Adım sayımı.** @@st_cpr@@ adım, @@cpr_min@@ sayım hedefini karşılar ve DC enkoderinden (@@st_dc_cpr@@) daha incedir. Hız kestirmeye de gerek kalmaz, çünkü hız komutun kendisidir. Ama bu sayım gerçek konum değildir: rotor yük altında komutun gerisinde kalır (dengede ≈ @@st_lag_t@@°, A torkunda ≈ @@st_lag_A@@° = @@st_lag_A_mm@@ mm). Asıl sorun, adım kaçarsa sayımın bunu bilmemesidir: konum ve sapma kestirimi sessizce bozulur. §4.6'daki bağıl açı düzeltmesi $x = r(\varphi + \theta)$ burada da geçerlidir.
+
+**AS5600 adım kaçırmayı yakalar mı? Evet.** Adım kaybı 4 tam adım demektir: @@st_kayip_der@@° = @@st_kayip_lsb@@ sayım. Sensörün çözünürlüğü @@st_as_lsb@@°'dir. Komut ile ölçülen açı arasındaki fark @@st_esik_der@@°'yi (@@st_esik_lsb@@ sayım) aşarsa kayıp sayılabilir [öneri]; normal yük gecikmesi bir tam adımın altındadır. Sensör gecikmesi @@st_as_gec@@ ms'de (SF = 10) @@st_n_o1@@ dev/dk'daki açı farkı @@st_as_gec_der@@°'dir, yani eşiğin çok altındadır. Sensör gövdeye göre açıyı ölçtüğü için step komutuyla aynı referanstadır. Kayıp yakalanınca sayaç düzeltilir, ama robot bu sırada zaten devriliyor olabilir (zaman sabiti @@st_zaman@@ ms). Yani AS5600 kaybı önlemez; kestirimi korur, güvenli duruşu tetikler ve §10.10'daki ölçümde adım kaçtığı anı gösterir.
+
+**Bağlantı.** AS5600'ün I²C adresi 0x36 ve sabittir; iki sensör aynı hatta olamaz. ESP32'nin iki donanım I²C birimi vardır: her sensör ayrı hatta bağlanır, MPU6050 (adres farklı) bunlardan biriyle paylaşılabilir [öneri]. 400 kHz'te bir okuma yaklaşık 0,11 ms sürer, yani @@f_kontrol@@ Hz döngüde sorun olmaz.
+
+**Montaj.** AS5600, mil ekseninde duran diyametral mıknatıs ister: Ø6 mm, hava aralığı 0,5–3 mm, eksen kayması en çok 0,25 mm. Listedeki motor tek millidir ve ön mil tekere gider. Seçenekler:
+
+| Seçenek | Nasıl | Artı / eksi |
+|---|---|---|
+| **1. Çift milli motor, arka mil [öneri]** | Mıknatıs arka mile, sensör motorun arkasına, gövde içinde bir plakaya | Korunaklı ve temiz. Motor henüz alınmadığı için mümkün; Türkiye'de stoğu ve bu sargıyla bulunup bulunmadığı doğrulanmadı |
+| 2. Ön mil ucu, tekerin dış yüzü | Mıknatıs mil ucuna ya da göbeğe, sensör tekerin üstünden dolanan bir kolla gövdeye | Tek milli motorla olur. Kol dışarıda ve darbeye açık; iz genişliğini artırır; yere değme açısı (§5.6) ve kolun rijitliği kontrol edilmeli |
+| 3. Arka kapağı delmek | - | Önerilmez: motoru bozma riski, talaş |
+
+Motorun kaçak manyetik alanı sensöre yakındır. ams homojen dış alanın bastırıldığını belirtir, ama motor alanı homojen olmayabilir; ilk iş AGC ve MD bitlerini okuyup motor akımı açıkken açının kaymadığını doğrulamaktır [öneri]. AS5600 modüllerinin mıknatısla gelip gelmediği de kontrol edilmelidir.
+
+### 10.9 Pasif kararlılık testi: detent düşmeyi engeller mi?
+
+**Hayır.** Detent, milin gövdeye göre dönmesine karşı koyar, zemine karşı değil. Mil tamamen kilitli olsa bile robot tek parça olarak teker üstünde yuvarlanır ve KM aksın üstünde olduğu için düşer (§3.3, kilitli teker denklemi). Detent en kötü durum olarak sürekli sürtünme sayıldı (gerçekte konuma bağlıdır, ortalaması sıfırdır, yani daha az etkilidir):
+
+@@tablo_st_detent@@
+
+Robot @@st_t_min@@–@@st_t_max@@ s içinde yere değer, yani 5 s sınırının çok altında. Detent (toplam @@st_T_d_top@@ N·cm) düşmeyi yalnız biraz yavaşlatır. Dik kalması için zeminden gelen yuvarlanma direncinin @@st_statik@@ N·cm'lik gravite momentini dengelemesi gerekirdi; bu da yuvarlanma direnci katsayısının yaklaşık @@st_crr@@ olması demektir. Sert zeminde kauçuk teker için bu katsayı bunun çok altındadır. Sonuç: **step motorla da pasif test tasarım gereği geçilir**. Yine de 4. haftadaki gibi kronometre ve videoyla ölçülmelidir. Sürücü enerjisizken zıt EMK'nın sürücü diyotları üstünden frenleme yapıp yapmadığı da böylece görülür [öneri].
+
+### 10.10 Ölçüm planı
+
+Bir motor ve bir DRV8825 yeter [öneri]:
+
+1. **Kimlik:** Faz direnci (multimetre, kablo direnci çıkarılarak), 1 kHz'de endüktans (LCR metre), kütle, gövde boyu, mil çapı ve biçimi. Sonuca göre `step_adayi.sargi` seçilir.
+2. **Akım ayarı:** VREF = @@st_vref@@ V, tam adım kipinde faz başına ≈ @@st_I_etkin@@ A doğrulanır.
+3. **Pull-out eğrisi:** Ayarlı güç kaynağından 12,0 V ve @@V_min@@ V (motor girişinde ölçülür), @@st_mikro@@ mikro adım. Devirler 30, 60, 90, 105, 120, 150, 180, 210, 250, 300 dev/dk. Mile makara takılır, ip ve iki el dinamometresiyle frenlenir: $T = (F_1 - F_2)\,r_\text{makara}$. Yük yavaşça artırılır; adım kaçmadan önceki son değer yazılır. Her nokta 3 tekrar. Adım kaçırma AS5600 ile (fark > @@st_esik_der@@°) ya da milin işaretiyle yakalanır. Motor ısınırken de bir tekrar yapılır.
+4. **Rezonans:** 30–150 dev/dk aralığında 5 dev/dk adımla çukur aranır. Çukur varsa karar eşiği en kötü noktaya uygulanır.
+5. **Detent torku:** Enerjisiz motorda mile bilinen uzunlukta kol takılır, dönmeye başladığı kuvvet okunur.
+6. **Isınma:** @@st_I@@ A'de 30 dakika, motor ve sürücü sıcaklığı.
+7. **Sonuç:** `step_egri.olcum` alanları doldurulur, durum "ölçülmüş" yapılır, `python -m denge` ile bu bölüm ölçümle yeniden üretilir.
+
+### 10.11 Karşılaştırma ve öneri
+
+Step motor sütunundaki tork ve hız değerleri geçici eğriye dayanır. Fiyatlar 5 Kasım 2026 tarihli satıcı sayfalarındandır ve [doğrulanamadı] sayılır. İki motorun veri sayfası değerleri de ölçülmedi.
+
+@@tablo_st_karsilastirma@@
+
+**Öneri [öneri]: önce bir adet 17HS4401 alıp ölçmek. Ölçüm geçerse step + AS5600; geçmezse DC 333 RPM.** Şu anda motor alınmadığı için bu ölçüm yaklaşık @@st_motor_tl@@ TL'ye kararı netleştirir.
+
+**Step motor neden önde?** Rezonans çukuru yoksa hesapta tork payı DC'den az değildir (@@st_sf_alt@@–@@st_sf_ust@@, DC: @@st_sf_dc@@; çukur varsa @@st_sf_rez@@). Yaklaşık @@st_c_fark@@ TL daha ucuzdur, çünkü sürücüler alındı. Redüktör boşluğu ve ölü bölge yoktur; DC'de bilinmeyen $J_m$ ve $b$ burada hareket modelini etkilemez. Küçük ve hassas hareketlerde (istasyona yanaşma) adım konumu avantajdır.
+
+**Neden şartlı?** Üç şey ölçülmeden iddia edilemez: 12 V eğrisi (hiçbir kaynakta yok), rezonans çukuru ve ≈ @@st_f_burulma@@ Hz modu. Ayrıca adım kaçırmanın bedeli DC'deki aşırı yükten büyüktür: DC yavaşlar, step motor senkron kaybedip robotu düşürür. Final 4 bağımsız tekrar istediği için bu risk ciddidir.
+
+**Step motorun bedeli:** +@@st_dm@@ kg, pil süresi ≈ @@st_h_dc@@ yerine @@st_h@@ saat (testler için yine de yeterli görünüyor), sürekli ısınma, AS5600 montajı, IMU'ya gelen adım titreşimi (5. hafta filtresinde ölçülecek) ve 5 mm mil–teker bağlantısı. Teker başına radyal yük ≈ @@st_radyal@@ N, benzer motorda sınır @@st_radyal_sinir@@ N'dur [doğrulanamadı]. Motor köşesi aksa @@st_kose@@ mm uzaklıkta, teker yarıçapı @@st_r@@ mm: yerden yalnız @@st_kose_pay@@ mm pay kalır, bu yüzden braket köşeleri motor köşesini aşmamalıdır.
+
+**Karar eşiği** (motor başına, @@V_min@@ V, @@st_I@@ A limit, 30–150 dev/dk aralığındaki en kötü nokta):
+
+| Ölçülen pull-out torku | Karar |
+|---|---|
+| ≥ @@st_esik_gecer@@ N·cm | Step + AS5600 |
+| @@st_esik_sinir@@–@@st_esik_gecer@@ N·cm | @@st_I2@@ A ve soğutmayla tekrar ölç. ≥ @@st_esik_gecer@@ N·cm olursa step, pil süresi @@st_h2@@ saat |
+| < @@st_esik_sinir@@ N·cm | DC 333 RPM (§4.7) |
+
+Step seçilirse 6. haftanın "motor ölü bölgesi telafisi" görevi kalkar, yerine adım üreteci, ivme ve devir sınırı ve adım kaybı yakalama gelir.
 
 ## Ek A: Dosyalar ve yeniden üretim
 
@@ -596,6 +820,7 @@ parametreler.toml        Bütün parametreler (değer, birim, durum, kaynak, ara
 denge/model.py           Lagrange türetimi, doğrusallaştırma, durum-uzay, transfer fonksiyonu
 denge/simulasyon.py      Açık çevrim düşme, referans manevralar (düz çıkış), ters dinamik
 denge/motor.py           Devir, tork, çekiş, enkoder; aday motor aracı (python -m denge.motor)
+denge/step.py            Step motor: geçici pull-out eğrisi, adım kaçırma, güç (python -m denge.step)
 denge/kutle_merkezi.py   KM, atalet, yere değme açısı, yuvadaki özgül kuvvet
 denge/yuva_analizi.py    Kutulu/kutusuz KM, kayma, KM yüksekliği ve yuva karşılaştırması
 denge/rapor.py           Bu belgeyi ve şekilleri üretir (python -m denge)
@@ -614,4 +839,10 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 2. YTÜ EEF ÇDTP, *İki Tekerlekli Ev İçi Hasta Destek Robotu, Güncel Proje Teknik Şartnamesi*, TR v14, 24 Eylül 2026: §4.1, §4.2, §5.2, §5.3, §7, §8.
 3. cdtp-robot.netlify.app, *ÇDTP · Hasta Destek Robotu Proje Ortamı*, Malzeme ve Şema bölümleri (18 Ekim 2026'da okundu). Ön malzeme listesi bu referans listeden derlendi; Mete'nin seçimiyle kesinleşecek.
 4. rcdrone.top, *JGB37-520 DC Gear Motor with Hall Encoder*, "12V — 10000RPM Before Reduction (Reference Only)" tablosu (18 Ekim 2026'da okundu). Satıcı tabloyu yalnız referans olarak verir; değerler [doğrulanamadı].
-5. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).
+5. robo90.com, *17HS4401 Nema 17 Step Motor* ve market.samm.com, *17HS4401 Nema17 Step Motor* (5 Kasım 2026'da okundu). MotionKing, *HB Stepper Motor Catalog* MK1106 Rev.04 (datasheetcafe.com kopyası) ve direnc.net 17HS4401 veri sayfası. Handson Technology, *17HS4401S Data Specs*. Değerler [doğrulanamadı].
+6. StepperOnline (omc-stepperonline.com, web.archive.org kopyaları): *17HS15-1504S* ve *17HS15-1684S* çizimleri ve *Torque Curve* PDF'leri, *17HS16-2004S1 Torque Curve*. Eckstein/JKongmotor, *JK42HS40-1004AC* veri sayfası (youmaketech.com kopyası). DM542T akım tablosu. Bunlar kardeş motorlardır; 17HS4401'in eğrisi değildir.
+7. Texas Instruments, *DRV8825 Stepper Motor Controller IC*, SLVSA73F, Temmuz 2014. Pololu, *DRV8825 Stepper Motor Driver Carrier* (#2133).
+8. FastAccelStepper (github.com/gin66/FastAccelStepper): README ve `src/FastAccelStepper.h` (5 Kasım 2026'da okundu).
+9. ams, *AS5600 Datasheet*, v1-06, 20 Haziran 2018.
+10. Fiyatlar: direnc.net JGB37-520 12V 333RPM Enkoderli Motor; robo90.com BTS7960B ve 17HS4401 sayfaları (5 Kasım 2026'da okundu). Değerler [doğrulanamadı].
+11. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).
