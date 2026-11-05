@@ -12,6 +12,7 @@ izdüşürülür. Giriş: teker millerindeki motor torkları τ_R, τ_L (motor t
 
 from __future__ import annotations
 
+import math
 from dataclasses import astuple, dataclass, fields, replace
 from functools import lru_cache
 
@@ -292,6 +293,88 @@ def kilitli_kutup(p: ModelParametreleri) -> float:
     eps = 1e-6
     k = -float(hk_f(eps, 0.0, *par)) / eps / float(Jk_f(0.0, *par))  # θ̈ = k θ
     return float(np.sqrt(k)) if k > 0 else 0.0
+
+
+# ---------------------------------------------------------------------------
+# Step motor: giriş teker ivmesi (motor konum kaynağı gibi davranır)
+# ---------------------------------------------------------------------------
+def ivme_katsayilari(p: ModelParametreleri) -> dict:
+    """Tork denkleminden elenince kalan katsayılar: c1 ẍ + c2 θ̈ = m_b g l θ (θ = 0 civarı).
+
+    Motor torku ve sürtünme iç kuvvet olduğundan düşer; J_m de sadeleşir. J_k = c2 + c1 r, teker
+    gövdeye kilitliyken robotun zemin temas noktası etrafındaki ataletidir.
+    """
+    k = dogrusal_katsayilar(p)
+    c1 = k["M_x"] * p.r + k["a12"]
+    c2 = k["a12"] * p.r + k["a22"]
+    return {"c1": c1, "c2": c2, "mgl": k["mgl"], "J_k": c2 + c1 * p.r}
+
+
+def ivme_girisli_durum_uzay(p: ModelParametreleri):
+    """Durum [x, ẋ, θ, θ̇], giriş a = ẍ [m/s²] (teker merkezi ivmesi). C = I, D = 0."""
+    k = ivme_katsayilari(p)
+    A = np.zeros((4, 4))
+    A[0, 1] = A[2, 3] = 1.0
+    A[3, 2] = k["mgl"] / k["c2"]
+    B = np.array([[0.0], [1.0], [0.0], [-k["c1"] / k["c2"]]])
+    return A, B, np.eye(4), np.zeros((4, 1))
+
+
+def bagil_ivme_girisli_durum_uzay(p: ModelParametreleri):
+    """Durum [x, ẋ, θ, θ̇], giriş α = ẍ/r − θ̈ [rad/s²]: step sürücüsünün doğrudan ürettiği, milin gövdeye göre ivmesi.
+
+    α = 0, enerjili motorun adım atmadan durmasıdır: robot tek parça yuvarlanır (kutup = kilitli teker kutbu).
+    """
+    k = ivme_katsayilari(p)
+    A = np.zeros((4, 4))
+    A[0, 1] = A[2, 3] = 1.0
+    A[3, 2] = k["mgl"] / k["J_k"]
+    A[1, 2] = p.r * A[3, 2]
+    b_th = -k["c1"] * p.r / k["J_k"]
+    B = np.array([[0.0], [p.r * (1 + b_th)], [0.0], [b_th]])
+    return A, B, np.eye(4), np.zeros((4, 1))
+
+
+def ivme_girisli_kutup(p: ModelParametreleri) -> float:
+    """a = 0 iken eğim kutbu [1/s]; tork girişli modeldeki X/U sıfırıyla aynıdır."""
+    k = ivme_katsayilari(p)
+    return math.sqrt(k["mgl"] / k["c2"]) if k["mgl"] > 0 else 0.0
+
+
+def ivme_transfer_fonksiyonu(p: ModelParametreleri) -> dict:
+    """Θ(s)/A(s) = −K_a / (s² − z²), X(s)/A(s) = 1/s²."""
+    k = ivme_katsayilari(p)
+    return {"K_a": k["c1"] / k["c2"], "z2": k["mgl"] / k["c2"]}
+
+
+def _ivme_katsayilari_theta(p: ModelParametreleri, th):
+    c = np.cos(th)
+    c1 = (p.m_b + 2 * p.m_w) * p.r + 2 * p.J_w / p.r + p.m_b * p.l * c
+    c2 = p.I_yy + p.m_b * p.l**2 + p.m_b * p.l * p.r * c
+    return c1, c2
+
+
+def ivme_girisli_dinamik(p: ModelParametreleri, durum, a: float) -> np.ndarray:
+    """Doğrusal olmayan model (ψ̇ = 0): durum [x, ẋ, θ, θ̇], giriş a = ẍ."""
+    _, xd, th, thd = durum
+    c1, c2 = _ivme_katsayilari_theta(p, th)
+    s = math.sin(th)
+    thdd = (p.m_b * p.g * p.l * s + p.m_b * p.l * p.r * s * thd**2 - c1 * a) / c2
+    return np.array([xd, a, thd, thdd])
+
+
+def theta_yorungesinden_ivme(p: ModelParametreleri, th, thd, thdd):
+    """θ(t) izlenecekse gereken teker ivmesi a(t) (doğrusal olmayan, cebirsel)."""
+    c1, c2 = _ivme_katsayilari_theta(p, th)
+    s = np.sin(th)
+    return (p.m_b * p.g * p.l * s + p.m_b * p.l * p.r * s * thd**2 - c2 * thdd) / c1
+
+
+def ivmeden_tork(p: ModelParametreleri, th, thd, thdd, a, xd):
+    """Girişi a olan robotta motorların toplam torku u = τ_R + τ_L [N m]: çıktıdır, adım kaçırma kontrolüne gider."""
+    k = dogrusal_katsayilar(p)
+    a12 = p.m_b * p.l * np.cos(th) - 2 * p.J_m / p.r
+    return p.r * (k["M_x"] * a + a12 * thdd - p.m_b * p.l * np.sin(th) * thd**2) + 2 * p.b * (xd / p.r - thd)
 
 
 def _bastaki_sifirlari_at(c, tol=1e-9):

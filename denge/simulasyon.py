@@ -14,7 +14,7 @@ import math
 
 import numpy as np
 from numpy.polynomial import polynomial as P
-from scipy.integrate import solve_ivp
+from scipy.integrate import cumulative_trapezoid, solve_ivp
 from scipy.linalg import expm
 from scipy.optimize import minimize_scalar
 
@@ -173,3 +173,65 @@ def toparlanma_taramasi(p: ModelParametreleri, theta0: float, sureler) -> dict:
         sonuc["v_tepe"].append(np.max(np.abs(y["dogrusal_olmayan"]["xd"])))
         sonuc["x_f"].append(y["x_f"])
     return {k: np.asarray(v) for k, v in sonuc.items()}
+
+
+# ---------------------------------------------------------------------------
+# Step motor: giriş teker ivmesi
+# ---------------------------------------------------------------------------
+def ivme_fonksiyonu(p: ModelParametreleri, yorunge: dict):
+    """Referans yörüngenin θ polinomunu izleyen teker ivmesi a(t) [m/s²] (polinomdan tam değer)."""
+    _, _, mgl = duz_cikis_katsayilari(p)
+    dF = [P.polyder(yorunge["F"], m) for m in (2, 3, 4)]
+
+    def a(t):
+        th, thd, thdd = (P.polyval(t, c) / mgl for c in dF)
+        return model.theta_yorungesinden_ivme(p, th, thd, thdd)
+
+    return a
+
+
+def ivme_girisli_yorunge(p: ModelParametreleri, yorunge: dict) -> dict:
+    """Referans yörüngenin step motorlu karşılığı: a(t), hız, milin gövdeye göre hızı ω_b ve motor torku.
+
+    Giriş a(t) cebirsel bulunur (ters dinamik integrali gerekmez). ω_b = ẋ/r − θ̇, motorun gerçekten döndüğü hızdır.
+    """
+    t, th, thd, thdd = yorunge["t"], yorunge["theta"], yorunge["theta_d"], yorunge["theta_dd"]
+    a = ivme_fonksiyonu(p, yorunge)(t)
+    xd = yorunge["xd"][0] + cumulative_trapezoid(a, t, initial=0.0)
+    x = yorunge["x"][0] + cumulative_trapezoid(xd, t, initial=0.0)
+    return {"t": t, "a": a, "x": x, "xd": xd, "theta": th, "theta_d": thd, "w_b": xd / p.r - thd,
+            "u": model.ivmeden_tork(p, th, thd, thdd, a, xd)}
+
+
+def ivme_girisli_ileri_simulasyon(p: ModelParametreleri, a_fonk, y0, t: np.ndarray) -> dict:
+    """Doğrusal olmayan modelde a(t) uygulanır (geri besleme yok): açık çevrim kararsız olduğu için kısa süreli sınama içindir."""
+    c = solve_ivp(lambda ti, y: model.ivme_girisli_dinamik(p, y, float(a_fonk(ti))), (t[0], t[-1]), y0, method="DOP853",
+                  t_eval=t, rtol=1e-12, atol=1e-13)
+    return {"t": c.t, "x": c.y[0], "xd": c.y[1], "theta": c.y[2], "theta_d": c.y[3]}
+
+
+def detent_dusme(
+    p: ModelParametreleri,
+    theta0: float,
+    detent_toplam: float,
+    yere_degme: tuple[float, float] = (math.pi / 2, math.pi / 2),
+    t_son: float = 5.0,
+    eps: float = 0.05,
+) -> dict:
+    """Enerjisiz step motor: detent torku, en kötü durum olarak mil–gövde arasında Coulomb sürtünmesi sayılır.
+
+    u = −T_d tanh(ω_b / eps). Gerçek detent konuma bağlı ve ortalaması sıfırdır, bu yüzden düşmeyi bundan daha az yavaşlatır.
+    """
+    ileri, geri = yere_degme
+
+    def f(t, y):
+        u = -detent_toplam * math.tanh((y[1] / p.r - y[3]) / eps)
+        return model.dinamik(p, y, u / 2, u / 2)
+
+    def olay(t, y):
+        return ileri - y[2] if y[2] >= 0 else y[2] + geri
+
+    olay.terminal, olay.direction = True, -1
+    c = solve_ivp(f, (0.0, t_son), [0.0, 0.0, theta0, 0.0, 0.0, 0.0], method="Radau", rtol=1e-8, atol=1e-10, events=olay)
+    t_degme = float(c.t_events[0][0]) if c.t_events[0].size else None
+    return {"t": c.t, "x": c.y[0], "theta": c.y[2], "theta_d": c.y[3], "w_b": c.y[1] / p.r - c.y[3], "t_degme": t_degme}
