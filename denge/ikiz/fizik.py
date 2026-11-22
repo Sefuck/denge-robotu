@@ -76,6 +76,22 @@ class FizikAyarlari:
     dt: float  # fizik adımı [s]
 
 
+def surucu_cikisi(a: FizikAyarlari, d: float) -> float:
+    """Sürücü: PWM çözünürlüğü, ölü bölge, ±1 sınırı."""
+    d = max(-1.0, min(1.0, d))
+    d = round(d / a.pwm_adimi) * a.pwm_adimi
+    return 0.0 if abs(d) < a.surucu_olu_bolge else d
+
+
+def motor_elektrigi(m: Motor, a: FizikAyarlari, dR: float, dL: float, wR: float, wL: float, V_acik: float) -> tuple[float, float, float]:
+    """Sürücü çıkışındaki doluluk oranları ve rotorların gövdeye göre hızları → (bara gerilimi, I_R, I_L).
+
+    V_bara = V_açık − R_iç (Σ d_i (d_i V − K_e ω_i)/R + I_lojik) kapalı biçimde çözülür; I = (d V − K_e ω)/R.
+    """
+    V = (V_acik - a.R_ic * a.I_lojik + a.R_ic * m.K_e * (dR * wR + dL * wL) / m.R) / (1 + a.R_ic * (dR * dR + dL * dL) / m.R)
+    return V, (dR * V - m.K_e * wR) / m.R, (dL * V - m.K_e * wL) / m.R
+
+
 class Robot:
     """İki tekerlekli robotun fiziksel durumu ve bir fizik adımı (dt)."""
 
@@ -135,22 +151,16 @@ class Robot:
     # -- elektrik ------------------------------------------------------------------
     def elektrik(self, dR: float, dL: float, V_acik: float) -> tuple[float, float]:
         """PWM doluluk oranları → bara gerilimi, motor akımları ve motor torkları (teker milinde)."""
-        m, a = self.motor, self.ayar
+        m = self.motor
         thd = self.nu[2]
-        wR, wL = self.nu[5] - thd, self.nu[6] - thd
-        # Bara gerilimi kapalı biçimde: V = V_açık − R_iç (Σ d_i (d_i V − K_e ω_i)/R + I_lojik)
-        V = (V_acik - a.R_ic * a.I_lojik + a.R_ic * m.K_e * (dR * wR + dL * wL) / m.R) / (1 + a.R_ic * (dR * dR + dL * dL) / m.R)
-        IR, IL = (dR * V - m.K_e * wR) / m.R, (dL * V - m.K_e * wL) / m.R
+        V, IR, IL = motor_elektrigi(m, self.ayar, dR, dL, self.nu[5] - thd, self.nu[6] - thd, V_acik)
         self.V_bara, self.akim = V, (IR, IL)
         self.tork = (m.K_t * IR, m.K_t * IL)
         return self.tork
 
     def surucu(self, d: float) -> float:
         """Sürücü: PWM çözünürlüğü, ölü bölge, ±1 sınırı."""
-        a = self.ayar
-        d = max(-1.0, min(1.0, d))
-        d = round(d / a.pwm_adimi) * a.pwm_adimi
-        return 0.0 if abs(d) < a.surucu_olu_bolge else d
+        return surucu_cikisi(self.ayar, d)
 
     def adim(self, dR: float, dL: float, V_acik: float) -> None:
         """Bir fizik adımı: dR, dL firmware'in istediği PWM doluluk oranları (−1…1)."""

@@ -5,6 +5,8 @@ Senaryolar (şartname TR v14 §8):
     O1-23  ≈1 m ileri + 3 s dur (Ö1-2), ≈1 m geri + 3 s dur (Ö1-3)
     O1-4+  +10°'den 10 s içinde toparlanma;  O1-4-  −10°'den (Ö1-4 ikisi birlikte sağlanınca geçer)
     O2     ≈0,5 m ileri, ≈0,5 m geri, ≈90° sola, ≈90° sağa; her komuttan sonra dur; 2 s içinde tepki
+    O5     Ö5'in denge/hareket kısmı: başta 5 s bekle, eldivenle hedefe git, kutuyu düşürmeden 5 s bekle,
+           istasyon yönüne dön ve yaklaş (IR ile yanaşma modellenmedi). Ana matriste değil; 3D karşılaştırmada.
 Kurulum: motor (1000 / 530 / 333 RPM), kutu takılı ya da değil, pil dolu (12,6 V) ya da boş (9,9 V),
 kontrolcü (lqr / pid), kestirici (kalman / tamamlayici).
 
@@ -33,10 +35,11 @@ KANALLAR = ("t", "x", "v", "theta", "theta_d", "psi", "psi_d", "X", "Y", "x_k", 
             "x_ref", "v_ref", "psi_ref", "d_R", "d_L", "I_R", "I_L", "I_bara", "I_tepe", "V_bara", "doyum_pwm",
             "doyum_akim", "kayma", "bosluk", "alfa_kutu", "fz_kutu", "N_min")
 K = {ad: i for i, ad in enumerate(KANALLAR)}
-SENARYO_KODLARI = ("O1-1", "O1-23", "O1-4+", "O1-4-", "O2")
+SENARYO_KODLARI = ("O1-1", "O1-23", "O1-4+", "O1-4-", "O2")  # §12 ana matrisi
+TUM_SENARYOLAR = (*SENARYO_KODLARI, "O5")
 SENARYO_ADLARI = {"O1-1": "Ö1-1 statik denge (30 s)", "O1-23": "Ö1-2/3 ≈1 m ileri/geri + 3 s dur",
                   "O1-4+": "Ö1-4 +10°'den toparlanma", "O1-4-": "Ö1-4 −10°'den toparlanma",
-                  "O2": "Ö2 0,5 m ileri/geri, 90° sol/sağ"}
+                  "O2": "Ö2 0,5 m ileri/geri, 90° sol/sağ", "O5": "Ö5 denge/hareket kısmı (bekle, hedef, 5 s, istasyon yönü)"}
 
 
 SATIN_ALINAN = "1000"  # kazançları parametre dosyasından okunan motor
@@ -58,10 +61,11 @@ class Kurulum:
 @dataclass(frozen=True)
 class AltTest:
     ad: str  # "Ö1-2", "Ö2 ileri" ...
-    tur: str  # "statik" | "oteleme" | "donus" | "toparlanma"
+    tur: str  # "statik" | "oteleme" | "donus" | "toparlanma" | "hedef"
     t_komut: float = 0.0  # komutun eldivenden çıktığı an
     pencere: tuple[float, float] = (0.0, 0.0)  # durma/değerlendirme penceresi
     beklenen: float = 0.0  # m ya da rad (işaretli)
+    hedef: tuple[float, float] = (0.0, 0.0)  # "hedef" türünde zemindeki hedef noktası (X, Y) [m]
 
 
 @dataclass(frozen=True)
@@ -102,6 +106,24 @@ def senaryolar(ay: IkizAyarlari) -> dict[str, Senaryo]:
                            miktar if tur in ("ileri", "sol") else -miktar))
         t = b + 1.0
     out["O2"] = Senaryo("O2", t + 0.5, sa.baslangic_egimi, True, tuple(komutlar), tuple(alt))
+    # Ö5 denge/hareket kısmı [öneri rota]: hedef (1, 0,5) m, istasyon yönü (0, 0,5) m
+    w = sa.o5_bekleme
+    t, komutlar, konum, yon = w, [], np.zeros(2), 0.0
+    adimlar = (("ileri", sa.o1_mesafe, sa.o1_sure), ("sol", math.pi / 2, sa.donus_sure), ("ileri", sa.o2_mesafe, sa.o2_sure))
+    donus = (("sol", math.pi / 2, sa.donus_sure), ("ileri", sa.o1_mesafe, sa.o1_sure))
+    alt = [AltTest("Ö5 başta 5 s bekler", "statik", 0.0, (0.0, w))]
+    for grup, ad, bekle in ((adimlar, "Ö5 hedefe gider, kutuyla 5 s bekler", w), (donus, "Ö5 istasyon yönüne döner ve yaklaşır", 1.0)):
+        t_grup = t
+        for tur, miktar, sure in grup:
+            komutlar.append((t, tur, miktar, sure))
+            if tur == "ileri":
+                konum = konum + miktar * np.array([math.cos(yon), math.sin(yon)])
+            else:
+                yon += miktar
+            t += gec + sure + y
+        alt.append(AltTest(ad, "hedef", t_grup, (t, t + bekle), hedef=(float(konum[0]), float(konum[1]))))
+        t += bekle
+    out["O5"] = Senaryo("O5", t + 0.5, sa.baslangic_egimi, True, tuple(komutlar), tuple(alt))
     return out
 
 
@@ -140,12 +162,13 @@ def calistir(t, kod: str, k: Kurulum, ay: IkizAyarlari | None = None, mot=None, 
     rng = np.random.default_rng(tohum(ay, kod, k))
     th0 = theta0 if theta0 is not None else (sen.theta0 + (gv.theta_trim if sen.theta0_bagil else 0.0))
     robot = Robot(p, mot, ay.fizik, theta0=th0 - gv.theta_trim, theta_trim=gv.theta_trim)
-    imu = IMU(ay.sensor, dt, rng, p.g)
+    jiro_z = ay.kestirim.sapma_jiroskopla
+    imu = IMU(ay.sensor, dt, rng, p.g, np.random.default_rng(tohum(ay, kod, k) + 1) if jiro_z else None)
     pil = PilOlcumu(ay.sensor.pil_olcum_hatasi, rng)
     egim = (KalmanSuzgeci(ay.kestirim.q_aci, ay.kestirim.q_sapma, ay.kestirim.r_olcum, Ts) if k.kestirici == "kalman"
             else TamamlayiciSuzgec(ay.kestirim.tau_tamamlayici, Ts))
     kest = DurumKestirici(egim, p.r, p.d, mot.cpr, Ts, ay.zaman.hiz_penceresi, ay.kestirim.hiz_tau,
-                          ay.kestirim.ivme_telafisi, ay.sensor.imu_konum[1], ay.kestirim.ivme_tau)
+                          ay.kestirim.ivme_telafisi, ay.sensor.imu_konum[1], ay.kestirim.ivme_tau, jiro_z)
     ktr = kontrolcu_olustur(ay.kontrol, Ts, k.kontrolcu)
     cikis = CikisKati(mot, ay.kontrol, Ts)
     ref = Referans(ay.senaryo.profil_ivme_orani, Ts, ay.kontrol.referans_suzgeci)
@@ -174,7 +197,8 @@ def calistir(t, kod: str, k: Kurulum, ay: IkizAyarlari | None = None, mot=None, 
             _, tur, m, s = kuyruk.pop(0)
             ref.komut(tk, tur, m, s)
         gyro, ax, az = imu.oku()
-        s_k = kest.guncelle(gyro, ax, az, enkoder_sayimi(robot.bagil_aci(0), cpr), enkoder_sayimi(robot.bagil_aci(1), cpr))
+        s_k = kest.guncelle(gyro, ax, az, enkoder_sayimi(robot.bagil_aci(0), cpr), enkoder_sayimi(robot.bagil_aci(1), cpr),
+                            imu.oku_z() if jiro_z else 0.0)
         if k.kestirici == "ideal":  # yalnız tanılama: kestirim yerine gerçek durum
             s_k = [robot.q[0], robot.nu[0], robot.theta_govde, robot.nu[2], robot.q[1], robot.nu[1]]
         cikis.pil_olcumu(pil.oku(robot.V_bara))
@@ -197,7 +221,7 @@ def calistir(t, kod: str, k: Kurulum, ay: IkizAyarlari | None = None, mot=None, 
             if j == n_gec:
                 duty[0], duty[1] = yeni
             robot.adim(duty[0], duty[1], V_acik)
-            imu.guncelle(robot.theta_govde, robot.nu[2], robot.thdd, robot.vd)
+            imu.guncelle(robot.theta_govde, robot.nu[2], robot.thdd, robot.vd, robot.nu[1])
             IR, IL = robot.akim
             I_bara += robot.surucu(duty[0]) * IR + robot.surucu(duty[1]) * IL
             I_tepe = max(I_tepe, abs(IR) + abs(IL))
@@ -320,11 +344,22 @@ def degerlendir(kay: Kayit, ay: IkizAyarlari) -> dict:
         if t_bitti <= bitis + 1e-9:
             kosullar.append(("Denge korunur", False, "düştü"))
         if a.tur == "statik":
-            kosullar.append(("30 s düşmeden durur", not kay.dustu and kay.motor_kesildi is None and t[-1] >= sa.statik_sure - 1e-6,
-                             f"{min(t[-1], sa.statik_sure):.1f} s"))
-            deger = f"en çok {o['x_sapma']:.2f} m uzaklaştı"
-            if o["x_sapma"] > sa.statik_kayma_siniri:
-                notlar.append(f"başlangıçtan {o['x_sapma']:.2f} m uzaklaştı (uyarı eşiği {sa.statik_kayma_siniri:.2f} m)")
+            son = a.pencere[1]
+            kosullar.append((f"{son:.0f} s düşmeden durur", not kay.dustu and kay.motor_kesildi is None and t[-1] >= son - 1e-6,
+                             f"{min(t[-1], son):.1f} s"))
+            w_ = t <= son + 1e-9
+            sapma = float(np.max(np.hypot(kay.k("X")[w_] - kay.k("X")[0], kay.k("Y")[w_] - kay.k("Y")[0]))) if np.any(w_) else 0.0
+            deger = f"en çok {sapma:.2f} m uzaklaştı"
+            if sapma > sa.statik_kayma_siniri:
+                notlar.append(f"başlangıçtan {sapma:.2f} m uzaklaştı (uyarı eşiği {sa.statik_kayma_siniri:.2f} m)")
+        elif a.tur == "hedef":
+            ib0, ib1 = deger_at(a.pencere[0]), deger_at(a.pencere[1])
+            uzaklik = float(math.hypot(kay.k("X")[ib1] - a.hedef[0], kay.k("Y")[ib1] - a.hedef[1]))
+            hiz = np.abs(v_ort[ib0:ib1 + 1])
+            kosullar.append((f"Hedefe ≤ {sa.o5_hedef_toleransi:.2f} m", uzaklik <= sa.o5_hedef_toleransi, f"{uzaklik:.3f} m"))
+            kosullar.append((f"{a.pencere[1] - a.pencere[0]:.0f} s durur (ortalama |v| ≤ {sa.durma_hizi:.2f} m/s)",
+                             bool(hiz.size) and float(np.max(hiz)) <= sa.durma_hizi, f"en çok {float(np.max(hiz)) if hiz.size else float('nan'):.3f} m/s"))
+            deger = f"hedefe {uzaklik:.3f} m"
         elif a.tur == "toparlanma":
             band = np.abs(th - kay.gv["theta_trim"]) <= sa.toparlanma_acisi
             disari = np.flatnonzero(~band)

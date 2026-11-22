@@ -121,7 +121,8 @@ class LQRKontrolcu:
     İntegral, motor sürtünmesinin (K_t·I_0) yarattığı konum ölü bölgesini kapatır; doyumda dondurulur ve sınırlanır.
     """
 
-    __slots__ = ("K1", "K2", "K3", "K4", "K5", "Kp1", "Kp2", "denge", "k_egim", "k_tork", "k_donus", "T", "z", "z_siniri", "doyumda")
+    __slots__ = ("K1", "K2", "K3", "K4", "K5", "Kp1", "Kp2", "denge", "k_egim", "k_tork", "k_donus", "T", "z", "z_siniri", "doyumda",
+                 "Kpi", "zp", "zp_siniri")
 
     def __init__(self, a: KontrolAyarlari, T: float):
         self.K1, self.K2, self.K3, self.K4, self.K5 = a.lqr_K
@@ -131,9 +132,11 @@ class LQRKontrolcu:
         self.T, self.z = T, 0.0
         self.z_siniri = a.integral_siniri / abs(self.K5) if self.K5 != 0.0 else 0.0  # integral katkısı ≤ integral_siniri
         self.doyumda = False
+        self.Kpi, self.zp = a.donus_integrali, 0.0  # dönüş integrali (0 = kapalı)
+        self.zp_siniri = a.integral_siniri / self.Kpi if self.Kpi > 0.0 else 0.0
 
     def sifirla(self) -> None:
-        self.z, self.doyumda = 0.0, False
+        self.z, self.zp, self.doyumda = 0.0, 0.0, False
 
     def doyum_bildir(self, doyumda: bool) -> None:
         self.doyumda = doyumda
@@ -146,6 +149,10 @@ class LQRKontrolcu:
         u = self.k_tork * ref[2] - (self.K1 * ex + self.K2 * (s[1] - ref[1]) + self.K3 * (s[2] - th_ref) + self.K4 * s[3]
                                     + self.K5 * self.z)
         u_psi = self.k_donus * ref[5] - (self.Kp1 * (s[4] - ref[3]) + self.Kp2 * (s[5] - ref[4]))
+        if self.Kpi > 0.0:
+            if not self.doyumda:
+                self.zp = _sinirla(self.zp + (s[4] - ref[3]) * self.T, -self.zp_siniri, self.zp_siniri)
+            u_psi -= self.Kpi * self.zp
         return u, u_psi
 
 
@@ -153,7 +160,7 @@ class PIDKontrolcu:
     """Kademeli PID: dış döngü PD (konum, hız) eğim komutu üretir; iç döngü PID eğimi bu komuta getirir; dönüş PD."""
 
     __slots__ = ("Kp", "Ki", "Kd", "Kpx", "Kdx", "Kpp", "Kdp", "komut_siniri", "integral_siniri", "denge", "T",
-                 "integral", "doyumda", "aci_komutu", "k_egim", "k_tork", "k_donus")
+                 "integral", "doyumda", "aci_komutu", "k_egim", "k_tork", "k_donus", "Kpi", "zp", "zp_siniri")
 
     def __init__(self, a: KontrolAyarlari, T: float):
         self.Kp, self.Ki, self.Kd = a.pid_aci
@@ -165,9 +172,11 @@ class PIDKontrolcu:
         self.doyumda = False
         self.aci_komutu = a.denge_acisi
         self.k_egim, self.k_tork, self.k_donus = a.ileri_besleme if a.ileri_besleme_acik else (0.0, 0.0, 0.0)
+        self.Kpi, self.zp = a.donus_integrali, 0.0
+        self.zp_siniri = a.integral_siniri / self.Kpi if self.Kpi > 0.0 else 0.0
 
     def sifirla(self) -> None:
-        self.integral, self.doyumda = 0.0, False
+        self.integral, self.zp, self.doyumda = 0.0, 0.0, False
 
     def doyum_bildir(self, doyumda: bool) -> None:
         self.doyumda = doyumda
@@ -180,6 +189,10 @@ class PIDKontrolcu:
             self.integral = _sinirla(self.integral + self.Ki * e * self.T, -self.integral_siniri, self.integral_siniri)
         u = self.k_tork * ref[2] + self.Kp * e + self.integral + self.Kd * s[3]
         u_psi = self.k_donus * ref[5] + self.Kpp * (ref[3] - s[4]) + self.Kdp * (ref[4] - s[5])
+        if self.Kpi > 0.0:
+            if not self.doyumda:
+                self.zp = _sinirla(self.zp + (ref[3] - s[4]) * self.T, -self.zp_siniri, self.zp_siniri)
+            u_psi += self.Kpi * self.zp
         return u, u_psi
 
 
