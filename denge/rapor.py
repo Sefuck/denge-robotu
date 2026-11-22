@@ -18,10 +18,10 @@ import unicodedata
 
 import numpy as np
 
-from . import model, motor, sekiller, step, yuva_analizi
+from . import model, motor, satin_alinan, sekiller, step, yuva_analizi
 from . import simulasyon as sim
 from .kutle_merkezi import vurus_merkezi, yere_degme_acilari
-from .parametreler import KOK, Tasarim, fiziksel_mi, step_parametresi_mi
+from .parametreler import KOK, Tasarim, ek_bolum_mu, fiziksel_mi
 
 DOCS = KOK / "docs"
 SEKIL = DOCS / "sekiller"
@@ -124,7 +124,7 @@ def duyarlilik(tasarim: Tasarim) -> list[list[str]]:
     for yol, k in tasarim.kayitlar():
         if "aralik" not in k or not fiziksel_mi(yol):
             continue
-        if yol.startswith(("batarya.", "zemin.", "yuk.kutu.surtunme", "teker.genislik")) or step_parametresi_mi(yol):
+        if yol.startswith(("batarya.", "zemin.", "yuk.kutu.surtunme", "teker.genislik")) or ek_bolum_mu(yol):
             continue  # modeli etkilemez (devir/çekiş tarafında ayrıca ele alınır)
         uclar = []
         for v in k["aralik"]:
@@ -410,6 +410,126 @@ def step_bolumu(tasarim: Tasarim, g: dict, en_iyi: dict, V: dict, cpr_min: float
     return D
 
 
+def satin_alinan_bolumu(tasarim: Tasarim, V: dict) -> dict:
+    """§11: satın alınan JGB37-520 12 V 1000 RPM motorun sınanması, karar ve çözümler."""
+    D: dict[str, str] = {}
+    G = satin_alinan.gereksinim_ozeti(tasarim)
+    a = satin_alinan.aday(tasarim)
+    olc = satin_alinan.olculen_alanlar(tasarim)
+    vs = motor.aday_tasarimdan(tasarim, satin_alinan.ONEK)
+    seri = {round(x.reduksiyon): x for x in motor.satici_serisi_adaylari(tasarim)}
+    rc = {round(x.reduksiyon): x for x in motor.seri_adaylari(tasarim)}
+    SF = G["SF"]
+    Vm, Vx = V["min"], V["max"]
+    sm, sx = satin_alinan.sina(a, G, Vm), satin_alinan.sina(a, G, Vx)
+    kr = satin_alinan.karar(sm, satin_alinan.cpr(a), G["cpr_min"], SF)
+    D |= {"sa_ad": tasarim.d(f"{satin_alinan.ONEK}.ad"), "sa_karar": kr.upper(), "sa_karar_kucuk": kr,
+          "sa_veri": ("ölçüm (" + ", ".join(olc) + "); kalanlar veri sayfasından" if olc else "satıcının veri sayfası, [doğrulanamadı]; motor henüz ölçülmedi"),
+          "sa_N": s(a.reduksiyon, 0), "sa_cpr": s(satin_alinan.cpr(a), 0), "sa_cpr_min": s(G["cpr_min"], 0),
+          "sa_sf_min": s(sm["sf"]), "sa_sf_max": s(sx["sf"]), "sa_TA_min": s(100 * sm["T_A"], 1), "sa_TA_max": s(100 * sx["T_A"], 1),
+          "sa_tA": s(100 * G["tA"], 1), "sa_tA0": s(100 * G["tA0"], 1), "sa_nA": s(G["nA"], 0), "sa_cekis": s(100 * G["cekis"], 1),
+          "sa_cekis_orani": s(sm["cekis_orani"]), "sa_ref": s(sm["ref"], 1), "sa_agr": s(sm["agr"], 1), "sa_ref_t": s(100 * G["ref"], 1), "sa_agr_t": s(100 * G["agr"], 1),
+          "sa_pwm_seyir_min": s(100 * sm["pwm_seyir"], 0), "sa_pwm_seyir_max": s(100 * sx["pwm_seyir"], 0), "sa_pwm_B_min": s(100 * sm["pwm_B"], 0),
+          "sa_pwm_olu": s(100 * sm["pwm_olu"], 0), "sa_n_seyir": s(G["n_seyir"], 0), "sa_nB": s(G["nB"], 0), "sa_n0_min": s(sm["n0"], 0),
+          "sa_V1": s(satin_alinan.sf_bire_inen_gerilim(a, G), 1), "sa_pencere": s(1000 * satin_alinan.gereken_akim_penceresi(G["p"].r, tasarim.d("hedef.hiz_cozunurlugu"), satin_alinan.cpr(a)), 0),
+          "sa_dv": s(2 * math.pi * G["p"].r / (satin_alinan.cpr(a) * tasarim.d("hedef.hiz_kestirim_penceresi")), 3),
+          "sa_i_kilit": s(2 * a.durma_akimi * Vx / a.gerilim, 2), "sa_gereken_el": s(satin_alinan.gereken_el(a, G, Vm, SF), 3), "sa_el": s(2 * G["tA0"], 3),
+          "sa_el_azalma": s(100 * (1 - satin_alinan.gereken_el(a, G, Vm, SF) / (2 * G["tA0"])), 0)}
+
+    # -- Veriler
+    k = lambda alan: tasarim.d(f"{satin_alinan.ONEK}.{alan}")
+    r10 = rc.get(10)
+    D["tablo_sa_veri"] = tablo(
+        ["Değer", "Satıcının veri sayfası (12 V)", "rcdrone referans tablosu", "Ölçüm"],
+        [["Redüksiyon oranı", f"1:{s(k('reduksiyon'), 0)}", f"1:{s(r10.reduksiyon, 0)}" if r10 else "-", "teker turu başına sayımdan (§11.5)"],
+         ["Boşta devir / akım", f"{s(k('bosta_devir'), 0)} dev/dk / {s(1000 * k('bosta_akim'), 0)} mA", f"{s(r10.bosta_devir, 0)} dev/dk / {s(1000 * r10.bosta_akim, 0)} mA" if r10 else "-", "enkoder + multimetre"],
+         ["Kilitlenme torku", f"{s(k('durma_torku') / KGFCM, 1)} kgf·cm = {s(k('durma_torku'), 3)} N·m", f"{s(r10.durma_torku / KGFCM, 1)} kgf·cm" if r10 else "-", "kol + mutfak tartısı"],
+         ["Kilitlenme akımı", f"{s(k('durma_akimi'), 1)} A", f"{s(r10.durma_akimi, 1)} A" if r10 else "-", "multimetre, kısa süreli"],
+         ["Anma noktası", f"{s(k('anma_torku') / KGFCM, 1)} kgf·cm, {s(k('anma_devri'), 0)} dev/dk, 1 A", "-", "-"],
+         ["Enkoder", f"{k('ppr')} darbe/motor turu, 3,3–5 V; x4 ile {s(satin_alinan.cpr(vs), 0)} sayım/teker turu", "11 PPR (ön liste)", "teker elle 10 tur"],
+         ["Kütle", "bulunamadı (150 g kabul edildi, tahmini)", "-", "tartı"],
+         ["Mil", f"çıkıntı {s(1000 * k('mil_boyu'), 1)} mm, düzlük 12 mm; çap yazmıyor", "-", "kumpas"]],
+        ["l", "l", "l", "l"],
+    )
+
+    # -- Sınama: yan yana
+    e = lambda b: "geçer" if b else "**kalmaz**"
+    satir = []
+    for ad, x in ((f"**Satın alınan: 1000 dev/dk (1:{s(a.reduksiyon, 0)})**", a), ("530 dev/dk (1:19)", seri[19]), ("333 dev/dk (1:30), önerilen", seri[30])):
+        for Vk in (Vm, Vx):
+            q = satin_alinan.sina(x, G, Vk)
+            satir.append([ad if Vk == Vm else "", s(Vk, 1), s(100 * q["T_A"], 1), s(q["sf"]), e(q["A"]), e(q["A0"]), s(q["cekis_orani"]), f"{s(q['ref'], 1)} / {s(q['agr'], 1)}",
+                          e(q["B"]), s(satin_alinan.cpr(x), 0), f"%{s(100 * q['pwm_seyir'], 0)} / %{s(100 * q['pwm_B'], 0)}",
+                          satin_alinan.karar(q, satin_alinan.cpr(x), G["cpr_min"], SF) if Vk == Vm else ""])
+    D["tablo_sa_sinama"] = tablo(
+        ["Motor", "Pil [V]", f"Tork @ {s(G['nA'], 0)} dev/dk [N·cm]", "Sağlanan SF", f"A (SF {s(SF, 0)})", "A₀ (katsayısız)", "Tork / çekiş", "Referans / agresif manevra payı",
+         "B (seyir)", f"Enkoder (≥ {s(G['cpr_min'], 0)})", "PWM: seyir / B", "Karar (boş pil)"],
+        satir, ["l", "r", "r", "r", "c", "c", "r", "r", "c", "r", "r", "l"],
+    )
+    D["sa_sf_333"] = s(satin_alinan.sina(seri[30], G, Vm)["sf"])
+    D["sa_sf_530"] = s(satin_alinan.sina(seri[19], G, Vm)["sf"])
+
+    # -- Çözüm b: ek redüksiyon
+    verim = tasarim.d("aktarma.kayis_verimi")
+    verim_alt = tasarim.kayit("aktarma.kayis_verimi")["aralik"][0]
+    rt = satin_alinan.reduksiyon_taramasi(tasarim, a, tasarim.d("cozum_plani.ek_reduksiyon"), verim)
+    rt_alt = {x["k"]: x for x in satin_alinan.reduksiyon_taramasi(tasarim, a, tasarim.d("cozum_plani.ek_reduksiyon"), verim_alt)}
+    D["tablo_sa_reduksiyon"] = tablo(
+        ["Ek oran", "Toplam oran", f"Tork @ {s(G['nA'], 0)} dev/dk, {s(Vm, 1)} V [N·cm]", f"SF, {s(Vm, 1)} V", f"SF, verim {s(verim_alt, 2)}", f"SF, {s(Vx, 1)} V",
+         f"Boşta devir, {s(Vm, 1)} V", "B (seyir)", "Enkoder [sayım]", "PWM seyir", "Rotor ataleti etkisi", "Karar"],
+        [["yok" if x["k"] == 1 else f"1:{s(x['k'], 0)}", f"1:{s(x['aday'].reduksiyon, 0)}", s(100 * x["min"]["T_A"], 1), s(x["min"]["sf"]), s(rt_alt[x["k"]]["min"]["sf"]),
+          s(x["max"]["sf"]), s(x["min"]["n0"], 0), e(x["min"]["B"]), s(x["cpr"], 0), f"%{s(100 * x['min']['pwm_seyir'], 0)}", f"×{s(x['Jm_carpani'], 0)}", x["karar"]] for x in rt],
+        ["l", "r", "r", "r", "r", "r", "r", "c", "r", "r", "r", "l"],
+    )
+    r3 = next(x for x in rt if x["k"] == 3)
+    D |= {"sa_verim": s(verim, 2), "sa_verim_alt": s(verim_alt, 2), "sa_k3_sf": s(r3["min"]["sf"]), "sa_k3_sf_alt": s(rt_alt[3]["min"]["sf"]), "sa_k3_cpr": s(r3["cpr"], 0),
+          "sa_k3_n0": s(r3["min"]["n0"], 0), "sa_k3_cekis": s(r3["min"]["cekis_orani"]), "sa_k3_pwm": s(100 * r3["min"]["pwm_seyir"], 0),
+          "sa_k2_sf": s(next(x for x in rt if x["k"] == 2)["min"]["sf"]), "sa_k2_cpr": s(next(x for x in rt if x["k"] == 2)["cpr"], 0),
+          "sa_gt2": s(tasarim.d("maliyet.gt2_seti"), 0), "sa_dc_tl": s(tasarim.d("maliyet.dc_motor"), 0)}
+
+    # -- Çözüm a: teker
+    tt = satin_alinan.teker_taramasi(tasarim, a, tasarim.d("cozum_plani.teker_yaricaplari"))
+    yd_min = tasarim.d("hedef.yere_degme_min")
+    der = lambda x: "dik dururken değer" if x <= 1e-6 else f"{s(math.degrees(x), 1)}°"
+    D["tablo_sa_teker"] = tablo(
+        ["Teker çapı [mm]", f"A devri [dev/dk]", f"SF (el hesabı), {s(Vm, 1)} V", "Referans manevra payı", "Çekiş sınırı, motor başı [N·cm]", "Tork / çekiş", "Enkoder hedefi [sayım]",
+         "Yere değme ileri / geri", "Yerden yükseklik [mm]"],
+        [[s(2000 * x["r"], 0), s(x["nA"], 0), s(x["sf"]), s(x["ref"], 1), s(100 * x["cekis"], 1), s(x["cekis_orani"]), s(x["cpr_min"], 0),
+          f"{der(x['ileri'])} / {der(x['geri'])}" + ("" if x["ileri"] >= math.radians(yd_min) else " **(< " + s(yd_min, 0) + "°)**"),
+          s(1000 * x["yukseklik"], 1) if x["yukseklik"] > 0 else f"**{s(1000 * x['yukseklik'], 1)}**"] for x in tt],
+    )
+    gecen = [x for x in tt if x["ileri"] >= math.radians(yd_min) and x["yukseklik"] > 0]
+    D |= {"sa_teker_min": s(2000 * min(x["r"] for x in gecen), 0), "sa_teker_sf_kucuk": s(tt[0]["sf"]), "sa_teker_ref_kucuk": s(tt[0]["ref"], 1),
+          "sa_en_alt": s(1000 * (tt[-1]["r"] - tt[-1]["yukseklik"]), 1), "sa_yd_min": s(yd_min, 0)}
+
+    # -- Çözüm c: kütle ve KM
+    kt = satin_alinan.kutle_taramasi(tasarim, a)
+    D["tablo_sa_kutle"] = tablo(
+        ["Senaryo [öneri]", "Toplam kütle [kg]", "$l$ [mm]", "El hesabı, iki motor [N·m]", f"SF, {s(Vm, 1)} V", "Kararsız kutup [1/s]", "Çekiş, motor başı [N·cm]"],
+        [[x["ad"], s(x["m"], 2), s(1000 * x["l"], 1), s(x["el"], 3), s(x["sf"]), s(x["kutup"]), s(100 * x["cekis"], 1)] for x in kt],
+        ["l", "r", "r", "r", "r", "r", "r"],
+    )
+    D |= {"sa_kutle_en_iyi": s(max(x["sf"] for x in kt)), "sa_takas_l": s(1000 * kt[2]["l"], 1), "sa_l": s(1000 * kt[0]["l"], 1)}
+
+    # -- Ölçüm eşikleri (ölçülen boşta devirle; ölçüm yoksa veri sayfasının boş pildeki değeri)
+    n0_m = a.egriler(tasarim.d("olcum_plani.gerilim"))[0]
+    esik_uygun = float(motor.min_durma_torku(n0_m, [(G["nA"], G["tA"])])[0])
+    esik_sinir = float(motor.min_durma_torku(n0_m, [(G["nA"], G["tA0"])])[0])
+    ts_m = a.egriler(tasarim.d("olcum_plani.gerilim"))[1]
+    D |= {"sa_V_olcum": s(tasarim.d("olcum_plani.gerilim"), 1), "sa_n0_olcum": s(n0_m, 0), "sa_esik_uygun": s(100 * esik_uygun, 1), "sa_esik_uygun_kg": s(esik_uygun / KGFCM, 2),
+          "sa_esik_sinir": s(100 * esik_sinir, 1), "sa_esik_sinir_kg": s(esik_sinir / KGFCM, 2), "sa_ts_olcum": s(100 * ts_m, 1), "sa_ts_olcum_kg": s(ts_m / KGFCM, 2),
+          "sa_kol_kg_10cm": s(ts_m / (sabit_g := tasarim.d("sabit.g")) / 0.10 * 1000, 0), "sa_kol_esik_10cm": s(esik_sinir / sabit_g / 0.10 * 1000, 0),
+          "sa_kol_esik_uygun_10cm": s(esik_uygun / sabit_g / 0.10 * 1000, 0), "sa_cpr_beklenen": s(satin_alinan.cpr(vs), 0)}
+
+    sekiller.satin_alinan_motor(
+        SEKIL / "sekil_13_satin_alinan_motor.png",
+        [(f"Satın alınan 1000 dev/dk (1:{s(a.reduksiyon, 0)})", a), ("Satın alınan + 1:2 kayış", satin_alinan.ek_reduksiyon(a, 2, verim)),
+         ("Satın alınan + 1:3 kayış", satin_alinan.ek_reduksiyon(a, 3, verim)), ("333 dev/dk (1:30), satıcı tablosu", seri[30])],
+        {f"Boş pil, {s(Vm, 1)} V": Vm, f"Dolu pil, {s(Vx, 1)} V": Vx},
+        {"A": (G["nA"], G["tA"]), "A₀": (G["nA"], G["tA0"]), "A'": (G["nA"], G["cekis"]), "B": (G["nB"], G["tB"])}, G["cekis"])
+    return D
+
+
 # ---------------------------------------------------------------------------
 def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
     SEKIL.mkdir(parents=True, exist_ok=True)
@@ -431,7 +551,7 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
     D["kutu_orani"] = s(100 * tasarim.d("yuk.kutu.kutle") / tasarim.toplam_kutle(kutulu=True), 1)
 
     # -- Parametre tabloları ----------------------------------------------------
-    fiz = [(y, kk) for y, kk in tasarim.kayitlar() if fiziksel_mi(y) and not step_parametresi_mi(y)]
+    fiz = [(y, kk) for y, kk in tasarim.kayitlar() if fiziksel_mi(y) and not ek_bolum_mu(y)]
     D["tablo_fiziksel"] = tablo(
         ["Parametre", "Değer", "Birim", "Aralık", "Durum", "Kaynak"],
         [[f"`{y}`", deger_metni(kk), birim_metni(kk["birim"]), aralik_metni(kk), DURUM_ETIKETI[kk["durum"]], kk["kaynak"]] for y, kk in fiz],
@@ -771,6 +891,7 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
 
     # -- Step motor seçeneği (§10) ----------------------------------------------
     D |= step_bolumu(tasarim, g, en_iyi, V, e["cpr_min"])
+    D |= satin_alinan_bolumu(tasarim, V)  # §11
 
     # -- Duyarlılık -------------------------------------------------------------
     satirlar, taban = duyarlilik(tasarim)

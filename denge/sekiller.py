@@ -500,3 +500,31 @@ def step_toparlanma(yol, y: dict, T: float):
     _eksenler(*axs.flat)
     fig.tight_layout()
     _kaydet(fig, yol)
+
+
+# ---------------------------------------------------------------------------
+# Satın alınan motor
+# ---------------------------------------------------------------------------
+def satin_alinan_motor(yol, adaylar: list, gerilimler: dict, noktalar: dict, cekis_motor: float):
+    """Şekil 13: satın alınan motor (ve ek redüksiyonlu hâlleri) ile 333 RPM'nin tork-devir doğruları, gereksinim noktaları."""
+    stil()
+    fig, axs = plt.subplots(1, 2, figsize=(7.4, 3.5), sharey=True)
+    renk_ls = ((MAVI, (0, (1, 0))), (TURUNCU, (0, (1, 0))), (CAMGOBEGI, (0, (1, 0))), (SOLUK, (0, (4, 2))))
+    for ax, (etiket, V) in zip(axs, gerilimler.items()):
+        for (ad, a), (renk, ls) in zip(adaylar, renk_ls):
+            n0, ts = a.egriler(V)
+            ax.plot([0, n0], [100 * ts, 0], color=renk, ls=ls, lw=1.6, label=ad)
+        ax.axhline(100 * cekis_motor, color=SOLUK, lw=0.8)
+        ax.text(1080, 100 * cekis_motor + 0.5, "çekiş sınırı", ha="right", fontsize=7.5, color=IKINCIL)
+        for ad, (nn, tt) in noktalar.items():
+            ax.plot(nn, 100 * tt, "o", color=MUREKKEP, ms=4.5, zorder=5)
+            ax.annotate(ad, (nn, 100 * tt), textcoords="offset points", xytext=(5, 3), fontsize=8, color=MUREKKEP)
+        ax.set_title(etiket)
+        ax.set_xlabel("Teker devri [dev/dk]")
+        ax.set_xlim(0, 1100)
+        ax.set_ylim(0, 50)
+    axs[0].set_ylabel("Tork, motor başına, teker milinde [N·cm]")
+    _eksenler(*axs)
+    fig.tight_layout()
+    fig.legend(*axs[0].get_legend_handles_labels(), loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.02), fontsize=7.5)
+    _kaydet(fig, yol)

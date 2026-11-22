@@ -64,6 +64,17 @@ def test_step_bolumu_istenen_basliklari_ve_etiketleri_tasir():
     assert "@@" not in uretilen
 
 
-def test_ozet_step_kararini_ve_olcum_sartini_anlatir():
+def test_ozet_satin_alinan_motor_kararini_ve_olcum_planini_anlatir():
     ozet = (SABLON / "hafta03_ozet.md").read_text(encoding="utf-8")
-    assert "step" in ozet.lower() and "kardeş motorlardan tahmin edildi" in ozet and "ölçülmeden kesin değildir" in ozet
+    assert "Satın alınan 1000 RPM motor: @@sa_karar_kucuk@@" in ozet and "@@bag_11_5@@" in ozet and "@@bag_11_6@@" in ozet
+    assert "Step motor seçeneği" in ozet
+    uretilen = (KOK / "docs" / "hafta03_toplanti_ozeti.md").read_text(encoding="utf-8")
+    assert "Satın alınan 1000 RPM motor: sınırda" in uretilen
+
+
+def test_satin_alinan_bolumu_karar_gerekce_cozum_olcum_tasir():
+    tam = (SABLON / "hafta03.md").read_text(encoding="utf-8")
+    bolum = tam.split("## 11. Satın alınan motor")[1].split("## Ek A")[0]
+    for ic in ("### 11.2", "### 11.3 Karar", "### 11.4 Çözüm", "### 11.5 Ölçüm planı", "### 11.6 Öneri", "**a) Daha küçük teker.**",
+               "**b) Motor ile teker arasına ek redüksiyon.**", "**c) Kütle ve KM yüksekliğini azaltmak.**", "[doğrulanamadı]"):
+        assert ic in bolum

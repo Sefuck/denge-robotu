@@ -10,7 +10,7 @@
 
 > **Danışman planındaki teslimat:** "Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı."
 >
-> **Durum:** Motor, teker ve batarya henüz alınmadı; **hiçbir fiziksel parametre ölçülmedi** (§2). Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek. Bu değerler belgede "ön liste" diye işaretlidir. Motor veri sayfası değerleri rcdrone referans tablosundan alındı ("[doğrulanamadı]"); listede olmayan değerler tahmini kaldı. Her değerin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrolcü tasarlanmadı: kontrol yöntemi 6. haftada seçilecek. Model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir.
+> **Durum:** Teker ve batarya henüz alınmadı; motorlar alındı (§11) ama ölçülmedi. **Hiçbir fiziksel parametre ölçülmedi** (§2). Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek. Bu değerler belgede "ön liste" diye işaretlidir. Motor veri sayfası değerleri rcdrone referans tablosundan alındı ("[doğrulanamadı]"); listede olmayan değerler tahmini kaldı. Her değerin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrolcü tasarlanmadı: kontrol yöntemi 6. haftada seçilecek. Model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir.
 
 ## Özet
 
@@ -26,6 +26,7 @@
 | Enkoder | ≥ @@cpr_min@@ sayım / teker devri (x4 kod çözme sonrası) | §4.6 |
 | **Aday motor (ön liste): @@aday_ad@@** | Katsayısız @@aday_gecer_SFsiz@@, SF = @@SF@@ ile @@aday_gecer_SF@@ (boş bataryada SF @@sf_min@@); öneri: **@@en_iyi_ad@@** (SF @@en_iyi_sf@@) | §4.7 |
 | **Motor tipi: step seçeneği** (geçici eğri, [doğrulanamadı]) | Boş bataryada SF @@st_sf_alt@@–@@st_sf_ust@@ (DC 333 RPM: @@st_sf_dc@@); +@@st_dm@@ kg; pil ≈ @@st_h@@ saat (DC: ≈ @@st_h_dc@@); ≈ @@st_c_fark@@ TL ucuz. Öneri: bir motorla ölç, geçerse step + AS5600 | §10 |
+| **Satın alınan motor: JGB37-520 1000 RPM** | **@@sa_karar@@**: boş pilde SF @@sa_sf_min@@ (dolu @@sa_sf_max@@), enkoder @@sa_cpr@@ / @@sa_cpr_min@@ sayım. Öneri: değişim (333 RPM) ya da 1:3 kayış (SF @@sa_k3_sf@@) | §11 |
 | **Önerilen yuva** | Üst plakada, aksın tam üstünde ($x = y = 0$), kutu yatık ve uzun kenarı yanal; boşluk ≤ @@bosluk@@ mm, duvar ≈ @@duvar@@ mm | §5.5 |
 
 **Öne çıkan bulgular**
@@ -38,6 +39,7 @@
 6. **Pasif kararlılık ön testi tasarım gereği sağlanır.** KM aksın üstünde olduğu sürece robot enerjisizken ±10°'den @@t_hepsi_min@@–@@t_hepsi_max@@ s içinde düşer, yani 5 s sınırının yaklaşık @@pasif_kat@@ katı payla. KM aksın altına inerse robot pasif kararlı olur ve şartname §4.1 ihlal edilir; bu durum testlerde yakalanır (§3.7).
 7. **Ön listedeki aday motor (@@aday_ad@@) katsayısız yeterli, SF = @@SF@@ ile değil.** Boş bataryada (@@V_min@@ V) A noktasında @@aday_tauA@@ N·m verir; katsayısız gereksinim @@tA0@@, SF'li @@tA@@ N·m. Sağladığı katsayı @@sf_min@@ (nominal gerilimde @@sf_nom@@). Aynı fiyattaki @@en_iyi_ad@@ varyantı boş bataryada SF @@en_iyi_sf@@ (nominalde @@en_iyi_sf_nom@@) sağlar, enkoder çözünürlüğünü de karşılar. Mete'ye öneri §4.7'de.
 8. **Step motor hesapta yeterli görünüyor, ama eğrisi ölçülmedi.** 17HS4401'in pull-out eğrisi bulunamadı; kardeş motorlardan türetilen geçici eğriyle boş bataryada SF @@st_sf_alt@@–@@st_sf_ust@@ çıkar, rezonans çukuruna denk gelirse @@st_sf_rez@@. Giriş teker ivmesi olunca hareket modeli bilinmeyen motor parametrelerine bağlı kalmaz. Bedeli +@@st_dm@@ kg ve ≈ @@st_h@@ saat pil süresidir. DRV8825'in @@st_I@@ A limiti tepe değer olduğu için motor etiket torkunun %@@st_I_tam@@'ini verir. Karar eşiği ve ölçüm planı §10.10–10.11'de.
+9. **Ekip 1000 RPM motoru aldı; bu motor sınırda.** Robotu dengeler ve ±10°'den toparlar (boş pilde katsayısız pay @@sa_sf_min@@), ama 2 kat emniyet yok, toparlanmayı motor sınırlar ve enkoder @@sa_cpr@@ sayımla hedefin altında. Değişim mümkünse 333 RPM, değilse 1:3 kayış önerilir; daha küçük teker işe yaramaz. Motorlar ölçülünce karar yeniden üretilir (§11).
 
 ---
 
@@ -555,6 +557,8 @@ Aralığı tanımlı her fiziksel parametre, diğerleri nominalde tutularak aral
 | Batarya kütlesi ve boyutu | Mete Özgen | KM ve $I_{yy}$ (§5); duyarlılık tablosunda @@sira_batarya@@. sırada (§6) | 3. hafta |
 | Yerleşim: kat yükseklikleri, bataryanın ve elektroniğin konumu, şasi malzemesi ve zarf ölçüleri | Mete Özgen | KM yüksekliği (§5.4); yere değme açısı (§5.6); pasif test için KM aksın üstünde olmalı | 3.–4. hafta |
 | Motor kararı: 530 RPM mı 333 RPM mi (§4.7 öneri); satıcının veri sayfası (oran, durma torku/akımı, varsa rotor ataleti) | Mete Özgen | Şu anki değerler rcdrone referansı [doğrulanamadı]; A/A'/B noktaları, enkoder, $J_m$ | 3. hafta |
+| Satın alınan 1000 RPM motorun değişim imkânı; değişim yoksa 1:3 kayış için mekanik tasarım (ayrı teker mili, rulman, kasnak) | Mete Özgen | §11.6; karar @@sa_karar_kucuk@@ | Hemen |
+| Satın alınan motorun ölçümü: teker turu başına sayım, boşta devir/akım, kilitlenme torku/akımı, kütle | Mete Özgen, Sefa Nurali Uçak | §11.5; değerler `motor_olcum` alanlarına | Hemen |
 | Motor tipi kararı (§10.11): bir adet 17HS4401 alınması, faz direnci/endüktansı ve pull-out ölçümü (12 V, @@V_min@@ V) | Mete Özgen, Sefa Nurali Uçak | Step motorun tork payı şu an [doğrulanamadı] geçici eğriye dayanıyor; karar eşiği §10.11 | Motor kararından önce |
 | Step seçilirse: çift milli motor bulunup bulunmadığı, 5 mm mil–teker bağlantısı, braket köşeleri, AS5600 mıknatısı ve montajı | Mete Özgen | §10.8 montaj seçenekleri; yerden pay yalnız @@st_kose_pay@@ mm | Motor kararıyla |
 | Motor sürücüsü: sürekli/tepe akım, akım sınırı, enerjisizken serbest mi frenli mi | Mete Özgen | Tork sınırı; pasif testte serbest/kilitli teker durumu (§3.7) | 3.–4. hafta |
@@ -580,6 +584,7 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 | Parametre değişince sonuçlar mantıklı değişiyor | Bütün kütleler ×2 → KM ve kutup aynı, torklar ×2; $g$ ×4 → kutup ×2; sabit pivot + noktasal kütle → $\sqrt{g/l}$; batarya yukarı → $l$ ve statik tork artar; $r$ büyür → devir ∝ 1/r, CPR ∝ r; süre yarıya → devir ×2; $t_r$ yarıya → dinamik pay ×4; SF → tork doğrusal; $J_m$, $b$ artar → kutup yavaşlar; kutu ağırlaşır → Δl artar; kayma δ → trim doğrusal | `test_duyarlilik.py` |
 | Şartname kısıtları | Pasif test: ±10°'den 5 s içinde dikleşmez; KM aksın altına inerse ihlal yakalanır; batarya ≤ 24 V | `test_simulasyon.py`, `test_parametreler.py` |
 | Parametre dosyasının bütünlüğü | Her parametrede birim/durum/kaynak var; fiziksel parametrelerin hepsi "tahmini"; hatalı dosya reddedilir | `test_parametreler.py` |
+| Satın alınan motor | Veri sayfası değerleri okunur; ölçüm girilince ölçülen değerler kullanılır; ek redüksiyon torku k·verim katına, enkoderi k katına çıkarır; teker küçülünce devir artar, çekiş ve enkoder hedefi ∝ r, el hesabı değişmez; PWM oranı boşta devirde 1; karar ölçütü | `test_satin_alinan.py` |
 | Step motor seçeneği | DC değerleri sürüm 0.2 ile aynı; ivme girişli kutup = tork modelindeki $X/U$ sıfırı, bağıl ivme girişli kutup = kilitli teker kutbu; $J_m$, $b$ ivme girişli modeli değiştirmez; $a(t)$ tam modelle tutarlı; eğri devirle artmaz, gerilimle düşmez; ölçüm girilince geçici eğri kullanılmaz; detent düşmeyi engellemez; birimler (`pint`) | `test_step.py` |
 | Motor hesapları | Tutma torku doğrusal olmayan modelde $\ddot\theta = 0$ verir; tutma ≤ referans manevra ≤ el hesabı; uzun manevrada tepe tork → tutma torku; sınır motor eğrisi noktalara teğet | `test_motor.py` |
 
@@ -594,10 +599,11 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 3. **5. hafta:** Kalman veya tamamlayıcı filtre. Enkoder bağıl açı düzeltmesi $x = r(\varphi_\text{enk} + \theta)$ ve trim kalibrasyonu da buraya eklenecek.
 4. **6. hafta:** Kontrol yöntemi seçimi (PID, LQR veya MPC). Bu belgedeki $(A, B, C, D)$, $G_\theta$, $G_x$ ve $(A_d, B_d)$ doğrudan kullanılır. Tork doyumu çekiş sınırına göre ayarlanır. Step motor seçilirse giriş ivme olur (§10.3) ve doyum yerine ivme ve devir sınırı kullanılır (§10.5).
 5. **Motor tipi kararı:** Bir adet 17HS4401 ile §10.10'daki ölçüm; karar eşiği §10.11.
+6. **Satın alınan motor:** §11.5'teki ölçüm, ardından değişim ya da 1:3 kayış kararı (§11.6).
 
 ## 10. Step motor seçeneği ve DC ile karşılaştırma
 
-> **Durum (@@tarih@@).** Ekip 2 adet DRV8825 ve 2 adet AS5600 aldı, motor alınmadı. Karar DC (JGB37-520 333 RPM + BTS7960) ile step motor (Nema 17 17HS4401 + DRV8825) arasındadır. Motor tipi parametre oldu (`tahrik.tip`); §1–§9'daki DC sonuçları sayısal olarak değişmedi. **17HS4401'in kendi pull-out eğrisi bulunamadı.** Bu bölümdeki tork payları, kardeş motorlardan türetilen geçici eğriye dayanır ve **[doğrulanamadı]** sayılır. Kesin karar, bir motorla yapılacak ölçüme bağlıdır (§10.10). Eğrinin durumu: @@st_egri_durumu@@.
+> **Durum (6 Kasım 2026).** Ekip 2 adet DRV8825 ve 2 adet AS5600 aldı, motor henüz alınmamıştı. *Güncelleme: ekip sonra 2 adet JGB37-520 12 V 1000 RPM DC motor aldı; değerlendirme §11'de.* Karar DC (JGB37-520 333 RPM + BTS7960) ile step motor (Nema 17 17HS4401 + DRV8825) arasındadır. Motor tipi parametre oldu (`tahrik.tip`); §1–§9'daki DC sonuçları sayısal olarak değişmedi. **17HS4401'in kendi pull-out eğrisi bulunamadı.** Bu bölümdeki tork payları, kardeş motorlardan türetilen geçici eğriye dayanır ve **[doğrulanamadı]** sayılır. Kesin karar, bir motorla yapılacak ölçüme bağlıdır (§10.10). Eğrinin durumu: @@st_egri_durumu@@.
 
 ### 10.1 Motor verileri
 
@@ -813,6 +819,95 @@ Step motor sütunundaki tork ve hız değerleri geçici eğriye dayanır. Fiyatl
 
 Step seçilirse 6. haftanın "motor ölü bölgesi telafisi" görevi kalkar, yerine adım üreteci, ivme ve devir sınırı ve adım kaybı yakalama gelir.
 
+## 11. Satın alınan motor: JGB37-520 12 V 1000 RPM
+
+> **Durum (@@tarih@@).** Ekip 2 adet JGB37-520 12 V 1000 RPM, Hall enkoderli motor aldı (direnc.net). Önerimiz 333 RPM'ydi (§4.7). Değerlerin kaynağı: @@sa_veri@@. **Karar: @@sa_karar@@.** Motor robotu dengeleyebilir, ama boş pilde önerilen 2 kat emniyet payını sağlamaz ve enkoder çözünürlüğü hedefin altında kalır. Değişim mümkünse 333 RPM; değilse motor ile teker arasına 1:3 kayış önerilir (§11.6).
+
+### 11.1 Veriler
+
+Ürün sayfası yalnız "12 V, 1000 RPM" veriyor; diğer alanlar satıcının bütün JGB37-520 sayfalarında aynı olan genel metindir ("21KG", 0,08–0,15 A). Asıl değerler satıcının sayfada bağladığı veri sayfasındaki 12 V tablosundan alındı; rcdrone referans tablosu aynı oranı ve torku veriyor. Hepsi [doğrulanamadı].
+
+@@tablo_sa_veri@@
+
+### 11.2 Mevcut gereksinime karşı sınama
+
+`python -m denge.motor --satin-alinan --yan-yana` ile, §4'teki gereksinimlere karşı ($J_m$ = 0), boş ve dolu pilde. 530 ve 333 RPM aynı satıcının aynı tablosundan alındı, böylece üçü aynı kaynakla karşılaştırılır. Satıcı tablosu bu iki varyant için rcdrone'dan daha yüksek tork verdiği için 333 RPM burada §4.7'dekinden (1,96) daha iyi görünür.
+
+@@tablo_sa_sinama@@
+
+*Sağlanan SF: A devrindeki motor torku / katsayısız el hesabı (@@sa_tA0@@ N·cm). Tork / çekiş: 1'in altındaysa toparlanmayı zemin değil motor sınırlar. Referans / agresif manevra payı: §4.3'teki T = 2 s ve T = 0,5 s manevraların tepe torkuna (@@sa_ref_t@@ ve @@sa_agr_t@@ N·cm) göre pay. PWM: Ö1 seyir hızında (@@sa_n_seyir@@ dev/dk) ve B noktasında gereken doluluk oranı.*
+
+**Yorum:**
+
+- **Tork.** Boş pilde @@sa_nA@@ dev/dk'da @@sa_TA_min@@ N·cm verir: katsayısız el hesabını (@@sa_tA0@@ N·cm) @@sa_sf_min@@ katıyla karşılar, 2 kat emniyetli değeri (@@sa_tA@@ N·cm) karşılamaz. Dolu pilde SF @@sa_sf_max@@'dir. Katsayısız gereksinim ancak pil @@sa_V1@@ V'un altına inince karşılanamaz, yani pil aralığının tamamında robot ±10°'den toparlanabilir. §4.3'teki T = 2 s referans manevrayı boş pilde @@sa_ref@@ kat payla, T = 0,5 s'lik agresif manevrayı @@sa_agr@@ kat payla karşılar.
+- **Çekiş.** Boş pilde motor torku çekiş sınırının (@@sa_cekis@@ N·cm) yalnız @@sa_cekis_orani@@ katıdır. 333 ve 530 RPM'de toparlanmayı zemin sınırlarken burada motor sınırlar.
+- **Enkoder.** 4 × 11 × @@sa_N@@ = @@sa_cpr@@ sayım/teker turu, hedef @@sa_cpr_min@@. 10 ms pencerede bir sayımın hız karşılığı @@sa_dv@@ m/s olur. Hedef (0,02 m/s) için pencere en az @@sa_pencere@@ ms olmalıdır; ya da düşük hızda sayım yerine iki darbe arası süre ölçülür [öneri].
+- **PWM kullanımı.** Seyir hızında PWM'in yalnız %@@sa_pwm_seyir_max@@–@@sa_pwm_seyir_min@@'i kullanılır; motorun dönmeye başlaması bile ≈ %@@sa_pwm_olu@@ ister. Yani hız aralığının çoğu boşta kalır ve düşük hızdaki ölü bölge seyir doluluk oranının üçte biri kadardır. Kontrol yapılabilir (10 bit PWM'de seyirde yaklaşık 150–180 kademe kalır), ama ölü bölge telafisi daha önemli hâle gelir.
+- **Rotor ataleti.** Aynı rotorla teker miline yansıyan atalet $N^2$ ile büyüdüğü için 1:10'da 333 RPM'dekinin (1:30) dokuzda biridir. Bu, 1000 RPM'nin lehinedir: §4.3'teki $J_m$ kaynaklı ek tork burada daha küçük olur.
+- **Sigorta.** İki motor kilitlenirse dolu pilde @@sa_i_kilit@@ A çeker, 5 A sigortanın altında kalır.
+
+![Şekil 13](sekiller/sekil_13_satin_alinan_motor.png)
+
+*Şekil 13: Satın alınan motorun (ve 1:2, 1:3 kayışlı hâlinin) tork-devir doğruları, 333 RPM ve gereksinim noktaları; solda boş, sağda dolu pil. Doğru, noktanın üstünden geçmelidir.*
+
+### 11.3 Karar: @@sa_karar_kucuk@@
+
+Ölçüt [öneri]: **uygun** = boş pilde 2 kat emniyetli toparlanma torku, enkoder hedefi ve seyir hızı birlikte sağlanıyor; **sınırda** = boş pilde katsayısız toparlanma torku ve seyir hızı sağlanıyor; **uygun değil** = boş pilde katsayısız tork bile yok.
+
+Satın alınan motor **@@sa_karar_kucuk@@** çıkar. Gerekçe: robotu dengeler ve ±10°'den toparlar (katsayısız pay @@sa_sf_min@@–@@sa_sf_max@@, referans manevrada @@sa_ref@@), ama (1) önerilen emniyet katsayısı sağlanmaz ve toparlanmayı zemin değil motor sınırlar; (2) enkoder sayımı hedefin altındadır (@@sa_cpr@@ / @@sa_cpr_min@@); (3) PWM aralığının küçük bir kısmı kullanılır. Bu değerler veri sayfasına dayanır; ölçüm kararı değiştirebilir (§11.5).
+
+### 11.4 Çözüm seçenekleri
+
+**a) Daha küçük teker.** Yarıçap küçülünce aynı hız için devir artar, el hesabındaki tork ise teker boyutuna bağlı değildir. Bu yüzden motorun A noktasındaki torku düşer ve el hesabına göre emniyet katsayısı azalır. Tam modelde ise küçük teker torku da azaltır (tekeri iten tork gövdeyi daha çok doğrultur), bu yüzden referans manevra payı artar. İki ölçüt ters yöne gider ve fark küçüktür:
+
+@@tablo_sa_teker@@
+
+Asıl engel geometridir: aksın en alttaki parçası (motor braketi, tahmini) aksa @@sa_en_alt@@ mm uzaklıktadır. @@sa_teker_min@@ mm'nin altında hem yerden yükseklik birkaç milimetreye iner hem de yere değme açısı @@sa_yd_min@@°'nin altına düşer; 40 mm'de braket dik dururken bile yere değer. Enkoder hedefi küçülse de 440 sayım hiçbir çapta yetmez. **Önerilmez.** Ek maliyet: teker fiyatı araştırılmadı, çünkü çözüm geometri yüzünden zaten uygulanamıyor.
+
+**b) Motor ile teker arasına ek redüksiyon.** Kayış-kasnak (GT2) ya da dişli, verim @@sa_verim@@ (tahmini; @@sa_verim_alt@@ de denendi):
+
+@@tablo_sa_reduksiyon@@
+
+- **1:3 yeterlidir:** boş pilde SF @@sa_k3_sf@@ (verim @@sa_verim_alt@@'da @@sa_k3_sf_alt@@), enkoder @@sa_k3_cpr@@ sayım, boşta devir @@sa_k3_n0@@ dev/dk (seyir payı yeterli), PWM seyirde %@@sa_k3_pwm@@. Toplam oran 1:30 olur; yani motor elektriksel olarak 333 RPM'nin aynısıdır, ek aktarma kaybı ve boşluğu kadar farkla. Tork çekiş sınırının @@sa_k3_cekis@@ katına çıkar: toparlanmayı yine zemin sınırlar.
+- 1:2 yetmez (SF @@sa_k2_sf@@, enkoder @@sa_k2_cpr@@). 1:4'ün 1:3'e göre tork kazancı küçüktür, çünkü A devri boşta devre yaklaşır; hız payı daralır.
+- **Uygulanabilirlik:** Teker motor miline değil, iki rulmanla taşınan ayrı bir mile bağlanır; motor aksın yukarısına ya da önüne kayar (KM ve yere değme açısı yeniden hesaplanmalı). Kayış gerginliği ayarlanabilir olmalı. Kayış esnekliği ve dişli boşluğu dengede küçük salınım yapabilir; triger kayış bu açıdan dişliden iyidir [öneri].
+- **Ek maliyet:** GT2 20 diş kasnak + 2 m kayış seti ≈ @@sa_gt2@@ TL (robotistan, [doğrulanamadı]); 60 dişli kasnak fiyatı bulunamadı; mil, rulman, yatak ve Mete'nin işçiliği ayrı. Kasnaklar 3B baskıyla da yapılabilir.
+
+**c) Kütle ve KM yüksekliğini azaltmak.** El hesabı $m_b g l \sin 10° + J_O\ddot\theta$ olduğu için $m_b l$ küçülünce gereksinim azalır:
+
+@@tablo_sa_kutle@@
+
+Boş pilde SF = 2 için el hesabının @@sa_el@@'dan @@sa_gereken_el@@ N·m'ye, yani %@@sa_el_azalma@@ inmesi gerekir. En iyi senaryo bile SF @@sa_kutle_en_iyi@@ verir: **tek başına yetmez**, ama b) ile birlikte payı artırır. Batarya ile elektroniğin yer değiştirmesi işe yaramaz: elektronik bataryadan ağır kabul edildiği için KM yükselir ($l$ @@sa_l@@ → @@sa_takas_l@@ mm). Kutunun orta kata inmesi kamera ve yerleştirme açısından §5.5'teki önerinin tersidir. KM aksın altına indirilmemelidir (pasif test, §3.7). Ek maliyet yok; Mete'nin yerleşim ve plaka işi gerekir.
+
+**d) Değişim.** Aynı satıcının 333 RPM varyantı (1:30) aynı fiyattadır (@@sa_dc_tl@@ TL, KDV dahil). Satıcı tablosuyla boş pilde SF @@sa_sf_333@@, enkoder 1320 sayım: **uygun**. Mekanik değişiklik gerektirmez.
+
+*Diğer:* 4S pil motoru anma geriliminin üstüne çıkarır (dolu pil 16,8 V, 12 V motor için oran 1,4) [öneri: önerilmez].
+
+### 11.5 Ölçüm planı
+
+Motorlar elimizde olduğu için ilk iş ölçmektir; değerler `parametreler.toml` dosyasındaki `motor_olcum` alanlarına girilip `python -m denge` çalıştırılınca bu bölüm ve karar ölçümle yeniden üretilir. Bütün ölçümler @@sa_V_olcum@@ V'ta (boş pil) yapılır; ayarlı güç kaynağı yoksa pilin o anki gerilimi yazılır [öneri].
+
+1. **Teker turu başına enkoder sayımı:** Motor enerjisiz, enkoder 3,3–5 V ile beslenir ve ESP32'de x4 sayılır. Teker elle tam 10 tur çevrilir; sayım / 10 = sayım/teker turu. Veri sayfasına göre beklenen @@sa_cpr_beklenen@@ (redüksiyon = sayım / 44). Böylece oran da doğrulanır.
+2. **Boşta devir ve akım:** Teker havada, motor @@sa_V_olcum@@ V'a doğrudan (ya da sürücüyle %100 PWM) bağlanır. 10 s'deki enkoder sayımından devir = sayım / (sayım/tur) / 10 s × 60. Akım, seri multimetreyle (10 A kademe) okunur.
+3. **Kilitlenme torku:** Mile sıkıca 10 cm'lik bir kol takılır, kolun ucu mutfak tartısına dayanır; tartının darası kol üstündeyken alınır. Motor 2–3 s enerjilenir, tartıdaki en yüksek değer $m$ okunur: $\tau = m\,g\,L$. Veri sayfasına göre @@sa_V_olcum@@ V'ta ≈ @@sa_kol_kg_10cm@@ g beklenir. İki yönde, aralarda 30 s soğumayla üçer tekrar.
+4. **Kilitlenme akımı:** 3. adımla aynı anda, seri multimetreyle; en çok 2–3 s (motor ve kablo ısınır). Veri sayfası 12 V'ta 2,3 A diyor.
+5. **Kütle ve mil çapı:** tartı ve kumpas.
+
+**Ölçümden sonra karar** (@@sa_V_olcum@@ V, 10 cm kolda tartı okuması; eşikler ölçülen boşta devirle yeniden hesaplanır, şu an @@sa_n0_olcum@@ dev/dk varsayıldı):
+
+| Kilitlenme torku | Tartı (10 cm kol) | Karar |
+|---|---|---|
+| ≥ @@sa_esik_uygun@@ N·cm (@@sa_esik_uygun_kg@@ kgf·cm) | ≥ @@sa_kol_esik_uygun_10cm@@ g | uygun (enkoder için 1:3 kayış ya da süre ölçümü yine gerekir) |
+| @@sa_esik_sinir@@–@@sa_esik_uygun@@ N·cm | @@sa_kol_esik_10cm@@–@@sa_kol_esik_uygun_10cm@@ g | sınırda: §11.6'daki çözüm |
+| < @@sa_esik_sinir@@ N·cm | < @@sa_kol_esik_10cm@@ g | uygun değil: değişim ya da 1:3 kayış şart |
+
+### 11.6 Öneri
+
+1. **Değişim mümkünse: 333 RPM (1:30) [öneri].** En temiz çözüm: boş pilde SF @@sa_sf_333@@, enkoder 1320 sayım, mekanik değişiklik yok, fiyat aynı. Değişimden önce elimizdeki motorlarla §11.5'teki ölçüm yapılırsa satıcı tablosunun doğruluğu da sınanmış olur.
+2. **Değişim yoksa: 1:3 kayış (GT2 20/60) [öneri].** SF @@sa_k3_sf@@, enkoder @@sa_k3_cpr@@ sayım; maliyet düşük, ama mekanik iş ve tasarım değişikliği gerekir (ayrı teker mili, rulmanlar, motorun yeri).
+3. **Hiçbiri olmazsa veya beklerken:** Motor olduğu gibi kullanılabilir. 6. haftanın yüksüz ilk dengesi bu motorla denenebilir (referans manevra payı @@sa_ref@@). Yapılacaklar: hız kestirim penceresini @@sa_pencere@@ ms'ye çıkarmak ya da darbe arası süre ölçmek, ölü bölge telafisi, tork doyumunu motor sınırına göre ayarlamak; c) senaryolarıyla payı artırmak (en çok SF @@sa_kutle_en_iyi@@). Risk: boş pilde toparlanma payı düşüktür; kazançlar 13. haftada dondurulmadan önce boş pilde doğrulanmalıdır.
+4. Daha küçük teker önerilmez.
+
 ## Ek A: Dosyalar ve yeniden üretim
 
 ```
@@ -821,6 +916,7 @@ denge/model.py           Lagrange türetimi, doğrusallaştırma, durum-uzay, tr
 denge/simulasyon.py      Açık çevrim düşme, referans manevralar (düz çıkış), ters dinamik
 denge/motor.py           Devir, tork, çekiş, enkoder; aday motor aracı (python -m denge.motor)
 denge/step.py            Step motor: geçici pull-out eğrisi, adım kaçırma, güç (python -m denge.step)
+denge/satin_alinan.py    Satın alınan motor: sınama, karar, çözümler (python -m denge.motor --satin-alinan --yan-yana)
 denge/kutle_merkezi.py   KM, atalet, yere değme açısı, yuvadaki özgül kuvvet
 denge/yuva_analizi.py    Kutulu/kutusuz KM, kayma, KM yüksekliği ve yuva karşılaştırması
 denge/rapor.py           Bu belgeyi ve şekilleri üretir (python -m denge)
@@ -845,4 +941,6 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 8. FastAccelStepper (github.com/gin66/FastAccelStepper): README ve `src/FastAccelStepper.h` (5 Kasım 2026'da okundu).
 9. ams, *AS5600 Datasheet*, v1-06, 20 Haziran 2018.
 10. Fiyatlar: direnc.net JGB37-520 12V 333RPM Enkoderli Motor; robo90.com BTS7960B ve 17HS4401 sayfaları (5 Kasım 2026'da okundu). Değerler [doğrulanamadı].
-11. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).
+11. direnc.net, *JGB37-520 - 12V 1000RPM Enkoderli Motor* ürün sayfası ve bağlı veri sayfası (pdf.direnc.net/upload/jgb37-520-datasheet.pdf), 22 Kasım 2026'da okundu. Değerler [doğrulanamadı].
+12. robotistan.com, *GT2 20 Diş Kasnak + 6 mm Kayış (2 m) Seti*, arama özetindeki fiyat, 22 Kasım 2026 [doğrulanamadı].
+13. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).
