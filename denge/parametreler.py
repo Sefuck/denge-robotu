@@ -18,7 +18,10 @@ GECERLI_DURUMLAR = {"tahmini", "ön liste", "doğrulanamadı", "ölçülmüş", 
 # kesinleşecek); "doğrulanamadı": satıcı referans tablosu.
 # Yalnız step motor seçeneğine ait bölümler (belge §10); DC tabloları bunları göstermez.
 STEP_BOLUMLERI = ("step_adayi", "step_sargi", "step_egri", "surucu", "sensor", "guc")
-FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi", *STEP_BOLUMLERI)
+# Satın alınan motor ve çözüm seçenekleri (belge §11).
+SATIN_ALINAN_BOLUMLERI = ("motor_satin_alinan", "motor_satici_serisi", "motor_olcum", "aktarma")
+EK_BOLUMLER = (*STEP_BOLUMLERI, *SATIN_ALINAN_BOLUMLERI)
+FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi", *EK_BOLUMLER)
 FIZIKSEL_DURUMLAR = ("tahmini", "ön liste", "doğrulanamadı", "ölçülmüş")
 
 BILESEN_ADLARI = {
@@ -38,6 +41,11 @@ def fiziksel_mi(yol: str) -> bool:
 
 def step_parametresi_mi(yol: str) -> bool:
     return any(yol == b or yol.startswith(b + ".") for b in STEP_BOLUMLERI)
+
+
+def ek_bolum_mu(yol: str) -> bool:
+    """Belgenin §10–§11 eklerine ait (DC tablolarında gösterilmeyen) parametre mi?"""
+    return any(yol == b or yol.startswith(b + ".") for b in EK_BOLUMLER)
 
 
 def parametre_kayitlari(veri: dict, onek: str = "") -> list[tuple[str, dict]]:

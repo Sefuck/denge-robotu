@@ -2,7 +2,8 @@
 # İki Tekerlekli Ev İçi Hasta Destek Robotu: Modül A & E parametre dosyası
 # Hazırlayan: Sefa Nurali Uçak (23015008), 3. hafta, 18 Ekim 2026
 #
-# DURUM: Motor, teker ve batarya henüz alınmadı; hiçbir fiziksel parametre ölçülmedi.
+# DURUM: Teker ve batarya henüz alınmadı; motorlar alındı (sürüm 0.4) ama ölçülmedi. Hiçbir fiziksel parametre ölçülmedi.
+# Sürüm 0.4: satın alınan 1000 RPM motor ve çözüm seçenekleri (dosyanın sonu); DC sonuçları değişmedi.
 # Sürüm 0.3: motor tipi parametre oldu (dosyanın sonu); tahrik.tip = "dc" iken hesaplar 0.2 ile aynı.
 # Sürüm 0.2: Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek.
 # Motor veri sayfası değerleri rcdrone referans tablosundan alındı. Listede olmayanlar tahmini.
@@ -25,8 +26,8 @@
 # =============================================================================
 
 [meta]
-surum = "0.3"
-tarih = "2026-11-06"
+surum = "0.4"
+tarih = "2026-11-22"
 hazirlayan = "Sefa Nurali Uçak (23015008)"
 
 [sabit.g]
@@ -1035,3 +1036,185 @@ deger = 2.0
 birim = "tam adım"
 durum = "öneri"
 kaynak = "Komut ile AS5600 açısı arasındaki fark bu değeri aşarsa adım kaybı sayılır [öneri]: gerçek kayıp 4 tam adımdır (7,2°), yük altındaki normal gecikme 1 tam adımın altındadır."
+
+# =============================================================================
+# Sürüm 0.4: satın alınan motor (ekip 2 × JGB37-520 12 V 1000 RPM, Hall enkoderli aldı), belge §11.
+# Önerilen 333 RPM idi. Değerler satıcının veri sayfasından; ürünle eşleştiği ölçülmeden doğrulanamaz.
+# =============================================================================
+[motor_satin_alinan.ad]
+deger = "JGB37-520 12 V 1000 RPM, Hall enkoderli"
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "Satın alındı (2 adet): direnc.net/jgb37-520-12v-1000rpm-enkoderli-motor. Ürün sayfası yalnız 12 V ve 1000 RPM veriyor; diğer alanlar satıcı sayfalarındaki genel JGB37-520 metni ('21KG', 0,08–0,15 A) [doğrulanamadı]."
+sorumlu = "Mete Özgen"
+
+[motor_satin_alinan.gerilim]
+deger = 12.0
+birim = "V"
+durum = "doğrulanamadı"
+kaynak = "Ürün sayfası ve satıcının veri sayfası (pdf.direnc.net/upload/jgb37-520-datasheet.pdf), 12 V tablosu [doğrulanamadı]."
+
+[motor_satin_alinan.bosta_devir]
+deger = 1000.0
+birim = "dev/dk"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V tablosu, oran 10 satırı: boşta 1000 dev/dk; rcdrone referans tablosu da aynı [doğrulanamadı]."
+
+[motor_satin_alinan.reduksiyon]
+deger = 10.0
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V tablosu: 1000 dev/dk satırının oranı 10; rcdrone referans tablosu da 1:10 [doğrulanamadı]. Teker turu başına enkoder sayımı ölçülünce kesinleşir."
+
+[motor_satin_alinan.bosta_akim]
+deger = 0.12
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V, oran 10: boşta 120 mA (rcdrone: 0,15 A) [doğrulanamadı]."
+
+[motor_satin_alinan.durma_torku]
+deger = 0.1569
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V, oran 10: kilitlenme torku 1,6 kgf·cm = 0,157 N·m; rcdrone referans tablosu da 1,6 kgf·cm [doğrulanamadı]."
+
+[motor_satin_alinan.durma_akimi]
+deger = 2.3
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V tablosu: kilitlenme akımı 2,3 A (rcdrone: 2,4 A) [doğrulanamadı]."
+
+[motor_satin_alinan.anma_torku]
+deger = 0.0981
+birim = "N*m"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V, oran 10, 'AT Load': 1 kgf·cm, 770 dev/dk, 1 A [doğrulanamadı]."
+
+[motor_satin_alinan.anma_devri]
+deger = 770.0
+birim = "dev/dk"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V, oran 10, 'AT Load' devri [doğrulanamadı]."
+
+[motor_satin_alinan.ppr]
+deger = 11
+birim = "darbe/devir"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, enkoder bağlantı şeması: 'motor one turn has 11 signals', besleme 3,3–5 V [doğrulanamadı]."
+
+[motor_satin_alinan.kutle]
+deger = 0.15
+birim = "kg"
+durum = "tahmini"
+kaynak = "Kütle hiçbir kaynakta bulunamadı. Gövde hesabındaki 150 g (rcdrone 530 RPM satırı) korunuyor; 1:10'un dişli kutusu daha kısa (19 mm, 1:19'da 22 mm), biraz hafif olabilir. Tartılacak."
+sorumlu = "Mete Özgen"
+
+[motor_satin_alinan.mil_boyu]
+deger = 0.0155
+birim = "m"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası çizimi: mil çıkıntısı 15,5 mm, düzlük 12 mm. Mil çapı çizimde açıkça yazmıyor [doğrulanamadı]; ölçülecek."
+
+[motor_satin_alinan.disli_kutusu_boyu]
+deger = 0.019
+birim = "m"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V, oran 10: dişli kutusu 19 mm [doğrulanamadı]."
+
+# Satıcının veri sayfasındaki 12 V serisi (aynı motor gövdesi). §4.7'deki rcdrone serisiyle 1:10 satırı uyuşuyor;
+# 1:19 ve 1:30 satırlarında satıcının durma torkları daha yüksek (3,1 / 5,0 kgf·cm; rcdrone 2,6 / 4,0).
+[motor_satici_serisi.reduksiyon]
+deger = [6.3, 10.0, 19.0, 30.0, 56.0, 90.0, 131.0, 168.0, 270.0, 506.0, 810.0]
+birim = "-"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası (pdf.direnc.net/upload/jgb37-520-datasheet.pdf), 12 V tablosu [doğrulanamadı]."
+
+[motor_satici_serisi.bosta_devir]
+deger = [1590.0, 1000.0, 530.0, 333.0, 178.0, 110.0, 76.0, 60.0, 37.0, 20.0, 12.0]
+birim = "dev/dk"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V tablosu: boşta devir [doğrulanamadı]."
+
+[motor_satici_serisi.durma_torku_kgfcm]
+deger = [1.0, 1.6, 3.1, 5.0, 9.0, 15.0, 24.0, 31.0, 35.0, 35.0, 35.0]
+birim = "kgf*cm"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V tablosu: kilitlenme torku [doğrulanamadı]."
+
+[motor_satici_serisi.durma_akimi]
+deger = 2.3
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V tablosu: bütün oranlarda kilitlenme akımı 2,3 A [doğrulanamadı]."
+
+[motor_satici_serisi.bosta_akim]
+deger = 0.12
+birim = "A"
+durum = "doğrulanamadı"
+kaynak = "Satıcının veri sayfası, 12 V tablosu: bütün oranlarda boşta akım 120 mA [doğrulanamadı]."
+
+# Ölçüm gelince: değerleri gir, durum = "ölçülmüş" yap, kaynak'a yöntemi yaz. Boş liste = ölçülmedi.
+# Bütün ölçümler olcum_plani.gerilim besleme geriliminde yapılır.
+[motor_olcum.bosta_devir]
+deger = []
+birim = "dev/dk"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi. Yöntem belge §11.5: teker havada, enkoder sayımından."
+
+[motor_olcum.bosta_akim]
+deger = []
+birim = "A"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi. Teker havada, multimetre seri."
+
+[motor_olcum.durma_torku]
+deger = []
+birim = "N*m"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi. Mile kol + mutfak tartısı, kısa süreli."
+
+[motor_olcum.durma_akimi]
+deger = []
+birim = "A"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi. Mil tutulurken multimetre, en çok 2–3 s."
+
+[motor_olcum.cpr_teker]
+deger = []
+birim = "sayım/teker devri"
+durum = "tahmini"
+kaynak = "Henüz ölçülmedi. Teker elle 10 tur çevrilir, x4 sayım / 10."
+
+[olcum_plani.gerilim]
+deger = 9.9
+birim = "V"
+durum = "öneri"
+kaynak = "Motor ölçümlerinin besleme gerilimi [öneri]: boş pil (3S × 3,3 V). Ayarlı güç kaynağı yoksa pilin o anki gerilimi yazılır."
+
+# -----------------------------------------------------------------------------
+# Çözüm seçenekleri (belge §11.4)
+# -----------------------------------------------------------------------------
+[aktarma.kayis_verimi]
+deger = 0.95
+birim = "-"
+aralik = [0.90, 0.98]
+durum = "tahmini"
+kaynak = "Mühendislik tahmini: tek kademe GT2 triger kayış ya da düz dişli için verim. Ölçülmedi."
+
+[cozum_plani.ek_reduksiyon]
+deger = [1.0, 2.0, 3.0, 4.0]
+birim = "-"
+durum = "öneri"
+kaynak = "Motor ile teker arasına denenen ek oranlar [öneri]: 1:2, 1:3, 1:4 (ör. GT2 20/40, 20/60, 15/60 diş)."
+
+[cozum_plani.teker_yaricaplari]
+deger = [0.020, 0.0225, 0.025, 0.0275, 0.030, 0.0325]
+birim = "m"
+durum = "öneri"
+kaynak = "Denenen teker yarıçapları [öneri]: 40–65 mm çap."
+
+[maliyet.gt2_seti]
+deger = 243.81
+birim = "TL"
+durum = "doğrulanamadı"
+kaynak = "robotistan.com GT2 20 diş kasnak + 6 mm kayış (2 m) seti, arama özetindeki fiyat, 22 Kasım 2026: 203,17 TL + KDV [doğrulanamadı]. 60 dişli kasnak fiyatı bulunamadı."
