@@ -3,7 +3,8 @@
 # Hazırlayan: Sefa Nurali Uçak (23015008), 3. hafta, 18 Ekim 2026
 #
 # DURUM: Teker ve batarya henüz alınmadı; motorlar alındı (sürüm 0.4) ama ölçülmedi. Hiçbir fiziksel parametre ölçülmedi.
-# Sürüm 0.4: satın alınan 1000 RPM motor ve çözüm seçenekleri (dosyanın sonu); DC sonuçları değişmedi.
+# Sürüm 0.5: dijital ikiz (kapalı çevrim simülasyon) parametreleri, belge §12 (dosyanın sonu); önceki sonuçlar değişmedi.
+# Sürüm 0.4: satın alınan 1000 RPM motor ve çözüm seçenekleri; DC sonuçları değişmedi.
 # Sürüm 0.3: motor tipi parametre oldu (dosyanın sonu); tahrik.tip = "dc" iken hesaplar 0.2 ile aynı.
 # Sürüm 0.2: Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek.
 # Motor veri sayfası değerleri rcdrone referans tablosundan alındı. Listede olmayanlar tahmini.
@@ -26,7 +27,7 @@
 # =============================================================================
 
 [meta]
-surum = "0.4"
+surum = "0.5"
 tarih = "2026-11-22"
 hazirlayan = "Sefa Nurali Uçak (23015008)"
 
@@ -1218,3 +1219,337 @@ deger = 243.81
 birim = "TL"
 durum = "doğrulanamadı"
 kaynak = "robotistan.com GT2 20 diş kasnak + 6 mm kayış (2 m) seti, arama özetindeki fiyat, 22 Kasım 2026: 203,17 TL + KDV [doğrulanamadı]. 60 dişli kasnak fiyatı bulunamadı."
+
+# =============================================================================
+# Sürüm 0.5: dijital ikiz (kapalı çevrim simülasyon), belge §12. 22 Kasım 2026.
+# Fiziksel değerler ölçülmedi; kontrolcü ve kestirici değerleri tasarım seçimidir [öneri].
+# =============================================================================
+[ikiz.rotor_ataleti_motor]
+deger = 1.5e-6
+birim = "kg*m^2"
+aralik = [0.5e-6, 4.0e-6]
+durum = "tahmini"
+kaynak = "Kaba hesap: 520 boyutu motorun rotoru ≈ Ø20 × 25 mm, ≈ 30 g; dolu silindir ½ m r² ≈ 1,5e-6 kg·m². Veri sayfalarında yok. Teker miline yansıyan değer × N² (1:10 → 1,5e-4; 1:30 → 1,35e-3). Serbest yavaşlama deneyiyle tanılanacak."
+sorumlu = "Sefa (tanılama)"
+
+[ikiz.reduktor_boslugu]
+deger = 0.035
+birim = "rad"
+aralik = [0.0, 0.07]
+durum = "tahmini"
+kaynak = "Kaba tahmin: düz dişli kutusunun teker milindeki toplam boşluğu 1–4°, nominal 2°. Ölçülmedi. Ölçüm: motor enerjisizken teker iki yöne elle döndürülür, enkoder sayımı değişmeden tekerin döndüğü açı okunur."
+sorumlu = "Sefa, Mete Özgen"
+
+[ikiz.pil_ic_direnci]
+deger = 0.15
+birim = "ohm"
+aralik = [0.05, 0.40]
+durum = "tahmini"
+kaynak = "Kaba tahmin: 3S Li-ion, hücre başına ≈ 30–60 mΩ + BMS + sigorta + kablo. Ölçülmedi: yüklü ve yüksüz gerilim farkından ölçülecek."
+sorumlu = "Mete Özgen"
+
+[ikiz.surucu_olu_bolge]
+deger = 0.02
+birim = "-"
+aralik = [0.0, 0.05]
+durum = "tahmini"
+kaynak = "Kaba tahmin: 20 kHz PWM'de çok kısa darbelerde BTS7960 çıkışı tam anahtarlanmaz; bu doluluk oranının altı sıfır sayılır. Ölçülmedi."
+sorumlu = "Mete Özgen"
+
+[ikiz.pil_olcum_hatasi]
+deger = 0.02
+birim = "-"
+aralik = [0.0, 0.05]
+durum = "tahmini"
+kaynak = "Kaba tahmin: ESP32 ADC + gerilim bölücü ile pil gerilimi ölçümünün kazanç hatası (oran). Ölçülmedi; kalibre edilirse küçülür."
+
+[imu.jiroskop_gurultu_yogunlugu]
+deger = 0.005
+birim = "deg/s/sqrt(Hz)"
+aralik = [0.003, 0.02]
+durum = "doğrulanamadı"
+kaynak = "InvenSense MPU-6000/MPU-6050 Product Specification PS-MPU-6000A-00 Rev 3.4, Tablo 6.1: Rate Noise Spectral Density 0,005 °/s/√Hz (10 Hz'de, tipik). Modül klon olabilir [doğrulanamadı]."
+
+[imu.jiroskop_kalan_sapma]
+deger = 0.2
+birim = "deg/s"
+aralik = [0.0, 1.0]
+durum = "tahmini"
+kaynak = "Açılışta 2 s ortalamayla kalibrasyondan sonra kalan sapma, kaba tahmin. Kalibrasyonsuz değer çok daha büyüktür: veri sayfası Rev 3.4 Tablo 6.1, Initial ZRO Tolerance ±20 °/s, sıcaklıkla ±20 °/s."
+
+[imu.ivme_gurultu_yogunlugu]
+deger = 400.0
+birim = "ug/sqrt(Hz)"
+aralik = [200.0, 800.0]
+durum = "doğrulanamadı"
+kaynak = "InvenSense PS-MPU-6000A-00 Rev 3.4, Tablo 6.2: Power Spectral Density @10 Hz, AFS_SEL = 0, 400 µg/√Hz (tipik). Modül klon olabilir [doğrulanamadı]."
+
+[imu.ivme_kalan_sapma]
+deger = 10.0
+birim = "mg"
+aralik = [0.0, 50.0]
+durum = "tahmini"
+kaynak = "Düz zeminde kalibrasyondan sonra x ekseninde kalan sapma, kaba tahmin (≈ 0,6° eğim hatası). Kalibrasyonsuz: Rev 3.4 Tablo 6.2, Zero-G Initial Calibration Tolerance X/Y ±50 mg."
+
+[imu.konum]
+deger = [0.0, 0.025]
+birim = "m"
+durum = "tahmini"
+kaynak = "IMU'nun gövdedeki (x, z) konumu, aksa göre: alt plakanın üstü, ortada (tahmini yerleşim). Ön liste: IMU teker eksenine yakın ve ortada (cdtp-robot.netlify.app referans malzeme listesi › Şema); Mete'nin seçimiyle kesinleşecek. Aksa yakın olması teğetsel ivme hatasını küçültür."
+sorumlu = "Mete Özgen, Sefa"
+
+[imu.jiroskop_olcegi]
+deger = 131.0
+birim = "LSB/(deg/s)"
+durum = "doğrulanamadı"
+kaynak = "Rev 3.4 Tablo 6.1, FS_SEL = 0 (±250 °/s): 131 LSB/(°/s) [doğrulanamadı]. Nicemleme için."
+
+[imu.ivme_olcegi]
+deger = 16384.0
+birim = "LSB/g"
+durum = "doğrulanamadı"
+kaynak = "Rev 3.4 Tablo 6.2, AFS_SEL = 0 (±2 g): 16384 LSB/g [doğrulanamadı]. Nicemleme için."
+
+[kestirim.imu_suzgeci]
+deger = 42.0
+birim = "Hz"
+aralik = [5.0, 260.0]
+durum = "öneri"
+kaynak = "MPU6050 iç sayısal alçak geçiren süzgeci DLPF_CFG = 3 [öneri]: jiroskop ≈ 42 Hz, ivmeölçer ≈ 44 Hz, ≈ 5 ms gecikme. Değerler Register Map belgesinden okunamadı [doğrulanamadı]; ikizde birinci dereceden süzgeçle temsil edilir."
+
+[zamanlama.hesaplama_gecikmesi]
+deger = 0.001
+birim = "s"
+aralik = [0.0005, 0.005]
+durum = "tahmini"
+kaynak = "Örnekleme ile PWM güncellemesi arası, kaba tahmin: MPU6050'den 14 bayt I²C okuma (400 kHz) ≈ 0,4 ms + kestirim ve kontrol hesabı. ESP32'de ölçülecek (micros())."
+
+[zamanlama.komut_gecikmesi]
+deger = 0.2
+birim = "s"
+aralik = [0.02, 1.0]
+durum = "tahmini"
+kaynak = "Eldivenden komutun robota ulaşma süresi (sınıflandırma + kablosuz), kaba tahmin. Ousmane Dicko ve Mohamad Al Nehlawi'den ölçülmüş değer beklenir. Şartname sınırı: fiziksel tepki 2 s."
+sorumlu = "Ousmane Dicko, Mohamad Al Nehlawi"
+
+[kestirim.yontem]
+deger = "kalman"
+birim = "-"
+durum = "öneri"
+kaynak = "Firmware'in kullanacağı eğim kestiricisi: 'kalman' ya da 'tamamlayici' [öneri]. İkiz ikisini de çalıştırır (§12.4)."
+
+[kestirim.tamamlayici_zaman_sabiti]
+deger = 0.5
+birim = "s"
+aralik = [0.1, 2.0]
+durum = "öneri"
+kaynak = "Tamamlayıcı süzgecin zaman sabiti [öneri]: 0,5 s'den kısa olaylarda jiroskop, uzunlarda ivmeölçer ağır basar. 200 Hz'de α = τ/(τ + T) = 0,990."
+
+[kestirim.kalman_q_aci]
+deger = 0.001
+birim = "rad^2/s"
+durum = "öneri"
+kaynak = "Kalman süreç gürültüsü, açı [öneri]: yaygın kullanılan iki durumlu (açı + jiroskop sapması) süzgecin başlangıç ayarı; ikizde ayarlandı."
+
+[kestirim.kalman_q_sapma]
+deger = 0.00003
+birim = "rad^2/s^3"
+durum = "öneri"
+kaynak = "Kalman süreç gürültüsü, jiroskop sapması [öneri]."
+
+[kestirim.kalman_r]
+deger = 0.03
+birim = "rad^2"
+durum = "öneri"
+kaynak = "Kalman ölçüm gürültüsü, ivmeölçer açısı [öneri]: ivmeölçer gürültüsünden çok daha büyük seçildi, çünkü hareket sırasında doğrusal ivme açıyı bozar."
+
+[kestirim.ivme_telafisi]
+deger = true
+birim = "-"
+durum = "öneri"
+kaynak = "İvmeölçer açısından enkoderle bulunan ileri ivmeyi ve IMU yüksekliğinden gelen teğetsel/merkezcil ivmeyi çıkarmak [öneri]: ±10° toparlanmada ileri ivme ≈ 2–3 m/s², telafisiz eğim hatası 10°'yi aşar (§12.4)."
+
+[kestirim.ivme_suzgec_zaman_sabiti]
+deger = 0.02
+birim = "s"
+aralik = [0.0, 0.2]
+durum = "öneri"
+kaynak = "İvme telafisinde kullanılan ileri ivme ve eğim ivmesi kestirimlerinin süzgeci [öneri]."
+
+[kestirim.hiz_suzgec_zaman_sabiti]
+deger = 0.02
+birim = "s"
+aralik = [0.0, 0.1]
+durum = "öneri"
+kaynak = "Enkoderden hız kestirimine birinci dereceden alçak geçiren süzgeç [öneri]: 1000 RPM motorda bir sayımın hız karşılığı büyük olduğu için gerekir."
+
+[kontrol.yontem]
+deger = "lqr"
+birim = "-"
+durum = "öneri"
+kaynak = "Firmware'in kullanacağı kontrolcü: 'lqr' ya da 'pid' [öneri]. İkiz ikisini de çalıştırır (§12.5)."
+
+[kontrol.denge_acisi]
+deger = -1.38
+birim = "deg"
+durum = "öneri"
+kaynak = "Kontrolcünün dik duruş referansı (gövdenin fiziksel eğimi) [öneri]: kutulu KM tahmininden (§5.2). Parça gelince robot elle dengede tutulup IMU'dan ölçülerek kalibre edilecek."
+
+[kontrol.dusme_esigi]
+deger = 45.0
+birim = "deg"
+durum = "öneri"
+kaynak = "|eğim| bunu aşınca firmware motorları durdurur [öneri]: düşmüş robotun tekerleri boşa dönmesin."
+
+[kontrol.akim_siniri]
+deger = 2.5
+birim = "A"
+aralik = [0.5, 5.0]
+durum = "öneri"
+kaynak = "Motor başına yazılım akım sınırı [öneri]: çıkış katı, model akımı (d·V − K_e ω)/R bunu aşmayacak biçimde PWM'i kırpar. İki motor 5 A sigortanın altında kalır."
+
+[kontrol.olu_bolge_telafisi]
+deger = 0.5
+birim = "-"
+aralik = [0.0, 1.0]
+durum = "öneri"
+kaynak = "Ölü bölge telafisi [öneri]: motoru döndürmeye başlatan PWM'in (boşta akım × R / V_pil) bu oranı komutun işaretiyle eklenir, sıfır civarında doğrusal geçişle. İkizde 0 / 0,5 / 0,8 denendi: 0,8 dişli boşluğunda rotoru serbestçe savurup titreşimi artırır, 0 duruşta kaymayı artırır."
+
+[kontrol.zit_emk_telafisi]
+deger = true
+birim = "-"
+durum = "öneri"
+kaynak = "Çıkış katı istenen torku gerilime çevirirken enkoder hızıyla zıt EMK'yı ekler [öneri]: V = R τ/K_t + K_e ω."
+
+[kontrol.ileri_besleme]
+deger = true
+birim = "-"
+durum = "öneri"
+kaynak = "Referans ivmesinden ileri besleme [öneri]: sabit ivmede gereken eğim (c1/mgl)·ẍ ve tork M_x r ẍ, dönüşte (2r/d) J_ψ ψ̈. Katsayılar doğrusal modelden (kutulu, satın alınan motor) hesaplanır; parametreler ölçülünce kendiliğinden güncellenir."
+
+[kontrol.referans_suzgeci]
+deger = 0.1
+birim = "s"
+aralik = [0.0, 0.5]
+durum = "öneri"
+kaynak = "Trapez hız profili kritik sönümlü ikinci dereceden süzgeçten geçer [öneri]: ivme sürekli olur, ileri besleme sıçramaz."
+
+[kontrol.pid.aci]
+deger = [2.5, 5.0, 0.25]
+birim = "[N*m/rad, N*m/(rad*s), N*m*s/rad]"
+durum = "öneri"
+kaynak = "İç döngü PID (Kp, Ki, Kd), toplam tork [öneri]: LQR'nin eşdeğer kazançlarından başlatılıp ikizde elle ayarlandı (§12.5). Ölçümden sonra yeniden ayarlanacak."
+
+[kontrol.pid.konum]
+deger = [0.2, 0.25]
+birim = "[rad/m, rad*s/m]"
+durum = "öneri"
+kaynak = "Dış döngü PD (konum, hız) → eğim komutu [öneri]: ikizde elle ayarlandı."
+
+[kontrol.pid.aci_komut_siniri]
+deger = 6.0
+birim = "deg"
+durum = "öneri"
+kaynak = "Dış döngünün verebileceği en büyük eğim komutu [öneri]."
+
+[kontrol.pid.integral_siniri]
+deger = 0.05
+birim = "N*m"
+durum = "öneri"
+kaynak = "PID iç döngü integralinin ve LQI konum integralinin tork katkısı sınırı [öneri] (integral birikmesine karşı; doyumda integral dondurulur)."
+
+[kontrol.pid.donus]
+deger = [0.25, 0.03]
+birim = "[N*m/rad, N*m*s/rad]"
+durum = "öneri"
+kaynak = "Dönüş PD (Kp, Kd), tork farkı τ_R − τ_L [öneri]: ikizde elle ayarlandı."
+
+[kontrol.lqr.Q]
+deger = [200.0, 30.0, 300.0, 5.0, 50.0]
+birim = "[1/m^2, s^2/m^2, 1/rad^2, s^2/rad^2, 1/(m*s)^2]"
+durum = "öneri"
+kaynak = "Ayrık LQI durum ağırlıkları, durum [x, ẋ, θ, θ̇, ∫x dt] [öneri]. Son eleman konum integrali: motor sürtünmesinin konum ölü bölgesini kapatır (§12.5)."
+
+[kontrol.lqr.R]
+deger = 400.0
+birim = "1/(N*m)^2"
+durum = "öneri"
+kaynak = "Ayrık LQR giriş ağırlığı, toplam tork [öneri]."
+
+[kontrol.lqr.K]
+deger = [-0.912, -0.684, -1.926, -0.236, -0.315]
+birim = "[N*m/m, N*m*s/m, N*m/rad, N*m*s/rad, N*m/(m*s)]"
+durum = "öneri"
+kaynak = "u = −K (s − s_ref) [öneri]: `python -m denge.ikiz --lqr-tasarla` ile satın alınan motorlu nominal kutulu modelden (Q, R, T = 5 ms, J_m = J_rotor·N²) hesaplanıp buraya yazıldı. Firmware bu sayıları kullanır."
+
+[kontrol.lqr.Q_donus]
+deger = [50.0, 2.0]
+birim = "[1/rad^2, s^2/rad^2]"
+durum = "öneri"
+kaynak = "Dönüş LQR ağırlıkları, durum [ψ, ψ̇] [öneri]."
+
+[kontrol.lqr.R_donus]
+deger = 2000.0
+birim = "1/(N*m)^2"
+durum = "öneri"
+kaynak = "Dönüş LQR giriş ağırlığı, tork farkı [öneri]."
+
+[kontrol.lqr.K_donus]
+deger = [0.151, 0.041]
+birim = "[N*m/rad, N*m*s/rad]"
+durum = "öneri"
+kaynak = "u_ψ = −K_ψ (s_ψ − s_ψ,ref) [öneri]: `python -m denge.ikiz --lqr-tasarla` ile hesaplanıp buraya yazıldı."
+
+[senaryo.baslangic_egimi]
+deger = 2.0
+birim = "deg"
+durum = "öneri"
+kaynak = "Ö1-1, Ö1-2/3 ve Ö2'de robot elle dik konuma bırakılırken dengeden sapma [öneri]."
+
+[senaryo.mesafe_toleransi]
+deger = 0.10
+birim = "-"
+durum = "öneri"
+kaynak = "'Yaklaşık 1 m' ve 'yaklaşık 0,5 m' için kabul payı, oran [öneri]: şartnamede sayısal tolerans yok."
+
+[senaryo.aci_toleransi]
+deger = 10.0
+birim = "deg"
+durum = "öneri"
+kaynak = "'Yaklaşık 90°' dönüş için kabul payı [öneri]: şartnamede sayısal tolerans yok."
+
+[senaryo.durma_hizi]
+deger = 0.05
+birim = "m/s"
+durum = "öneri"
+kaynak = "Durma penceresi boyunca robotun hızı (0,5 s kayan ortalama) bunun altında kalmalı [öneri]: ortalama, gözlemcinin ve kameranın gördüğü hareketi temsil eder; dişli boşluğundaki anlık titreşimi saymaz."
+
+[senaryo.toparlanma_acisi]
+deger = 2.0
+birim = "deg"
+durum = "öneri"
+kaynak = "Ö1-4 toparlanma ölçütü [öneri]: gövde eğimi dik duruşun (KM aksın üstünde) ±2°'si içine girer ve simülasyon sonuna (12 s) kadar orada kalır. Sonrasında robotun yavaşça gidip gelmesi not olarak raporlanır."
+
+[senaryo.statik_kayma_siniri]
+deger = 0.25
+birim = "m"
+durum = "öneri"
+kaynak = "Ö1-1'de başlangıç noktasından uzaklaşma için uyarı eşiği [öneri]: şartnamede sınır yok, geçti/kaldıyı etkilemez."
+
+[senaryo.tepki_esigi]
+deger = 0.01
+birim = "m"
+durum = "öneri"
+kaynak = "Ö2 tepki süresi: komut verildikten sonra teker 1 cm (dönüşte 2°) hareket edince fiziksel tepki başlamış sayılır [öneri]."
+
+[simulasyon.fizik_adimi]
+deger = 0.0005
+birim = "s"
+durum = "öneri"
+kaynak = "Fizik çekirdeğinin sabit adımı [öneri]: kontrol periyodunun onda biri; yakınsama testi tests/test_ikiz.py'de."
+
+[simulasyon.tohum]
+deger = 2026
+birim = "-"
+durum = "öneri"
+kaynak = "Gürültü üreteci tohumu [öneri]: her senaryo bundan türetilen sabit tohumla koşar, sonuçlar tekrarlanabilir."

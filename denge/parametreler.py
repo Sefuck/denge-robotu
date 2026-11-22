@@ -20,8 +20,12 @@ GECERLI_DURUMLAR = {"tahmini", "ön liste", "doğrulanamadı", "ölçülmüş", 
 STEP_BOLUMLERI = ("step_adayi", "step_sargi", "step_egri", "surucu", "sensor", "guc")
 # Satın alınan motor ve çözüm seçenekleri (belge §11).
 SATIN_ALINAN_BOLUMLERI = ("motor_satin_alinan", "motor_satici_serisi", "motor_olcum", "aktarma")
-EK_BOLUMLER = (*STEP_BOLUMLERI, *SATIN_ALINAN_BOLUMLERI)
-FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi", *EK_BOLUMLER)
+# Dijital ikiz (belge §12): ilk ikisi robotun fiziksel değerleri, kalanlar tasarım ve simülasyon seçimleri.
+IKIZ_FIZIKSEL_BOLUMLERI = ("ikiz", "imu")
+IKIZ_BOLUMLERI = (*IKIZ_FIZIKSEL_BOLUMLERI, "zamanlama", "kestirim", "kontrol", "senaryo", "simulasyon")
+EK_BOLUMLER = (*STEP_BOLUMLERI, *SATIN_ALINAN_BOLUMLERI, *IKIZ_BOLUMLERI)
+FIZIKSEL_BOLUMLER = ("teker", "motor", "batarya", "govde", "yuk.kutu", "yuk.yuva.kutle", "zemin", "elektrik", "motor_adayi", "motor_serisi",
+                     *STEP_BOLUMLERI, *SATIN_ALINAN_BOLUMLERI, *IKIZ_FIZIKSEL_BOLUMLERI)
 FIZIKSEL_DURUMLAR = ("tahmini", "ön liste", "doğrulanamadı", "ölçülmüş")
 
 BILESEN_ADLARI = {
@@ -44,7 +48,7 @@ def step_parametresi_mi(yol: str) -> bool:
 
 
 def ek_bolum_mu(yol: str) -> bool:
-    """Belgenin §10–§11 eklerine ait (DC tablolarında gösterilmeyen) parametre mi?"""
+    """Belgenin §10–§12 eklerine ait (DC tablolarında gösterilmeyen) parametre mi?"""
     return any(yol == b or yol.startswith(b + ".") for b in EK_BOLUMLER)
 
 
@@ -82,6 +86,10 @@ def dogrula(veri: dict) -> None:
                 hatalar.append(f"{yol}: {k['deger']} aralık dışında {k['aralik']}")
     if veri.get("tahrik", {}).get("tip", {}).get("deger", "dc") not in ("dc", "step"):
         hatalar.append("tahrik.tip: 'dc' ya da 'step' olmalı")
+    if veri.get("kontrol", {}).get("yontem", {}).get("deger", "lqr") not in ("lqr", "pid"):
+        hatalar.append("kontrol.yontem: 'lqr' ya da 'pid' olmalı")
+    if veri.get("kestirim", {}).get("yontem", {}).get("deger", "kalman") not in ("kalman", "tamamlayici"):
+        hatalar.append("kestirim.yontem: 'kalman' ya da 'tamamlayici' olmalı")
     if hatalar:
         raise ValueError("Parametre dosyası hatalı:\n  " + "\n  ".join(hatalar))
 
