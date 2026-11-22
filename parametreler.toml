@@ -3,7 +3,8 @@
 # Hazırlayan: Sefa Nurali Uçak (23015008), 3. hafta, 18 Ekim 2026
 #
 # DURUM: Teker ve batarya henüz alınmadı; motorlar alındı (sürüm 0.4) ama ölçülmedi. Hiçbir fiziksel parametre ölçülmedi.
-# Sürüm 0.5: dijital ikiz (kapalı çevrim simülasyon) parametreleri, belge §12 (dosyanın sonu); önceki sonuçlar değişmedi.
+# Sürüm 0.6: 3D simülasyon (MuJoCo), belge §12.11 (dosyanın sonu); Ö5 senaryosu; önceki sonuçlar değişmedi.
+# Sürüm 0.5: dijital ikiz (kapalı çevrim simülasyon) parametreleri, belge §12; önceki sonuçlar değişmedi.
 # Sürüm 0.4: satın alınan 1000 RPM motor ve çözüm seçenekleri; DC sonuçları değişmedi.
 # Sürüm 0.3: motor tipi parametre oldu (dosyanın sonu); tahrik.tip = "dc" iken hesaplar 0.2 ile aynı.
 # Sürüm 0.2: Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek.
@@ -27,7 +28,7 @@
 # =============================================================================
 
 [meta]
-surum = "0.5"
+surum = "0.6"
 tarih = "2026-11-22"
 hazirlayan = "Sefa Nurali Uçak (23015008)"
 
@@ -1542,6 +1543,18 @@ birim = "m"
 durum = "öneri"
 kaynak = "Ö2 tepki süresi: komut verildikten sonra teker 1 cm (dönüşte 2°) hareket edince fiziksel tepki başlamış sayılır [öneri]."
 
+[senaryo.o5_bekleme]
+deger = 5.0
+birim = "s"
+durum = "şartname"
+kaynak = "Şartname TR v14 §8 Ö5: hedefte kutuyu düşürmeden 5 s bekleme; danışman iş planı 11. hafta: görevin başında da 5 s bekleme."
+
+[senaryo.o5_hedef_toleransi]
+deger = 0.15
+birim = "m"
+durum = "öneri"
+kaynak = "Ö5'in denge/hareket kısmında hedef noktasına uzaklık için kabul payı [öneri]. Rota (ileri 1 m, sola 90°, ileri 0,5 m; hedefte bekleme; sola 90°, ileri 1 m istasyon yönüne) jüri parkuru bilinmediği için seçildi [öneri]; IR ile yanaşma (Ö3) modellenmedi."
+
 [simulasyon.fizik_adimi]
 deger = 0.0005
 birim = "s"
@@ -1553,3 +1566,77 @@ deger = 2026
 birim = "-"
 durum = "öneri"
 kaynak = "Gürültü üreteci tohumu [öneri]: her senaryo bundan türetilen sabit tohumla koşar, sonuçlar tekrarlanabilir."
+
+# =============================================================================
+# Sürüm 0.6: 3D simülasyon (MuJoCo), belge §12.11. Model parametreler.toml'dan üretilir (denge/ikiz3d/mjcf.py).
+# Dişli 3D'de esnek bir ölü bölge yayıdır (2D ikizde rijit, çarpmalar plastik).
+# =============================================================================
+[ikiz.disli_rijitligi]
+deger = 30.0
+birim = "N*m/rad"
+aralik = [10.0, 200.0]
+durum = "tahmini"
+kaynak = "Kaba tahmin: redüktör çıkışında burulma rijitliği; durma torkunda ≈ 0,3° esneme. Ölçülmedi. Yalnız 3D ikizde (boşluğun iki ucundaki temas yayı)."
+
+[ikiz.disli_sonumu]
+deger = 0.03
+birim = "N*m*s/rad"
+aralik = [0.005, 0.1]
+durum = "tahmini"
+kaynak = "Kaba tahmin: dişli temasındaki sönüm (yağ, malzeme); tekerin kendi ataleti için ≈ 0,5 sönüm oranı. Ölçülmedi. Yalnız 3D ikizde."
+
+[simulasyon.adim_3d]
+deger = 0.00025
+birim = "s"
+durum = "öneri"
+kaynak = "MuJoCo zaman adımı [öneri]: dişli yayı ile tekerin küçük ataleti için kararlı; kontrol periyodunun yirmide biri."
+
+[simulasyon.temas_zaman_sabiti]
+deger = 0.004
+birim = "s"
+durum = "öneri"
+kaynak = "MuJoCo yumuşak temasının zaman sabiti (solref) [öneri]: zaman adımının en az iki katı olmalı; daha küçüğü sertliği artırır."
+
+[simulasyon.impratio]
+deger = 10.0
+birim = "-"
+durum = "öneri"
+kaynak = "MuJoCo eliptik sürtünme konisinde sürtünme/normal empedans oranı [öneri]: tekerin tutunurken sürünmesini (creep) azaltır."
+
+[simulasyon.kayma_esigi_3d]
+deger = 0.005
+birim = "m/s"
+durum = "öneri"
+kaynak = "3D'de temas noktasının kayma hızı bunu aşınca teker kayıyor sayılır [öneri]; yumuşak temas tutunurken de çok küçük bir sürünme yapar."
+
+[simulasyon.video_fps]
+deger = 30
+birim = "1/s"
+durum = "öneri"
+kaynak = "3D video kare hızı [öneri]."
+
+[kestirim.sapma_jiroskopla]
+deger = false
+birim = "-"
+durum = "öneri"
+kaynak = "Sapma açısını enkoder farkı yerine MPU6050'nin z jiroskobundan kestirmek [öneri]; jiroskobun kalan sapması açılıştan sonraki ilk 1 s'de (robot yerinde, komut yok) öğrenilip dondurulur. 3D ikizde (§12.11) yerinde dönüşte teker kenarları kayınca enkoderle sapma 90° yerine ≈ 70° dönüşte '90°' gösterdi. Varsayılan kapalı: §12 sonuçları bununla üretildi."
+
+[kontrol.donus_integrali]
+deger = 0.0
+birim = "N*m/(rad*s)"
+aralik = [0.0, 5.0]
+durum = "öneri"
+kaynak = "Dönüş kontrolcüsüne sapma hatası integrali (0 = kapalı) [öneri]: geniş tekerin yerinde dönerken yarattığı sürtünme momentini (§12.11) yenmek için. 3D ikizde 1,0 ve 2,0 denendi, önerilen 2,0 (oneri3d_donus_integrali); varsayılan kapalı: §12 sonuçları bununla üretildi."
+
+[kontrol.oneri3d_donus_integrali]
+deger = 2.0
+birim = "N*m/(rad*s)"
+durum = "öneri"
+kaynak = "3D karşılaştırmadaki 'öneri' koşularında kullanılan dönüş integrali [öneri], z jiroskobuyla sapma kestirimiyle birlikte (§12.11)."
+
+[ikiz.teker_temas_genisligi]
+deger = 0.025
+birim = "m"
+aralik = [0.005, 0.025]
+durum = "tahmini"
+kaynak = "3D modelde tekerin zemine değen genişliği: tekerin tamamı (teker.genislik) kabul edildi, tahmini. Gerçek lastik yuvarlatılmış ve esnek olduğu için daha dar değer; MuJoCo silindiri zemine iki kenarından değer ve yerinde dönerken bu kenarlar kayar. Duyarlılık için 8 mm de koşuldu (§12.11)."

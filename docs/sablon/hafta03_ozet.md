@@ -13,6 +13,7 @@
 - Bütün değerleri tek bir parametre dosyasında, kaynaklarıyla topladık. Malzemeler ön malzeme listesinden alındı; Mete'nin seçimiyle kesinleşecek. Motorlar alındı, ama hiçbir değer henüz ölçülmedi.
 - Gereken motor torkunu, devri ve enkoder çözünürlüğünü hesapladık; aday motorları, step seçeneğini ve satın alınan 1000 RPM motoru sınadık.
 - Modelin üstüne kapalı çevrim bir simülasyon (dijital ikiz) kurduk: motor, pil, teker kayması, dişli boşluğu, IMU ve enkoder modeli, 200 Hz döngü, gecikmeler; PID ve LQR, Kalman ve tamamlayıcı süzgeç; şartnamedeki testler otomatik geçti/kaldı ile. Kontrolcü kodu ESP32'ye taşınabilir yazıldı.
+- 3D (MuJoCo) ikiz ve videolar: yerinde dönüşteki bir eksiği buldu, düzeltmeyle @@ik3_gecen_3d_oneri@@ geçiyor ([§12.11](@@bag_12_11@@)).
 - İlaç kutusu yuvası için üç konumu karşılaştırdık. Belge ve şekiller tek komutla parametre dosyasından üretiliyor; @@pytest_kisa@@.
 
 ## Ana sonuçlar

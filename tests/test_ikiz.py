@@ -325,3 +325,21 @@ def test_sinirsiz_kisit_tutunmaz_ve_surtunmesiz_motorda_cikis_kati_calisir(p, mo
     c = kontrol.CikisKati(m, ay.kontrol, ay.zaman.Ts)
     c.pil_olcumu(11.0)
     assert c.hesapla(0.01, 0.0, 0.0, 0.0)[0] > 0
+
+
+def test_o5_senaryosu_python_ikizinde_gecer(tasarim, ay):
+    sen = S.senaryolar(ay)["O5"]
+    assert [a.tur for a in sen.alt_testler] == ["statik", "hedef", "hedef"]
+    assert sen.alt_testler[1].hedef == pytest.approx((1.0, 0.5)) and sen.alt_testler[2].hedef == pytest.approx((0.0, 0.5), abs=1e-9)
+    assert sen.alt_testler[1].pencere[1] - sen.alt_testler[1].pencere[0] == pytest.approx(5.0)  # hedefte kutuyla 5 s
+    d = S.degerlendir(S.calistir(tasarim, "O5", S.Kurulum(), ay), ay)
+    assert d["gecti"], [a["neden"] for a in d["alt"]]
+    assert "O5" not in S.SENARYO_KODLARI  # §12 ana matrisi değişmedi
+
+
+def test_oneri_secenekleri_varsayilanda_kapali_acilinca_2d_gecer(tasarim, ay):
+    assert ay.kestirim.sapma_jiroskopla is False and ay.kontrol.donus_integrali == 0.0
+    oneri = ay.degistir(kestirim=replace(ay.kestirim, sapma_jiroskopla=True),
+                        kontrol=replace(ay.kontrol, donus_integrali=ay.kontrol.oneri3d_donus_integrali))
+    d = S.degerlendir(S.calistir(tasarim, "O2", S.Kurulum(), oneri), oneri)
+    assert d["gecti"], [a["neden"] for a in d["alt"]]

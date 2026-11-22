@@ -1,7 +1,7 @@
 <!-- Otomatik üretildi (python -m denge). Düzenlemek için docs/sablon/hafta03_ozet.md ve parametreler.toml dosyalarını değiştirin. -->
 # 3. Hafta Toplantı Özeti
 
-**Sefa Nurali Uçak (23015008)** · Kontrol ve Otomasyon, Modül A ve E · 19 Ekim 2026 (ekler: step motor §10, satın alınan motor §11, simülasyon §12, 22.11.2026) · Tam belge: [hafta03_model_tork_km.md](hafta03_model_tork_km.md)
+**Sefa Nurali Uçak (23015008)** · Kontrol ve Otomasyon, Modül A ve E · 19 Ekim 2026 (ekler: step motor §10, satın alınan motor §11, simülasyon §12, 23.11.2026) · Tam belge: [hafta03_model_tork_km.md](hafta03_model_tork_km.md)
 
 ## Danışmanın istediği
 
@@ -13,7 +13,8 @@
 - Bütün değerleri tek bir parametre dosyasında, kaynaklarıyla topladık. Malzemeler ön malzeme listesinden alındı; Mete'nin seçimiyle kesinleşecek. Motorlar alındı, ama hiçbir değer henüz ölçülmedi.
 - Gereken motor torkunu, devri ve enkoder çözünürlüğünü hesapladık; aday motorları, step seçeneğini ve satın alınan 1000 RPM motoru sınadık.
 - Modelin üstüne kapalı çevrim bir simülasyon (dijital ikiz) kurduk: motor, pil, teker kayması, dişli boşluğu, IMU ve enkoder modeli, 200 Hz döngü, gecikmeler; PID ve LQR, Kalman ve tamamlayıcı süzgeç; şartnamedeki testler otomatik geçti/kaldı ile. Kontrolcü kodu ESP32'ye taşınabilir yazıldı.
-- İlaç kutusu yuvası için üç konumu karşılaştırdık. Belge ve şekiller tek komutla parametre dosyasından üretiliyor; 155 doğrulama testinin hepsi geçti.
+- 3D (MuJoCo) ikiz ve videolar: yerinde dönüşteki bir eksiği buldu, düzeltmeyle 24/24 geçiyor ([§12.11](hafta03_model_tork_km.md#1211-3d-simülasyon-mujoco-çapraz-kontrol-ve-videolar)).
+- İlaç kutusu yuvası için üç konumu karşılaştırdık. Belge ve şekiller tek komutla parametre dosyasından üretiliyor; 167 doğrulama testinin hepsi geçti.
 
 ## Ana sonuçlar
 
@@ -48,7 +49,7 @@
 | Ölçüt | Karşılayan |
 |---|---|
 | 1. Çalışır çıktı | Canlı: `python -m denge.ikiz --senaryo O1-4+ --gif o.gif` (simülasyon ve animasyon), `python -m denge` (belge ve şekiller yeniden üretilir), `python -m denge.motor --satin-alinan --yan-yana` |
-| 2. Ölçüm ve doğrulama | `tests/` (155 doğrulama testinin hepsi geçti); Şekil 3 (düşme), Şekil 14–18 ve `docs/simulasyon/sonuclar.csv` (simülasyon, geçti/kaldı) |
+| 2. Ölçüm ve doğrulama | `tests/` (167 doğrulama testinin hepsi geçti); Şekil 3 (düşme), Şekil 14–18 ve `docs/simulasyon/sonuclar.csv` (simülasyon, geçti/kaldı) |
 | 3. Sistem entegrasyonu | Mete'den beklenen girdiler (§7), motor seçim diyagramı (Şekil 7), sigorta kontrolü (§4.7) |
 | 4. Şartname ve İSG | Pasif test öngörüsü (Şekil 3), 12,6 V ≤ 24 V, yere değme açısı (§5.6), yuva gövdeye vidalanmaz |
 | 5. Teknik dokümantasyon | Bu özet, tam belge, `parametreler.toml`, git geçmişi |

@@ -46,6 +46,7 @@ class KestirimAyarlari:
     hiz_tau: float
     ivme_telafisi: bool
     ivme_tau: float
+    sapma_jiroskopla: bool
 
 
 @dataclass(frozen=True)
@@ -70,6 +71,8 @@ class KontrolAyarlari:
     ileri_besleme_acik: bool
     ileri_besleme: tuple[float, float, float]  # (c1/mgl [rad/(m/s²)], M_x r [N m/(m/s²)], 2 r J_ψ/d [N m/(rad/s²)])
     referans_suzgeci: float  # [s]
+    donus_integrali: float  # [N m/(rad s)], 0 = kapalı
+    oneri3d_donus_integrali: float  # §12.11'deki öneri koşuları için
 
 
 @dataclass(frozen=True)
@@ -95,6 +98,8 @@ class SenaryoAyarlari:
     statik_sure: float  # Ö1-1 [s]
     komut_tepki_suresi: float  # [s]
     sigorta: float  # [A]
+    o5_bekleme: float  # [s]
+    o5_hedef_toleransi: float  # [m]
 
 
 @dataclass(frozen=True)
@@ -165,6 +170,7 @@ def ikiz_ayarlari(t) -> IkizAyarlari:
         hiz_tau=_d(t, "kestirim.hiz_suzgec_zaman_sabiti"),
         ivme_telafisi=bool(_d(t, "kestirim.ivme_telafisi")),
         ivme_tau=_d(t, "kestirim.ivme_suzgec_zaman_sabiti"),
+        sapma_jiroskopla=bool(_d(t, "kestirim.sapma_jiroskopla")),
     )
     kontrol = KontrolAyarlari(
         yontem=_d(t, "kontrol.yontem"),
@@ -187,6 +193,8 @@ def ikiz_ayarlari(t) -> IkizAyarlari:
         ileri_besleme_acik=bool(_d(t, "kontrol.ileri_besleme")),
         ileri_besleme=ileri_besleme_katsayilari(t.model(kutulu=True).degistir(J_m=_d(t, "ikiz.rotor_ataleti_motor") * satin_alinan.aday(t).reduksiyon**2)),
         referans_suzgeci=_d(t, "kontrol.referans_suzgeci"),
+        donus_integrali=_d(t, "kontrol.donus_integrali"),
+        oneri3d_donus_integrali=_d(t, "kontrol.oneri3d_donus_integrali"),
     )
     senaryo = SenaryoAyarlari(
         baslangic_egimi=_d(t, "senaryo.baslangic_egimi") * DERECE,
@@ -210,6 +218,8 @@ def ikiz_ayarlari(t) -> IkizAyarlari:
         statik_sure=30.0,  # şartname §8 Ö1-1
         komut_tepki_suresi=_d(t, "sartname.komut_tepki_suresi"),
         sigorta=_d(t, "elektrik.sigorta"),
+        o5_bekleme=_d(t, "senaryo.o5_bekleme"),
+        o5_hedef_toleransi=_d(t, "senaryo.o5_hedef_toleransi"),
     )
     return IkizAyarlari(fizik, sensor, zaman, kestirim, kontrol, senaryo, _d(t, "ikiz.rotor_ataleti_motor"),
                         int(_d(t, "simulasyon.tohum")), {"dolu": V["max"], "bos": V["min"]})

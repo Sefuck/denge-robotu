@@ -87,10 +87,11 @@ class DurumKestirici:
     """
 
     __slots__ = ("T", "r", "d", "k_sayim", "egim", "n_pencere", "gecmis_R", "gecmis_L", "i", "a_hiz",
-                 "x0", "s", "hazir", "telafi", "z_imu", "a_ivme", "v_onceki", "ivme", "gyro_onceki", "aci_ivmesi")
+                 "x0", "s", "hazir", "telafi", "z_imu", "a_ivme", "v_onceki", "ivme", "gyro_onceki", "aci_ivmesi",
+                 "sapma_jiro", "psi_jiro", "bz", "n_bz", "n_bz_ogrenme")
 
     def __init__(self, egim, r: float, d: float, cpr: float, T: float, pencere: float, hiz_tau: float,
-                 telafi: bool = False, z_imu: float = 0.0, ivme_tau: float = 0.02):
+                 telafi: bool = False, z_imu: float = 0.0, ivme_tau: float = 0.02, sapma_jiro: bool = False, bz_sure: float = 1.0):
         self.T, self.r, self.d = T, r, d
         self.k_sayim = 2.0 * math.pi / cpr  # bir sayımın teker milindeki açısı [rad]
         self.egim = egim  # TamamlayiciSuzgec ya da KalmanSuzgeci
@@ -105,6 +106,10 @@ class DurumKestirici:
         self.telafi, self.z_imu = telafi, z_imu
         self.a_ivme = T / (ivme_tau + T)
         self.v_onceki = self.ivme = self.gyro_onceki = self.aci_ivmesi = 0.0
+        # Sapma (yaw) jiroskopla: ψ = ∫(g_z − b_z) dt. b_z açılıştan sonraki ilk bz_sure saniyede (robot yerinde dengede,
+        # komut yok) ortalamayla öğrenilir, sonra dondurulur: hareket sırasında öğrenmek gerçek yavaş dönmeyi sapma sanar.
+        self.sapma_jiro, self.psi_jiro, self.bz = sapma_jiro, 0.0, 0.0
+        self.n_bz, self.n_bz_ogrenme = 0, max(1, round(bz_sure / T))
 
     def baslat(self, ax: float, az: float, sayim_R: int, sayim_L: int) -> None:
         aci = ivme_acisi(ax, az)
@@ -117,7 +122,7 @@ class DurumKestirici:
         self.v_onceki = self.ivme = self.aci_ivmesi = 0.0
         self.hazir = True
 
-    def guncelle(self, gyro: float, ax: float, az: float, sayim_R: int, sayim_L: int) -> list:
+    def guncelle(self, gyro: float, ax: float, az: float, sayim_R: int, sayim_L: int, gyro_z: float = 0.0) -> list:
         if self.telafi:
             # ileri ivme (bir önceki adımın süzülmüş hızından) ve eğim ivmesi (jiroskop türevi), süzülmüş
             self.ivme += self.a_ivme * ((self.s[1] - self.v_onceki) / self.T - self.ivme)
@@ -142,8 +147,17 @@ class DurumKestirici:
         s[0] = self.r * (0.5 * (sayim_R + sayim_L) * k + aci) - self.x0
         s[1] += self.a_hiz * (v_ham - s[1])
         s[2], s[3] = aci, aci_hizi
-        s[4] = self.r * (sayim_R - sayim_L) * k / self.d
-        s[5] += self.a_hiz * (w_ham - s[5])
+        if self.sapma_jiro:
+            if self.n_bz < self.n_bz_ogrenme:  # açılış: z jiroskobunun kalan sapmasını ortalamayla öğren
+                self.n_bz += 1
+                self.bz += (gyro_z - self.bz) / self.n_bz
+            else:
+                self.psi_jiro += self.T * (gyro_z - self.bz)
+            s[4] = self.psi_jiro
+            s[5] += self.a_hiz * ((gyro_z - self.bz) - s[5])
+        else:
+            s[4] = self.r * (sayim_R - sayim_L) * k / self.d
+            s[5] += self.a_hiz * (w_ham - s[5])
         return s
 
     def bagil_hizlar(self) -> tuple[float, float]:
