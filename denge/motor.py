@@ -244,9 +244,9 @@ class MotorAdayi:
         return self.bosta_akim + tau / self.motor_modeli().K_t
 
 
-def aday_tasarimdan(tasarim) -> MotorAdayi:
-    """parametreler.toml'daki [motor_adayi] kaydı."""
-    d = lambda k: tasarim.d(f"motor_adayi.{k}")
+def aday_tasarimdan(tasarim, onek: str = "motor_adayi") -> MotorAdayi:
+    """parametreler.toml'daki [motor_adayi] (ya da `onek` ile verilen, ör. motor_satin_alinan) kaydı."""
+    d = lambda k: tasarim.d(f"{onek}.{k}")
     return MotorAdayi(d("ad"), d("gerilim"), d("bosta_devir"), d("durma_torku"), d("durma_akimi"), d("bosta_akim"),
                       d("reduksiyon"), d("ppr"))
 
@@ -257,6 +257,22 @@ def seri_adaylari(tasarim) -> list[MotorAdayi]:
     V, ppr = tasarim.d("motor_adayi.gerilim"), tasarim.d("motor_adayi.ppr")
     return [MotorAdayi(f"1:{N:g} ({n0:g} dev/dk)", V, n0, ts * KGFCM, d("durma_akimi"), d("bosta_akim"), N, ppr)
             for N, n0, ts in zip(d("reduksiyon"), d("bosta_devir"), d("durma_torku_kgfcm"))]
+
+
+def satici_serisi_adaylari(tasarim) -> list[MotorAdayi]:
+    """[motor_satici_serisi]: satın alınan motorun satıcısının veri sayfasındaki 12 V serisi."""
+    d = lambda k: tasarim.d(f"motor_satici_serisi.{k}")
+    return [MotorAdayi(f"1:{N:g} ({n0:g} dev/dk)".replace(".", ","), 12.0, n0, ts * KGFCM, d("durma_akimi"), d("bosta_akim"), N, 11)
+            for N, n0, ts in zip(d("reduksiyon"), d("bosta_devir"), d("durma_torku_kgfcm"))]
+
+
+def pwm_orani(aday: MotorAdayi, V_bat: float, n: float, tau: float) -> float:
+    """Kararlı durumda n [dev/dk] ve motor başı tork τ [N m] için gereken PWM doluluk oranı (0–1).
+
+    V = R (I_0 + τ/K_t) + K_e ω; boşta akım sürtünme kaybı sayılır.
+    """
+    mm = aday.motor_modeli()
+    return (mm.R * (aday.bosta_akim + tau / mm.K_t) + mm.K_e * n * 2 * math.pi / 60) / V_bat
 
 
 def oran_taramasi(adaylar: list[MotorAdayi], gereksinim: dict, gerilim: float) -> list[dict]:
@@ -302,9 +318,9 @@ def gereken_sf(aday: MotorAdayi, gereksinim: dict, gerilim: float) -> float:
     return aday.tork(n, gerilim) / tau0
 
 
-def degerlendir(aday: MotorAdayi, gereksinim: dict, gerilimler: dict) -> list[dict]:
-    """Adayı gereksinim noktalarına göre batarya min. geriliminde sınar; geçti/kaldı satırları."""
-    V = gerilimler["min"]
+def degerlendir(aday: MotorAdayi, gereksinim: dict, gerilimler: dict, V: float | None = None) -> list[dict]:
+    """Adayı gereksinim noktalarına göre batarya geriliminde (varsayılan: min.) sınar; geçti/kaldı satırları."""
+    V = gerilimler["min"] if V is None else V
     n0, ts = aday.egriler(V)
     satirlar = []
     for etiket, (n, tau) in (("A: ±10° toparlanma, el hesabı × SF (önerilen)", gereksinim["nokta_A"]),
@@ -329,7 +345,8 @@ def degerlendir(aday: MotorAdayi, gereksinim: dict, gerilimler: dict) -> list[di
                      "gerek": f"≤ sigorta {_s(sigorta, 1)} A" if sigorta else "Mete: sürücü/sigorta boyutu",
                      "aday": f"{_s(2 * i_tepe, 2)} A (durma: {_s(2 * aday.durma_akimi, 1)} A)",
                      "sonuc": (2 * i_tepe <= sigorta) if sigorta else None})
-    satirlar.append({"olcut": f"Batarya min. geriliminde ({_s(V, 1)} V) eğri", "gerek": "-",
+    etiket = f"Batarya min. geriliminde ({_s(V, 1)} V) eğri" if V == gerilimler["min"] else f"{_s(V, 1)} V'ta eğri"
+    satirlar.append({"olcut": etiket, "gerek": "-",
                      "aday": f"n0 = {n0:.0f} dev/dk, τs = {_s(ts)} N·m", "sonuc": None})
     return satirlar
 
@@ -341,6 +358,8 @@ def _ana():
     ap.add_argument("--ad", default="Aday")
     ap.add_argument("--dosyadaki-aday", action="store_true", help="parametreler.toml'daki [motor_adayi] kaydını kullan")
     ap.add_argument("--oran-taramasi", action="store_true", help="[motor_serisi] oranlarını da tara")
+    ap.add_argument("--satin-alinan", action="store_true", help="satın alınan motoru (ölçüm varsa ölçümle) boş ve dolu pilde sına")
+    ap.add_argument("--yan-yana", action="store_true", help="satıcı serisinin 1:10 / 1:19 / 1:30 oranlarını yan yana karşılaştır")
     ap.add_argument("--gerilim", type=float, help="nominal gerilim [V]")
     ap.add_argument("--bosta-devir", type=float, help="boşta çıkış devri [dev/dk]")
     ap.add_argument("--durma-torku", type=float)
@@ -353,6 +372,11 @@ def _ana():
     ap.add_argument("--parametreler", default=None, help="parametre dosyası (varsayılan: parametreler.toml)")
     a = ap.parse_args()
     tasarim = Tasarim.yukle(a.parametreler)
+    if a.satin_alinan or a.yan_yana:
+        from . import satin_alinan
+
+        satin_alinan.yazdir(tasarim, a.satin_alinan, a.yan_yana)
+        return
     if a.dosyadaki_aday:
         aday = aday_tasarimdan(tasarim)
     else:
