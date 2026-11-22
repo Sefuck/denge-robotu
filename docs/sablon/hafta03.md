@@ -10,7 +10,7 @@
 
 > **Danışman planındaki teslimat:** "Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı."
 >
-> **Durum:** Teker ve batarya henüz alınmadı; motorlar alındı (§11) ama ölçülmedi. **Hiçbir fiziksel parametre ölçülmedi** (§2). Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek. Bu değerler belgede "ön liste" diye işaretlidir. Motor veri sayfası değerleri rcdrone referans tablosundan alındı ("[doğrulanamadı]"); listede olmayan değerler tahmini kaldı. Her değerin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrolcü tasarlanmadı: kontrol yöntemi 6. haftada seçilecek. Model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir.
+> **Durum:** Teker ve batarya henüz alınmadı; motorlar alındı (§11) ama ölçülmedi. **Hiçbir fiziksel parametre ölçülmedi** (§2). Ön malzeme listesi, cdtp-robot.netlify.app'teki referans malzeme listesinden derlendi; Mete'nin seçimiyle kesinleşecek. Bu değerler belgede "ön liste" diye işaretlidir. Motor veri sayfası değerleri rcdrone referans tablosundan alındı ("[doğrulanamadı]"); listede olmayan değerler tahmini kaldı. Her değerin kaynağı ve makul aralığı parametre dosyasında yazılıdır. Parçalar gelince değerler ölçülecek, dosya güncellenecek ve belge aynı komutla yeniden üretilecek. Kontrol yöntemi 6. haftada seçilecek; model PID, LQR ve MPC'nin üçüne de temel olacak biçimde verilmiştir. §12'de bu modelin üstüne kapalı çevrim bir simülasyon (dijital ikiz) kuruldu: PID ve LQI kontrolcüleri, Kalman ve tamamlayıcı süzgeç simülasyonda çalışıyor, donanımda henüz çalışmadı.
 
 ## Özet
 
@@ -27,6 +27,7 @@
 | **Aday motor (ön liste): @@aday_ad@@** | Katsayısız @@aday_gecer_SFsiz@@, SF = @@SF@@ ile @@aday_gecer_SF@@ (boş bataryada SF @@sf_min@@); öneri: **@@en_iyi_ad@@** (SF @@en_iyi_sf@@) | §4.7 |
 | **Motor tipi: step seçeneği** (geçici eğri, [doğrulanamadı]) | Boş bataryada SF @@st_sf_alt@@–@@st_sf_ust@@ (DC 333 RPM: @@st_sf_dc@@); +@@st_dm@@ kg; pil ≈ @@st_h@@ saat (DC: ≈ @@st_h_dc@@); ≈ @@st_c_fark@@ TL ucuz. Öneri: bir motorla ölç, geçerse step + AS5600 | §10 |
 | **Satın alınan motor: JGB37-520 1000 RPM** | **@@sa_karar@@**: boş pilde SF @@sa_sf_min@@ (dolu @@sa_sf_max@@), enkoder @@sa_cpr@@ / @@sa_cpr_min@@ sayım. Öneri: değişim (333 RPM) ya da 1:3 kayış (SF @@sa_k3_sf@@) | §11 |
+| **Simülasyon (dijital ikiz)** | 1000 RPM ile ana matriste @@ik_gecen_ana@@ alt test geçti; ±10° yerine boş pilde @@ik_pay_1000_bos@@°'ye kadar toparlanır (530: @@ik_pay_530_bos@@°, 333: @@ik_pay_333_bos@@°). Karar: @@ik_karar_kisa@@; motor ölçülmeli | §12 |
 | **Önerilen yuva** | Üst plakada, aksın tam üstünde ($x = y = 0$), kutu yatık ve uzun kenarı yanal; boşluk ≤ @@bosluk@@ mm, duvar ≈ @@duvar@@ mm | §5.5 |
 
 **Öne çıkan bulgular**
@@ -39,7 +40,8 @@
 6. **Pasif kararlılık ön testi tasarım gereği sağlanır.** KM aksın üstünde olduğu sürece robot enerjisizken ±10°'den @@t_hepsi_min@@–@@t_hepsi_max@@ s içinde düşer, yani 5 s sınırının yaklaşık @@pasif_kat@@ katı payla. KM aksın altına inerse robot pasif kararlı olur ve şartname §4.1 ihlal edilir; bu durum testlerde yakalanır (§3.7).
 7. **Ön listedeki aday motor (@@aday_ad@@) katsayısız yeterli, SF = @@SF@@ ile değil.** Boş bataryada (@@V_min@@ V) A noktasında @@aday_tauA@@ N·m verir; katsayısız gereksinim @@tA0@@, SF'li @@tA@@ N·m. Sağladığı katsayı @@sf_min@@ (nominal gerilimde @@sf_nom@@). Aynı fiyattaki @@en_iyi_ad@@ varyantı boş bataryada SF @@en_iyi_sf@@ (nominalde @@en_iyi_sf_nom@@) sağlar, enkoder çözünürlüğünü de karşılar. Mete'ye öneri §4.7'de.
 8. **Step motor hesapta yeterli görünüyor, ama eğrisi ölçülmedi.** 17HS4401'in pull-out eğrisi bulunamadı; kardeş motorlardan türetilen geçici eğriyle boş bataryada SF @@st_sf_alt@@–@@st_sf_ust@@ çıkar, rezonans çukuruna denk gelirse @@st_sf_rez@@. Giriş teker ivmesi olunca hareket modeli bilinmeyen motor parametrelerine bağlı kalmaz. Bedeli +@@st_dm@@ kg ve ≈ @@st_h@@ saat pil süresidir. DRV8825'in @@st_I@@ A limiti tepe değer olduğu için motor etiket torkunun %@@st_I_tam@@'ini verir. Karar eşiği ve ölçüm planı §10.10–10.11'de.
-9. **Ekip 1000 RPM motoru aldı; bu motor sınırda.** Robotu dengeler ve ±10°'den toparlar (boş pilde katsayısız pay @@sa_sf_min@@), ama 2 kat emniyet yok, toparlanmayı motor sınırlar ve enkoder @@sa_cpr@@ sayımla hedefin altında. Değişim mümkünse 333 RPM, değilse 1:3 kayış önerilir; daha küçük teker işe yaramaz. Motorlar ölçülünce karar yeniden üretilir (§11).
+9. **Ekip 1000 RPM motoru aldı; bu motor sınırda.** Robotu dengeler ve ±10°'den toparlar (boş pilde katsayısız pay @@sa_sf_min@@), ama 2 kat emniyet yok, toparlanmayı motor sınırlar ve enkoder @@sa_cpr@@ sayımla hedefin altında. Değişim mümkünse 333 RPM, değilse 1:3 kayış önerilir; daha küçük teker işe yaramaz. Motorlar ölçülünce karar yeniden üretilir (§11). **Güncelleme:** kapalı çevrim simülasyonu bu öneriyi değiştirdi (madde 10).
+10. **Dijital ikiz: satın alınan motor final testlerini simülasyonda geçiyor.** Motor (PWM → akım → tork, pil, sürtünme, dişli boşluğu), teker kayması, MPU6050 ve enkoder modeli, 200 Hz döngü ve gecikmelerle 1000 RPM motor ana matriste @@ik_gecen_ana@@ alt testi geçti; ±10° yerine boş pilde @@ik_pay_1000_bos@@°'ye kadar toparlanıyor. 333 RPM daha fazla pay sağlamıyor (@@ik_pay_333_bos@@°): yansıyan rotor ataleti ve sürtünme oranla büyüyor, büyük açıda devir sınırı geliyor. Bu yüzden değişim önerisi askıya alındı; sonuç ölçülmemiş rotor ataletine ve dişli boşluğuna bağlı olduğu için motor ölçülmeli (§12).
 
 ---
 
@@ -568,6 +570,9 @@ Aralığı tanımlı her fiziksel parametre, diğerleri nominalde tutularak aral
 | IR alıcı + şarj kontağı modülünün kütlesi, konumu (ön/arka) ve yüksekliği | Ömer Faruk Arslan | Trim açısı (şu an @@trim@@°), yere değme açısı (§5.6) | 3.–4. hafta |
 | İlaç kutusunun seçimi: ölçü ve kütle | Ekip | Yuva boyutu; kutu kütlesi duyarlılık tablosunda @@sira_kutu@@. sırada (§6) | 4. hafta öncesi |
 | Kameranın kutuyu hangi açıdan göreceği | Oytun Utkan Yeşilyurt | Üst yuva önerisinin doğrulanması (§5.5) | 5. hafta |
+| Eldiven → robot komut gecikmesi (sınıflandırma + kablosuz), ölçülmüş | Ousmane Dicko, Mohamad Al Nehlawi | İkizde @@ik_gec_komut@@ s tahmini; Ö2'nin 2 s tepki sınırı (§12.7) | 8. hafta öncesi |
+| IMU'nun gövdedeki yeri (aksa yükseklik) | Mete Özgen | İvme telafisi ve kestirim hatası (§12.4); aksa yakın olması önerilir | 4. hafta |
+| Satın alınan motorda rotor ataleti (serbest yavaşlama) ve dişli boşluğu ölçümü; pil iç direnci | Sefa Nurali Uçak, Mete Özgen | Motor kararını en çok değiştiren üç değer (§12.8, §12.9) | Hemen |
 | Telemetrideki eğim açısının işaret ve birim tanımı | Ousmane Dicko, Oytun Utkan Yeşilyurt | Bu modeldeki tanım (ileri eğim pozitif, derece) uygulamada da kullanılmalı [öneri] | 6. hafta |
 
 ## 8. Doğrulama
@@ -586,11 +591,12 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 | Parametre dosyasının bütünlüğü | Her parametrede birim/durum/kaynak var; fiziksel parametrelerin hepsi "tahmini"; hatalı dosya reddedilir | `test_parametreler.py` |
 | Satın alınan motor | Veri sayfası değerleri okunur; ölçüm girilince ölçülen değerler kullanılır; ek redüksiyon torku k·verim katına, enkoderi k katına çıkarır; teker küçülünce devir artar, çekiş ve enkoder hedefi ∝ r, el hesabı değişmez; PWM oranı boşta devirde 1; karar ölçütü | `test_satin_alinan.py` |
 | Step motor seçeneği | DC değerleri sürüm 0.2 ile aynı; ivme girişli kutup = tork modelindeki $X/U$ sıfırı, bağıl ivme girişli kutup = kilitli teker kutbu; $J_m$, $b$ ivme girişli modeli değiştirmez; $a(t)$ tam modelle tutarlı; eğri devirle artmaz, gerilimle düşmez; ölçüm girilince geçici eğri kullanılmaz; detent düşmeyi engellemez; birimler (`pint`) | `test_step.py` |
+| Dijital ikiz | Kısıtlar etkinken fizik çekirdeği §3 modeliyle aynı ivmeleri verir; serbest düşme açık çevrim simülasyonuyla örtüşür; fizik adımı yarıya inince sonuç değişmez; boşta devir ve kilitlenme akımı motor sabitleriyle tutarlı; kaymada sürtünme μN'de; enkoder boşluğu görür; sensör gürültüsü veri sayfasıyla tutarlı; Kalman sapmayı kestirir; kontrolcüler aynı arayüzü kullanır ve kazançlar dosyadan gelir; LQI kararlı; değerlendirici düşmeyi, kutuyu ve nedenleri doğru yazar; senaryolar tekrarlanabilir | `test_ikiz.py` |
 | Motor hesapları | Tutma torku doğrusal olmayan modelde $\ddot\theta = 0$ verir; tutma ≤ referans manevra ≤ el hesabı; uzun manevrada tepe tork → tutma torku; sınır motor eğrisi noktalara teğet | `test_motor.py` |
 
 ## 9. Sınırlamalar ve sonraki adımlar
 
-**Sınırlamalar.** Bütün fiziksel değerler tahminidir. Motor elektrik dinamiği, teker kayması, zemin eğimi ve esnek yapı modellenmedi. Referans manevralar kontrolcü değildir; gerçek kontrolcünün tepe torku başlangıçta daha yüksek olabilir. Emniyet katsayısı bunun için konmuştur. Kutu yuvada rijit kabul edildi (kayma ayrıca incelendi).
+**Sınırlamalar.** Bütün fiziksel değerler tahminidir. §3–§4'te motor elektrik dinamiği, teker kayması, zemin eğimi ve esnek yapı modellenmedi; ilk ikisi §12'deki dijital ikizde vardır. Referans manevralar kontrolcü değildir; gerçek kontrolcünün tepe torku başlangıçta daha yüksek olabilir. Emniyet katsayısı bunun için konmuştur. Kutu yuvada rijit kabul edildi (kayma ayrıca incelendi).
 
 **Sonraki adımlar.**
 
@@ -599,7 +605,8 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 3. **5. hafta:** Kalman veya tamamlayıcı filtre. Enkoder bağıl açı düzeltmesi $x = r(\varphi_\text{enk} + \theta)$ ve trim kalibrasyonu da buraya eklenecek.
 4. **6. hafta:** Kontrol yöntemi seçimi (PID, LQR veya MPC). Bu belgedeki $(A, B, C, D)$, $G_\theta$, $G_x$ ve $(A_d, B_d)$ doğrudan kullanılır. Tork doyumu çekiş sınırına göre ayarlanır. Step motor seçilirse giriş ivme olur (§10.3) ve doyum yerine ivme ve devir sınırı kullanılır (§10.5).
 5. **Motor tipi kararı:** Bir adet 17HS4401 ile §10.10'daki ölçüm; karar eşiği §10.11.
-6. **Satın alınan motor:** §11.5'teki ölçüm, ardından değişim ya da 1:3 kayış kararı (§11.6).
+6. **Satın alınan motor:** §11.5'teki ölçüm (ek olarak rotor ataleti ve dişli boşluğu), ardından §12.8'deki kararın ölçümle yeniden üretilmesi.
+7. **Dijital ikiz:** kestirici ve kontrolcünün ESP32'ye taşınması, 3D simülasyon önerisi (§12.10).
 
 ## 10. Step motor seçeneği ve DC ile karşılaştırma
 
@@ -822,6 +829,8 @@ Step seçilirse 6. haftanın "motor ölü bölgesi telafisi" görevi kalkar, yer
 ## 11. Satın alınan motor: JGB37-520 12 V 1000 RPM
 
 > **Durum (@@tarih@@).** Ekip 2 adet JGB37-520 12 V 1000 RPM, Hall enkoderli motor aldı (direnc.net). Önerimiz 333 RPM'ydi (§4.7). Değerlerin kaynağı: @@sa_veri@@. **Karar: @@sa_karar@@.** Motor robotu dengeleyebilir, ama boş pilde önerilen 2 kat emniyet payını sağlamaz ve enkoder çözünürlüğü hedefin altında kalır. Değişim mümkünse 333 RPM; değilse motor ile teker arasına 1:3 kayış önerilir (§11.6).
+>
+> **Güncelleme: §12.8.** Kapalı çevrim simülasyonunda 1000 RPM motor final testlerini geçiyor ve 333 RPM daha fazla pay sağlamıyor; bu yüzden aşağıdaki değişim önerisi askıya alındı. Bu bölüm el hesabına dayanan ilk sınama olarak duruyor.
 
 ### 11.1 Veriler
 
@@ -908,6 +917,182 @@ Motorlar elimizde olduğu için ilk iş ölçmektir; değerler `parametreler.tom
 3. **Hiçbiri olmazsa veya beklerken:** Motor olduğu gibi kullanılabilir. 6. haftanın yüksüz ilk dengesi bu motorla denenebilir (referans manevra payı @@sa_ref@@). Yapılacaklar: hız kestirim penceresini @@sa_pencere@@ ms'ye çıkarmak ya da darbe arası süre ölçmek, ölü bölge telafisi, tork doyumunu motor sınırına göre ayarlamak; c) senaryolarıyla payı artırmak (en çok SF @@sa_kutle_en_iyi@@). Risk: boş pilde toparlanma payı düşüktür; kazançlar 13. haftada dondurulmadan önce boş pilde doğrulanmalıdır.
 4. Daha küçük teker önerilmez.
 
+## 12. Simülasyon: kapalı çevrim dijital ikiz
+
+> **Durum (@@tarih@@).** Donanım gelmeden kontrolcüyü, durum kestirimini ve satın alınan motoru şartnamenin final testlerine karşı sınamak için §3'teki modelin üstüne kapalı çevrim bir simülasyon kuruldu. Satın alınan 1000 RPM motorla ana matriste (2 kontrolcü × 2 kestirici × kutu takılı/değil × dolu/boş pil) **@@ik_gecen_ana@@ alt test geçti**. Motor karşılaştırmasında ±10° yerine toparlanabilen en büyük eğim boş pilde 1000 RPM için @@ik_pay_1000_bos@@°, 530 RPM için @@ik_pay_530_bos@@°, 333 RPM için @@ik_pay_333_bos@@°. Bütün sonuçlar ölçülmemiş parametrelere dayanır; en hassas olanlar rotor ataleti, dişli boşluğu ve motor sürtünmesidir (§12.9). Tek komut: `python -m denge.ikiz` (@@ik_n_kosu@@ koşu, 8 çekirdekte ≈ 1 dk).
+
+### 12.1 Amaç, kapsam ve döngü
+
+İkiz, firmware'in bir kontrol periyodunda yapacağı her şeyi aynı sırayla yapar. Kontrolcü ve kestirici ESP32'ye taşınabilecek biçimde yazıldı (§12.5). Döngü:
+
+```
+Eldiven komutu ──(komut gecikmesi @@ik_gec_komut@@ s)──► Referans üreteci (trapez profil + 2. derece süzgeç)
+                                                          │ x_ref, ẋ_ref, ẍ_ref, ψ_ref, ψ̇_ref, ψ̈_ref
+MPU6050 (gürültü, sapma, DLPF, nicemleme) ─┐              ▼
+Enkoder (rotor açısı, sayım nicemlemesi) ──┼─► Kestirici ─► Kontrolcü (PID ya da LQI, aynı arayüz)
+Pil gerilimi (ADC, kazanç hatası) ─────────┘   (Kalman /   │ τ_toplam, τ_fark
+                                               tamamlayıcı)▼
+                                                          Çıkış katı: τ → I → V → PWM (akım sınırı, zıt EMK, ölü bölge)
+                                                          │ (hesaplama gecikmesi @@ik_gec_hesap_ms@@ ms)
+                                                          ▼
+Robot fiziği (dt = @@ik_dt_ms@@ ms) ◄── Sürücü (10 bit PWM, ölü bölge) ◄── PWM;  Motor: V → I → τ;  Pil: V_açık − R_iç·I
+```
+
+Kontrol periyodu @@ik_Ts_ms@@ ms (@@ik_f_kontrol@@ Hz). Her periyodun başında sensörler okunur, kestirim ve kontrol hesaplanır, PWM hesaplama gecikmesinden sonra uygulanır. Gürültü tohumu senaryo ve yük/pil durumundan türetilir; kontrolcü, kestirici ve motor karşılaştırmaları aynı gürültüyle yapılır ve sonuçlar tekrarlanabilir. 3D fizik motoru kullanılmadı (öneri §12.10).
+
+### 12.2 Simülasyon çekirdeği
+
+**Hareket denklemleri.** Serbest hızlar $\nu = (v, \dot\psi, \dot\theta, \omega_R, \omega_L, \omega_{mR}, \omega_{mL})$: §3'teki üç hıza her tekerin ve her rotorun (teker miline yansıtılmış) mutlak açısal hızı eklendi. Kinetik ve potansiyel enerji §3.2 ile aynıdır, yanal kaymama korunur. §3'te kalıcı olan kaymadan yuvarlanma ve dişli kısıtları burada "etkin olabilen" kısıtlardır:
+
+| Kısıt | Etkinken | Etkin değilken |
+|---|---|---|
+| Teker–zemin, $s = v \pm \tfrac{d}{2}\dot\psi - r\omega = 0$ | tutunma, sürtünme kuvveti $\lvert F\rvert \le \mu N$ | kayma, $F = -\mu N\,\mathrm{işaret}(s)$, μ = @@ik_mu@@ |
+| Rotor sürtünmesi, $\omega_m - \dot\theta = 0$ | motor dönmüyor, $\lvert\tau\rvert \le K_t I_0$ | Coulomb, $\tau_f = K_t I_0$ (boşta akım = sürtünme) |
+| Dişli boşluğu, $\delta = \varphi_m - \varphi \in [-\beta, \beta]$ | uçta temas (tek yönlü) | boşlukta, rotor serbest; toplam boşluk @@ik_bosluk_deg@@° |
+
+Normal kuvvet $N = (m_b + 2m_w)g - m_b l(\ddot\theta\sin\theta + \dot\theta^2\cos\theta)$, dönüşte yanal yük aktarımıyla iki tekere paylaştırılır. Üç kısıt da etkinken denklemler §3.3'teki modelle aynıdır: testte rastgele durumlarda ivmeler makine hassasiyetinde eşleşir. Zaman adımlama hız düzeyinde yarı örtük Euler'dir: her adımda etkin kısıtlarla KKT sistemi çözülür, sürtünme konisi ve tek yönlü temas koşulları sağlanana kadar etkin küme güncellenir; çarpmalar plastiktir.
+
+**Motor ve pil.** PWM doluluk oranı $d$ → uç gerilimi $d\,V_\text{bara}$ → akım $I = (dV_\text{bara} - K_e\omega_\text{rel})/R$ → tork $K_t I$. Sargı endüktansı ihmal edildi ($L/R \ll$ 1 ms). Pil: $V_\text{bara} = V_\text{açık} - R_\text{iç}(\sum d I + I_\text{lojik})$, $R_\text{iç}$ = @@ik_R_ic@@ Ω; açık devre gerilimi dolu pilde @@ik_V_dolu@@ V, boş pilde @@ik_V_bos@@ V. Akım doyumu fiziksel olarak gerilimden gelir (durma akımı $V/R$); yazılım ayrıca motor başına @@ik_akim_siniri@@ A sınır koyar. Tork doyumu bunların sonucudur. Ölü bölgenin fiziksel kaynağı sürtünmedir; sürücü ayrıca çok kısa darbeleri iletmez. Teker miline yansıyan rotor ataleti $J_m = J_\text{rotor} N^2$, $J_\text{rotor}$ = @@ik_J_rotor@@ kg·m² (kaba hesap, tahmini).
+
+@@tablo_ik_motor@@
+
+*Motor sabitleri satıcının veri sayfasından (§11.1) §4.7'deki yöntemle türetildi [doğrulanamadı]. Boşta akım bütün oranlarda aynı verildiği için sürtünme torku teker milinde oranla, yansıyan atalet oranın karesiyle büyür.*
+
+İkize özgü fiziksel parametreler (hiçbiri ölçülmedi):
+
+@@tablo_ik_param@@
+
+### 12.3 Sensörler ve zamanlama
+
+- **MPU6050:** Jiroskop ve ivmeölçer gürültüsü veri sayfasındaki yoğunluklardan (Rev 3.4, Tablo 6.1 ve 6.2), açılış kalibrasyonundan sonra kalan sabit sapma (işareti rastgele), iç alçak geçiren süzgeç (DLPF ≈ @@ik_dlpf@@ Hz) ve 16 bit nicemleme. DLPF çıkışında jiroskop gürültüsü ≈ @@ik_gyro_std@@ °/s (etkin değer). İvmeölçer, IMU'nun bulunduğu noktadaki (aksın @@ik_imu_z@@ mm üstü) özgül kuvveti ölçer: robot hızlandıkça ve eğim ivmesi oluştukça ivmeölçer açısı bozulur.
+- **Enkoder:** Motor milinde; rotorun gövdeye göre açısı teker turu başına `cpr` sayımla tamsayıya kesilir (tablo §12.2). Enkoder motor milinde olduğu için dişli boşluğu içindeki rotor hareketini de görür. Hız @@ik_pencere_ms@@ ms'lik sayım farkından bulunur ve süzülür.
+- **Pil gerilimi:** ESP32 ADC, sabit kazanç hatasıyla; çıkış katı torku gerilime çevirirken bunu kullanır.
+- **Zamanlama:** Kontrol @@ik_f_kontrol@@ Hz, hesaplama gecikmesi @@ik_gec_hesap_ms@@ ms, eldiven komut gecikmesi @@ik_gec_komut@@ s (Ousmane ve Mohamad'dan ölçülmüş değer bekleniyor).
+
+### 12.4 Durum kestirimi
+
+İki kestirici de aynı arayüzle çalışır ve ikisi de matriste sınandı:
+
+- **Tamamlayıcı süzgeç:** $\hat\theta \leftarrow \alpha(\hat\theta + \omega T) + (1-\alpha)\theta_\text{ivme}$, $\tau$ = @@ik_tau_tf@@ s, $\alpha$ = @@ik_alfa_tf@@.
+- **Kalman süzgeci:** iki durumlu (eğim + jiroskop sapması), giriş jiroskop, ölçüm ivmeölçer açısı. Sapmayı kestirdiği için jiroskop sapmasının yarattığı kalıcı açı hatası yoktur.
+- **İvme telafisi [öneri]:** Robot ileri ivmelenirken ivmeölçer $a_x \approx a\cos\theta - g\sin\theta$ ölçer ve eğimi $a/g$ kadar yanlış gösterir. ±10° toparlanmada ileri ivme 2–3 m/s²'dir, yani telafisiz hata 10°'yi aşar. Enkoder hızının türevinden bulunan ileri ivme ile IMU yüksekliğinden gelen teğetsel ($z\ddot\theta$) ve merkezcil ($z\dot\theta^2$) terimler ölçümden çıkarılır.
+- Konum ve hız: teker açısı = enkoderin bağıl açısı + gövde eğimi, $x = r \cdot$ ortalama teker açısı; sapma $\psi = r(\varphi_R - \varphi_L)/d$.
+
+@@tablo_ik_kestirim@@
+
+*Eğim kestirim hatasının etkin değeri (simülasyon boyunca) ve senaryonun sonucu; LQI, kutulu, boş pil.*
+
+![Şekil 18](sekiller/sekil_18_ikiz_kestirim.png)
+
+*Şekil 18: Ö1-2/3'te eğim kestirim hatası; alttaki hız, telafili Kalman koşusundandır. İvme telafisi olmadan hata ilk hızlanmada büyür ve ±6°'ye varan kalıcı bir salınıma dönüşür: yanlış eğim kontrolcüyü, kontrolcünün yarattığı ivme de kestirimi bozar. Telafiyle iki kestirici de ≈ 1°'nin altında kalır; kalan sabit fark ivmeölçerin kalibrasyon sonrası sapmasından gelir (tahmini).*
+
+**Sonuç:** İvme telafisi olmadan Kalman süzgeci ±10° toparlanmayı geçemez (tablo). Telafiyle Kalman ve tamamlayıcı süzgeç benzer çalışır; Kalman jiroskop sapmasını kestirdiği için firmware'de Kalman önerilir [öneri]. 5. haftanın seri port gösteriminde ivme telafisinin açık ve kapalı hâli birlikte gösterilebilir.
+
+### 12.5 Kontrolcüler
+
+İki kontrolcü aynı arayüzü kullanır: `hesapla(s, ref) → (τ_toplam, τ_fark)`. Torku PWM'e çıkış katı çevirir: $I^* = \tau/K_t$ (akım sınırı), $V^* = R I^* + K_e\hat\omega$ (zıt EMK telafisi), $d = V^*/\hat V_\text{pil}$, ölü bölge telafisi $d \mathrel{+}= k\,d_0\,\mathrm{sınırla}(d/d_0, -1, 1)$, $d_0 = I_0R/\hat V_\text{pil}$, k = @@ik_telafi@@. Böylece aynı kazançlar her motorla kullanılabilir; motorun kendisi yalnız çıkış katındaki sabitlerdir. Kazançlar parametre dosyasından okunur.
+
+- **PID (kademeli):** dış döngü PD konum ve hız hatasından eğim komutu üretir (sınırlı), iç döngü PID eğimi bu komuta getirir; dönüş PD. İntegral doyumda dondurulur ve sınırlanır.
+- **LQI:** konum integralli ayrık LQR, durum $[x - x_\text{ref}, \dot x - \dot x_\text{ref}, \theta - \theta_\text{ref}, \dot\theta, \int(x - x_\text{ref})dt]$, ZOH ile @@ik_Ts_ms@@ ms'de ayrıklaştırılmış §3.5 modelinden (kutulu, satın alınan motorun $J_m$'siyle). Konum integrali, motor sürtünmesinin yarattığı konum ölü bölgesini kapatır: integralsiz LQR'de bu ölü bölge $2\tau_f/K_x$ kadardır (333 RPM'de ≈ 6 cm). Dönüş için ayrı 2 durumlu LQR.
+- **İleri besleme:** sabit ivmede gövde $\theta_{ff} = (c_1/mgl)\ddot x_\text{ref}$ kadar eğilmeli ve $\tau_{ff} = M_x r \ddot x_\text{ref}$ gerekir; dönüşte $(2r/d)J_\psi\ddot\psi_\text{ref}$. Referans trapez profili $\tau$ = @@ik_ref_tau@@ s'lik kritik sönümlü ikinci dereceden süzgeçten geçer; ivme sürekli olur.
+- **Güvenlik:** kestirilen eğim ±@@ik_dusme_esigi@@°'yi aşarsa firmware motorları keser.
+
+@@tablo_ik_kazanc@@
+
+LQI kapalı çevrim kutupları (kutulu, sürekli zaman karşılığı): @@ik_kutuplar@@ 1/s; açık çevrim kararsız kutup +@@ik_kutup_acik@@ 1/s (yansıyan rotor ataletiyle). Ayrık kapalı çevrimde en büyük $\lvert\lambda\rvert$ = @@ik_ozd_max@@, bir örnek gecikmeyle @@ik_ozd_gecikmeli@@ (kutulu ve kutusuz): ikisi de birim çemberin içinde. Dosyadaki K ile Q, R'den yeniden hesaplanan K arasındaki en büyük fark %@@ik_K_fark@@ (parametreler değişince `python -m denge.ikiz --lqr-tasarla` ile yenilenir).
+
+**ESP32'ye taşınabilirlik.** `denge/ikiz/kestirim.py` ve `denge/ikiz/kontrol.py` içindeki her sınıf bir C yapısına karşılık gelir: alanlar `__slots__` ile sabittir, diziler kurulurken bir kez ayrılır, adım fonksiyonları sabit periyotla çağrılır ve numpy kullanmaz. Yalnız `lqr_tasarla` çevrim dışı bir tasarım aracıdır.
+
+Kestirim, kontrol ve senaryo ayarları:
+
+@@tablo_ik_ayar@@
+
+### 12.6 Senaryolar ve geçti/kaldı ölçütleri
+
+Her senaryo şartnamedeki testi birebir uygular; robot BÜTÜN kutulu senaryolarda kutuyu taşır. Bütün alt testler için ortak koşullar: denge korunur (iki teker dışında bir parça yere değmez, yere değme açısı ileri @@ik_yd_ileri@@°, geri @@ik_yd_geri@@°), kutu düşmez (kutunun yuvada gördüğü görünür eğim 0,1 s ortalamada devrilme açısını, @@ik_kutu_devrilme@@°, aşmaz) ve sigorta atmaz (1 s etkin akım ≤ @@ik_sigorta@@ A). Şartnamede sayısal tolerans olmayan yerlerde seçilen eşikler [öneri] diye işaretlidir ve parametre dosyasındadır.
+
+@@tablo_ik_senaryo@@
+
+Düşen senaryoda neden otomatik yazılır: düşmeden önceki 1 s'de PWM ya da akım doyumundaysa "motor doyumu" (akım düşükse devir sınırı, yüksekse tork sınırı), teker kayıyorsa "teker kayması", kestirim hatası 3°'yi aşıyorsa "kestirim hatası", hiçbiri değilse "kontrolcü kararsızlığı".
+
+### 12.7 Sonuçlar: satın alınan motor (1000 RPM)
+
+@@tablo_ik_matris@@
+
+*✓ geçti, ✗ kaldı. Ö1-4, +10° ve −10° ikisi birlikte geçince geçer. Toplamlar: LQI + Kalman @@ik_gecen_lqr_kalman@@, LQI + tamamlayıcı @@ik_gecen_lqr_tamamlayici@@, PID + Kalman @@ik_gecen_pid_kalman@@, PID + tamamlayıcı @@ik_gecen_pid_tamamlayici@@.*
+
+Ölçütler, LQI + Kalman:
+
+@@tablo_ik_detay@@
+
+*Yere değme payı: yere değme açısına kalan en küçük açı. Doyum süresi: PWM %100'de ya da akım sınırında geçen toplam süre. Kutu görünür eğimi: 0,1 s ortalama.*
+
+**Kalan alt testler ve nedenleri (ana matris, @@ik_kalan_sayisi@@ adet):**
+
+@@ik_kalanlar@@
+
+**Yorum.**
+
+- **Denge ve toparlanma.** Hareketli senaryolarda en büyük eğim @@ik_egim_max@@°, yere değme payı en az @@ik_pay_min@@°: gövdenin yere değmesine çok uzaktır. ±10°'den toparlanma boş pilde LQI ile @@ik_t_topar@@, PID ile @@ik_t_topar_pid@@ (şartname sınırı 10 s).
+- **Motor kullanımı.** En uzun doyum süresi @@ik_doyum_max@@ s (Ö1-4'ün ilk anları), tepe akım @@ik_tepe_akim@@ A (iki motor toplamı), 1 s etkin akım en çok @@ik_rms_max@@ A: 5 A sigortanın çok altında. §11'deki el hesabı ±10°'yi 0,5 s'de ve 2 kat emniyetle istediği için kapalı çevrimin gerçek talebinden yüksektir.
+- **Ö2.** Komuttan tepkiye geçen süre (kablosuz gecikme dahil; ileri, geri, sol, sağ): @@ik_tepki@@; sınır 2 s.
+- **Kutu.** Kutunun gördüğü görünür eğim en çok @@ik_kutu_alfa@@° (0,1 s ortalama): sürtünme açısı (@@ik_kutu_surtunme@@°) ve devrilme açısının (@@ik_kutu_devrilme@@°) altında. Dişli boşluğundaki çarpmalar ms'lik darbelerle çok daha büyük anlık değerler üretir; bunlar kutuyu ancak duvara kadar (boşluk kadar) kaydırabilir.
+- **Notlar:** @@ik_notlar@@.
+- **Dişli boşluğu.** Robot dengede dururken gereken tork sıfıra yakındır, bu yüzden dişliler zamanın büyük kısmında boşlukta kalır ve kontrolcü onları iki yöne çarptırır. Simülasyonda bu, PWM'de ve akımda yüksek frekanslı salınım olarak görünür (Şekil 14–16) ve tekerin çarpma anında kısa süre kaymasına yol açar. Ölü bölge telafisi 0,8'den 0,5'e indirilince titreşim azaldı. Boşluk ölçülünce bu sonuçlar yenilenmelidir.
+
+![Şekil 14](sekiller/sekil_14_ikiz_denge.png)
+
+*Şekil 14: Ö1-1 (30 s statik denge) ve Ö1-4 (±10°'den toparlanma), LQI ve PID, Kalman, kutulu, boş pil. Satırlar: gövde eğimi (yatay çizgi: dik duruş, KM aksın üstünde), aks konumu, sağ motor PWM'i, sağ motor akımı. PWM ve akımdaki yoğun salınım dişli boşluğundandır.*
+
+![Şekil 15](sekiller/sekil_15_ikiz_oteleme.png)
+
+*Şekil 15: Ö1-2/3 (1 m ileri, 3 s dur, 1 m geri, 3 s dur), solda boş, sağda dolu pil.*
+
+![Şekil 16](sekiller/sekil_16_ikiz_o2.png)
+
+*Şekil 16: Ö2 komut dizisi (eldivenden, @@ik_gec_komut@@ s gecikmeli): eğim, konum, sapma; LQI için iki motorun PWM'i ve akımı.*
+
+![Animasyon](sekiller/ikiz_o1_4.gif)
+
+*Animasyon: Ö1-4, +10°'den toparlanma (LQI + Kalman, boş pil, kutulu), yarı hızda. `python -m denge.ikiz --senaryo O2 --gif o2.gif` ile her senaryo için üretilebilir.*
+
+### 12.8 Motor kararı: 1000, 530 ve 333 RPM
+
+Aynı senaryolar aynı gürültüyle 530 RPM (1:19) ve 333 RPM (1:30) ile de koşuldu; motor verileri satıcının aynı tablosundan [doğrulanamadı]. Adil olsun diye LQI her motor için aynı Q, R ağırlıklarıyla o motorun modelinden (kendi $J_m$'siyle) yeniden tasarlandı; PID dosyadaki kazançlarla koşuldu (çıkış katı torku her motorun kendi sabitleriyle PWM'e çevirir). Ayrıca Ö1-4'ün kaç dereceye kadar geçtiği ikiye bölmeyle arandı ("pay").
+
+@@tablo_ik_motorlar@@
+
+*Geçen: kutu takılı ve takılı değil, 8 alt test × 2 = 16 üzerinden. Toparlanabilen en büyük eğim: LQI + Kalman, kutulu, +10° ve −10° yönlerinin küçüğü. Son sütun rotor ataletinin aralık uçlarıyla (boş pil).*
+
+![Şekil 17](sekiller/sekil_17_ikiz_motorlar.png)
+
+*Şekil 17: Solda üç motorla Ö1-4 (+10°, boş pil): eğim, PWM, akım. Sağda Ö1-4'ün geçtiği en büyük başlangıç eğimi.*
+
+**Yorum.**
+
+- **Üç motor da ±10°'yi geniş payla toparlar.** @@ik_pay_cumle@@ Daha yüksek oran torku artırır, ama yansıyan rotor ataletini oranın karesiyle ve sürtünmeyi oranla büyütür; büyük açıda robot hızlı koşmak zorunda kaldığı için boşta hızı düşük motor devir sınırına takılır. Sınırın hemen üstünde düşme nedeni (boş pil, +yön): 1000 RPM'de @@ik_neden_1000@@, 530 RPM'de @@ik_neden_530@@, 333 RPM'de @@ik_neden_333@@.
+- **Rotor ataletinin belirsizliği.** @@ik_duyarlilik_cumle@@
+- **Geçen alt testler** (kutulu + kutusuz, dolu + boş pil): @@ik_durus_cumle@@ Adaylarda kalan alt testlerin nedenleri (alt test sayısı): @@ik_aday_kalma@@. Sürtünme torku büyüdükçe robot durmak yerine yavaşça gidip gelir (sürtünme + integral avlanması); bu, ayar ve ölü bölge telafisiyle iyileştirilebilir, ama ek iş demektir.
+- **§11 ile ilişkisi.** §11'deki el hesabı kararı ("sınırda") ±10°'den 0,5 s'de toparlanmayı ve 2 kat emniyeti, rotor ataletini sıfır alarak istiyordu. Kapalı çevrimde gerçek talep daha düşüktür, rotor ataleti ise yüksek oranlı motorun aleyhinedir.
+
+**Öneri [öneri].** @@ik_karar_cumle@@ Ölçümde boşta devir ve kilitlenme torkuna ek olarak rotor ataleti (serbest yavaşlama) ve dişli boşluğu da ölçülmeli; değerler parametre dosyasına girilince bu bölüm ve karar yeniden üretilir. 1:3 kayış (§11.4 b) de aynı nedenle (yansıyan atalet ×9) önce ikizde sınanmalıdır. Enkoderin düşük çözünürlüğü (440 sayım) ikizde hız süzgeciyle karşılandı.
+
+### 12.9 Sınırlamalar
+
+- Fiziksel parametrelerin hiçbiri ölçülmedi. Sonuçları en çok değiştirenler: rotor ataleti (kaba hesap), dişli boşluğu, motor sürtünmesinin modeli (boşta akım bütün hızlarda Coulomb sürtünmesi sayıldı), motor sabitleri (veri sayfası, [doğrulanamadı]) ve pil iç direnci.
+- Dişliler rijit ve çarpmalar plastik kabul edildi; gerçek dişlinin esnekliği ve yağı çarpmayı yumuşatır. Bu yüzden simülasyondaki çarpma anı teker kayması ve PWM titreşimi büyük olasılıkla abartılıdır.
+- Zemin düz ve tektir (μ = @@ik_mu@@, tahmini); tekerin yanal kayması, yuvarlanma direnci, lastik esnekliği yok. Kutu gövdeye rijit bağlı kabul edildi; kayması ve devrilmesi görünür eğimden değerlendirildi.
+- MPU6050'nin DLPF'i birinci dereceden süzgeçle temsil edildi; sıcaklıkla sapma kayması, eksen kaçıklığı ve titreşimin jiroskoba etkisi modellenmedi. ESP32'nin zamanlama titremesi (jitter) yok.
+- Kazançlar ikizde ayarlandı; donanımda yeniden ayarlanacaklar. Final kuralı gereği 13. haftada, farklı pil doluluklarında doğrulandıktan sonra dondurulmalıdır.
+
+### 12.10 Sonraki adımlar ve 3D simülasyon önerisi
+
+1. **Motor ölçümü (hemen):** §11.5'e ek olarak rotor ataleti (motor boşta tam hızdayken besleme kesilir, enkoderden yavaşlama eğrisi kaydedilir) ve dişli boşluğu (§12.2 tablosundaki yöntem). Değerler girilince `python -m denge` her şeyi yeniden üretir.
+2. **5. hafta:** `kestirim.py`'deki Kalman süzgeci ESP32'ye taşınır; seri port çizicisinde ivme telafisi açık/kapalı karşılaştırılır. Simülasyondaki kestirim hatası (Şekil 18) gerçek kayıtla karşılaştırılarak sensör parametreleri güncellenir.
+3. **6. hafta:** `kontrol.py`'deki LQI ve çıkış katı C'ye çevrilir; ilk aktif denge LQI ile, PID yedek olarak. Ölü bölge telafisi gerçek motorda başlatma PWM'i ölçülerek ayarlanır.
+4. **Ousmane ve Mohamad:** eldiven → robot komut gecikmesinin ölçülmüş değeri (şu an @@ik_gec_komut@@ s tahmini).
+5. **3D simülasyon önerisi [öneri].** 2D ikiz kontrolcü ve motor kararları için yeterlidir; 3D ancak şu sorular için gerekir: IR ile istasyona yaklaşma (Ö3; ışın geometrisi, açılı yaklaşma), şarj kontaklarının hizalanması, eğik zeminde ya da eşikte davranış, kutunun yuvada gerçekten kayıp devrilmesi. Bunun için **MuJoCo** önerilir: açık kaynaklıdır, temas ve sürtünme modeli robot kontrolü çalışmalarında yaygın kullanılır, MJCF dosyasındaki eklem ve aktüatörler buradaki parametre dosyasından üretilebilir ve Python bağlantısı mevcut kontrolcü kodunu doğrudan çalıştırabilir. **PyBullet** kurulumu daha kolaydır ve robot tanımı URDF ile yapılır, ama son yıllarda güncellemeleri seyrekleşti ve temas sonuçları adım süresine duyarlı olabilir [doğrulanamadı]. Önerilen yol: (a) `parametreler.toml`'dan MJCF üreten küçük bir betik, (b) aynı `kestirim.py` ve `kontrol.py`'yi MuJoCo döngüsünde koşturup bu 2D ikizle aynı senaryolarda sonuçların örtüştüğünü göstermek, (c) ardından yalnız Ö3 ve kutu senaryolarını 3D'de eklemek. 9.–10. haftalardaki Ö3 çalışmasından önce, Ömer Faruk'un IR verisi geldikten sonra başlanması uygundur.
+
 ## Ek A: Dosyalar ve yeniden üretim
 
 ```
@@ -919,6 +1104,7 @@ denge/step.py            Step motor: geçici pull-out eğrisi, adım kaçırma, 
 denge/satin_alinan.py    Satın alınan motor: sınama, karar, çözümler (python -m denge.motor --satin-alinan --yan-yana)
 denge/kutle_merkezi.py   KM, atalet, yere değme açısı, yuvadaki özgül kuvvet
 denge/yuva_analizi.py    Kutulu/kutusuz KM, kayma, KM yüksekliği ve yuva karşılaştırması
+denge/ikiz/              Dijital ikiz (python -m denge.ikiz): fizik, sensörler, kestirim, kontrol, senaryolar, çizim
 denge/rapor.py           Bu belgeyi ve şekilleri üretir (python -m denge)
 tests/                   Doğrulama testleri (pytest)
 ```
@@ -927,6 +1113,7 @@ tests/                   Doğrulama testleri (pytest)
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m denge          # şekiller + bu belge + test özeti
 .venv/bin/python -m pytest -q      # testler
+.venv/bin/python -m denge.ikiz     # dijital ikiz: senaryo matrisi, özet tablo, docs/simulasyon/sonuclar.csv
 ```
 
 ## Kaynaklar
@@ -943,4 +1130,6 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 10. Fiyatlar: direnc.net JGB37-520 12V 333RPM Enkoderli Motor; robo90.com BTS7960B ve 17HS4401 sayfaları (5 Kasım 2026'da okundu). Değerler [doğrulanamadı].
 11. direnc.net, *JGB37-520 - 12V 1000RPM Enkoderli Motor* ürün sayfası ve bağlı veri sayfası (pdf.direnc.net/upload/jgb37-520-datasheet.pdf), 22 Kasım 2026'da okundu. Değerler [doğrulanamadı].
 12. robotistan.com, *GT2 20 Diş Kasnak + 6 mm Kayış (2 m) Seti*, arama özetindeki fiyat, 22 Kasım 2026 [doğrulanamadı].
-13. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).
+13. InvenSense, *MPU-6000 and MPU-6050 Product Specification*, PS-MPU-6000A-00, Revision 3.4, 19 Ağustos 2013: Tablo 6.1 (jiroskop) ve 6.2 (ivmeölçer), 22 Kasım 2026'da mikrocontroller.net kopyasından okundu. DLPF tablosu Register Map belgesindedir, okunamadı [doğrulanamadı].
+14. MuJoCo (Google DeepMind, açık kaynak) ve PyBullet (Bullet Physics): 3D simülasyon önerisi için genel bilgi; sürüm ve özellikler kurulumda doğrulanmalı [doğrulanamadı].
+15. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).

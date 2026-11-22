@@ -1,7 +1,7 @@
 <!-- Otomatik üretildi (python -m denge). Düzenlemek için docs/sablon/hafta03_ozet.md ve parametreler.toml dosyalarını değiştirin. -->
 # 3. Hafta Toplantı Özeti
 
-**Sefa Nurali Uçak (23015008)** · Kontrol ve Otomasyon, Modül A ve E · 19 Ekim 2026 (ekler: step motor §10, satın alınan motor §11, 22.11.2026) · Tam belge: [hafta03_model_tork_km.md](hafta03_model_tork_km.md)
+**Sefa Nurali Uçak (23015008)** · Kontrol ve Otomasyon, Modül A ve E · 19 Ekim 2026 (ekler: step motor §10, satın alınan motor §11, simülasyon §12, 22.11.2026) · Tam belge: [hafta03_model_tork_km.md](hafta03_model_tork_km.md)
 
 ## Danışmanın istediği
 
@@ -12,7 +12,8 @@
 - Robotun hareket denklemlerini çıkardık ve denge, ileri gitme, dönüş için bir bilgisayar modeli kurduk. Model PID, LQR ve MPC'nin üçüne de temel olabilir.
 - Bütün değerleri tek bir parametre dosyasında, kaynaklarıyla topladık. Malzemeler ön malzeme listesinden alındı; Mete'nin seçimiyle kesinleşecek. Motorlar alındı, ama hiçbir değer henüz ölçülmedi.
 - Gereken motor torkunu, devri ve enkoder çözünürlüğünü hesapladık; aday motorları, step seçeneğini ve satın alınan 1000 RPM motoru sınadık.
-- İlaç kutusu yuvası için üç konumu karşılaştırdık. Belge ve şekiller tek komutla parametre dosyasından üretiliyor; 127 doğrulama testinin hepsi geçti.
+- Modelin üstüne kapalı çevrim bir simülasyon (dijital ikiz) kurduk: motor, pil, teker kayması, dişli boşluğu, IMU ve enkoder modeli, 200 Hz döngü, gecikmeler; PID ve LQR, Kalman ve tamamlayıcı süzgeç; şartnamedeki testler otomatik geçti/kaldı ile. Kontrolcü kodu ESP32'ye taşınabilir yazıldı.
+- İlaç kutusu yuvası için üç konumu karşılaştırdık. Belge ve şekiller tek komutla parametre dosyasından üretiliyor; 155 doğrulama testinin hepsi geçti.
 
 ## Ana sonuçlar
 
@@ -22,16 +23,18 @@
 4. Enkoder teker turu başına en az 1021 sayım vermeli. ([§4.6](hafta03_model_tork_km.md#46-enkoder-gereksinimi))
 5. Kutu robot ağırlığının %3,8'idir ve dengeyi neredeyse değiştirmez (düşme hızı %−1,4 değişir). Aynı ayarlar kutulu ve kutusuz çalışır. ([§5.2](hafta03_model_tork_km.md#52-kutulu-ve-kutusuz-km))
 6. Gövde en fazla ileri 58,9°, geri 74,2° eğilebilir; daha fazlasında tekerler dışında bir parça yere değer ve test düşer. ([§5.6](hafta03_model_tork_km.md#56-yere-değme-açısı))
+7. Simülasyonda satın alınan motor, kutulu/kutusuz ve dolu/boş pilde final testlerinin 128/128'ini geçti; ±10° yerine boş pilde 27,4°'ye kadar toparlanıyor. Eğimi doğru ölçmek için ivmeölçerden robotun kendi ivmesini çıkarmak gerekiyor; çıkarılmazsa hareketli testler kalıyor. ([§12.7](hafta03_model_tork_km.md#127-sonuçlar-satın-alınan-motor-1000-rpm), [§12.4](hafta03_model_tork_km.md#124-durum-kestirimi))
 
 ## Öneriler ve kararlar
 
-- **Satın alınan 1000 RPM motor: sınırda.** Robotu dengeler ve ±10°'den toparlar, ama boş pilde 2 kat yerine yalnız 1,14 kat pay bırakır (dolu pilde 1,50); toparlanmayı zemin değil motor sınırlar ve enkoder hedefin altında (440 < 1021 sayım). Öneri: değişim mümkünse aynı fiyattaki 333 RPM (2,46 kat pay); değilse motor ile teker arasına 1:3 kayış (2,24 kat pay, 1320 sayım). Daha küçük teker işe yaramaz, kütleyi azaltmak tek başına yetmez. Step motor seçeneği §10'da duruyor. ([§11.6](hafta03_model_tork_km.md#116-öneri))
+- **Satın alınan 1000 RPM motor: sınırda** (el hesabı: boş pilde 2 kat yerine 1,14 kat pay). **Simülasyon bu kararı yumuşattı:** 1000 RPM testleri geçiyor, 333 RPM ise daha fazla pay sağlamıyor (23,2° / 27,4°), çünkü yüksek oranda rotor ataleti ve sürtünme büyüyor. **Öneri: değişimi askıya alıp satın alınan motorla devam etmek ve önce ölçmek.** Step motor seçeneği §10'da duruyor. ([§11.6](hafta03_model_tork_km.md#116-öneri), [§12.8](hafta03_model_tork_km.md#128-motor-kararı-1000-530-ve-333-rpm))
 - **Kutu yuvası: üst plaka.** Tekerlek aksının tam üstünde; kutu yatık ve uzun kenarı yana bakar; boşluk en fazla 2 mm. Kamera kutuyu görür, kutu test başında kolay konur, iç yerleşim değişmez. ([§5.5](hafta03_model_tork_km.md#55-yuva-konumu-karşılaştırması-ve-öneri))
 
 ## Bekleyenler
 
 - **Mete'den:** motor değişimi mümkün mü; değilse 1:3 kayışın mekaniği; batarya ve BMS kesim gerilimi, kat yerleşimi, sigorta değeri. ([§7](hafta03_model_tork_km.md#7-meteden-ve-diğer-üyelerden-beklenen-girdiler))
-- **Ölçülecek (motorlar elimizde):** teker turu başına enkoder sayımı, boşta devir ve akım, 9,9 V'ta kilitlenme torku (kol + mutfak tartısı) ve akımı; değerler girilince karar yeniden üretilir ([§11.5](hafta03_model_tork_km.md#115-ölçüm-planı)). Ayrıca rotor ataleti, aspirin kutusunun ölçüsü ve kütlesi, parçaların kütleleri.
+- **Ölçülecek (motorlar elimizde):** teker turu başına enkoder sayımı, boşta devir ve akım, 9,9 V'ta kilitlenme torku (kol + mutfak tartısı) ve akımı, rotor ataleti (serbest yavaşlama) ve dişli boşluğu; değerler girilince karar ve simülasyon yeniden üretilir ([§11.5](hafta03_model_tork_km.md#115-ölçüm-planı), [§12.10](hafta03_model_tork_km.md#1210-sonraki-adımlar-ve-3d-simülasyon-önerisi)). Ayrıca aspirin kutusunun ölçüsü ve kütlesi, parçaların kütleleri.
+- **Ousmane ve Mohamad'dan:** eldivenden robota komut gecikmesinin ölçülmüş değeri (simülasyonda 0,20 s varsayıldı).
 - **Danışmana sorular:** (1) Şartnamede hareket süresi yok; 1 m'yi 4 s'de almayı hedefledik, uygun mu? (2) Bu hafta donanım olmadığı için 1. ölçütte canlı simülasyon gösterimi kabul edilir mi? (3) IR ile istasyona yanaşma algoritması planda 10. haftada, ama 9. hafta toplantısında bu testin demosu bekleniyor; algoritmaya 8. haftada başlamamız uygun mu?
 
 ## Sonraki hafta: pasif kararlılık testi
@@ -44,8 +47,8 @@
 
 | Ölçüt | Karşılayan |
 |---|---|
-| 1. Çalışır çıktı | Canlı: `python -m denge` (belge ve şekiller yeniden üretilir), `python -m denge.motor --satin-alinan --yan-yana`, `python -m denge.step` |
-| 2. Ölçüm ve doğrulama | `tests/` (127 doğrulama testinin hepsi geçti); Şekil 2 (kutuplar), Şekil 3 (düşme simülasyonu) |
+| 1. Çalışır çıktı | Canlı: `python -m denge.ikiz --senaryo O1-4+ --gif o.gif` (simülasyon ve animasyon), `python -m denge` (belge ve şekiller yeniden üretilir), `python -m denge.motor --satin-alinan --yan-yana` |
+| 2. Ölçüm ve doğrulama | `tests/` (155 doğrulama testinin hepsi geçti); Şekil 3 (düşme), Şekil 14–18 ve `docs/simulasyon/sonuclar.csv` (simülasyon, geçti/kaldı) |
 | 3. Sistem entegrasyonu | Mete'den beklenen girdiler (§7), motor seçim diyagramı (Şekil 7), sigorta kontrolü (§4.7) |
 | 4. Şartname ve İSG | Pasif test öngörüsü (Şekil 3), 12,6 V ≤ 24 V, yere değme açısı (§5.6), yuva gövdeye vidalanmaz |
 | 5. Teknik dokümantasyon | Bu özet, tam belge, `parametreler.toml`, git geçmişi |

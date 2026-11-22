@@ -1,6 +1,6 @@
 """3. hafta dokümanını ve şekillerini parametre dosyasından üretir.
 
-Kullanım:  python -m denge            (şekiller + tam belge + toplantı özeti + pytest özeti)
+Kullanım:  python -m denge            (şekiller + tam belge + toplantı özeti + dijital ikiz §12 + pytest özeti)
            python -m denge --testsiz  (pytest çalıştırmadan)
            python -m denge --pdf      (ayrıca docs/pdf/ altına PDF; depoya eklenmez)
 Şablonlar (docs/sablon/hafta03.md, hafta03_ozet.md) içindeki @@anahtar@@ yer tutucuları doldurulur.
@@ -29,6 +29,7 @@ SABLON = DOCS / "sablon" / "hafta03.md"
 CIKTI = DOCS / "hafta03_model_tork_km.md"
 OZET_SABLON = DOCS / "sablon" / "hafta03_ozet.md"
 OZET = DOCS / "hafta03_toplanti_ozeti.md"
+SIM_CSV = DOCS / "simulasyon" / "sonuclar.csv"
 PDF_DIZINI = DOCS / "pdf"
 
 KGFCM = motor.KGFCM
@@ -531,7 +532,7 @@ def satin_alinan_bolumu(tasarim: Tasarim, V: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
+def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True, simulasyon: bool = True) -> dict:
     SEKIL.mkdir(parents=True, exist_ok=True)
     tasarim = tasarim.tahrik_tasarimi("dc")  # §1–§9 DC motor içindir; §10 step motoru ayrıca hesaplar
     D: dict[str, str] = {}
@@ -892,6 +893,10 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True) -> dict:
     # -- Step motor seçeneği (§10) ----------------------------------------------
     D |= step_bolumu(tasarim, g, en_iyi, V, e["cpr_min"])
     D |= satin_alinan_bolumu(tasarim, V)  # §11
+    if simulasyon:  # §12: dijital ikiz
+        from .ikiz.rapor_bolumu import simulasyon_bolumu
+
+        D |= simulasyon_bolumu(tasarim, SEKIL, SIM_CSV)
 
     # -- Duyarlılık -------------------------------------------------------------
     satirlar, taban = duyarlilik(tasarim)
@@ -925,7 +930,7 @@ def main(argv=None):
     ap.add_argument("--parametreler", default=None)
     a = ap.parse_args(argv)
     tasarim = Tasarim.yukle(a.parametreler)
-    D = hesapla_ve_ciz(tasarim, testler=not a.testsiz)
+    D = hesapla_ve_ciz(tasarim, testler=not a.testsiz)  # §12 senaryo matrisini de koşturur (≈ 1–2 dk)
     uyari = "<!-- Otomatik üretildi (python -m denge). Düzenlemek için docs/sablon/{} ve parametreler.toml dosyalarını değiştirin. -->\n"
     metin = doldur(SABLON.read_text(encoding="utf-8"), D).split("\n", 1)[1]  # şablon uyarısı satırını at
     CIKTI.write_text(uyari.format(SABLON.name) + metin, encoding="utf-8")

@@ -78,3 +78,17 @@ def test_satin_alinan_bolumu_karar_gerekce_cozum_olcum_tasir():
     for ic in ("### 11.2", "### 11.3 Karar", "### 11.4 Çözüm", "### 11.5 Ölçüm planı", "### 11.6 Öneri", "**a) Daha küçük teker.**",
                "**b) Motor ile teker arasına ek redüksiyon.**", "**c) Kütle ve KM yüksekliğini azaltmak.**", "[doğrulanamadı]"):
         assert ic in bolum
+
+
+def test_simulasyon_bolumu_istenen_basliklari_ve_oneriyi_tasir():
+    tam = (SABLON / "hafta03.md").read_text(encoding="utf-8")
+    bolum = tam.split("## 12. Simülasyon")[1].split("## Ek A")[0]
+    for ic in ("### 12.1", "### 12.2 Simülasyon çekirdeği", "### 12.3 Sensörler", "### 12.4 Durum kestirimi", "### 12.5 Kontrolcüler",
+               "### 12.6 Senaryolar", "### 12.7 Sonuçlar", "### 12.8 Motor kararı", "### 12.9 Sınırlamalar", "### 12.10",
+               "MuJoCo", "PyBullet", "[öneri]", "@@tablo_ik_matris@@", "@@tablo_ik_motorlar@@", "@@ik_kalanlar@@"):
+        assert ic in bolum
+    ozet = (SABLON / "hafta03_ozet.md").read_text(encoding="utf-8")
+    assert "@@bag_12_8@@" in ozet and "simülasyon" in ozet.lower()
+    uretilen = (KOK / "docs" / "hafta03_model_tork_km.md").read_text(encoding="utf-8")
+    assert "## 12. Simülasyon" in uretilen and "@@" not in uretilen
+    assert (KOK / "docs" / "simulasyon" / "sonuclar.csv").exists()
