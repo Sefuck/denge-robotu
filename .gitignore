@@ -15,3 +15,6 @@ kaynaklar/
 
 # Toplantı için üretilen PDF'ler (python -m denge --pdf)
 docs/pdf/
+
+# Dijital ikizin toplu grafik çıktıları (python -m denge.ikiz --tum-grafikler)
+cikti/
