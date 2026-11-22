@@ -92,3 +92,14 @@ def test_simulasyon_bolumu_istenen_basliklari_ve_oneriyi_tasir():
     uretilen = (KOK / "docs" / "hafta03_model_tork_km.md").read_text(encoding="utf-8")
     assert "## 12. Simülasyon" in uretilen and "@@" not in uretilen
     assert (KOK / "docs" / "simulasyon" / "sonuclar.csv").exists()
+
+
+def test_3d_alt_bolumu_ve_video_baglantilari():
+    tam = (SABLON / "hafta03.md").read_text(encoding="utf-8")
+    bolum = tam.split("### 12.11 3D simülasyon")[1].split("## Ek A")[0]
+    for ic in ("MuJoCo", "@@tablo_ik3@@", "**Farklar ve nedenleri.**", "mjpython", "[öneri]"):
+        assert ic in bolum
+    for hedef in re.findall(r"\]\((video/[^)]+\.mp4)\)", bolum):
+        assert (KOK / "docs" / hedef).exists(), hedef
+    ozet = (SABLON / "hafta03_ozet.md").read_text(encoding="utf-8")
+    assert "@@bag_12_11@@" in ozet and "MuJoCo" in ozet

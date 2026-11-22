@@ -8,7 +8,7 @@
 
 | Hafta | Danışman teslimatı | Özet | Tam belge | Durum |
 |---|---|---|---|---|
-| 3 | Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı | [Özet](docs/hafta03_toplanti_ozeti.md) | [Tam belge](docs/hafta03_model_tork_km.md) | Hazır (19 Ekim 2026 toplantısı); step motor seçeneği §10, satın alınan 1000 RPM motor §11, kapalı çevrim simülasyon (dijital ikiz) §12'de; parametreler ölçülmedi |
+| 3 | Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı | [Özet](docs/hafta03_toplanti_ozeti.md) | [Tam belge](docs/hafta03_model_tork_km.md) | Hazır (19 Ekim 2026 toplantısı); step motor seçeneği §10, satın alınan 1000 RPM motor §11, kapalı çevrim simülasyon (dijital ikiz) §12, 3D (MuJoCo) çapraz kontrol ve videolar §12.11'de; parametreler ölçülmedi |
 
 ---
 
@@ -27,7 +27,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-PDF üretimi için ayrıca Google Chrome gerekir (pandoc, `pypandoc_binary` ile sanal ortama kurulur).
+PDF üretimi için ayrıca Google Chrome gerekir (pandoc, `pypandoc_binary` ile sanal ortama kurulur). 3D videolar için ffmpeg gerekir (macOS: `brew install ffmpeg`); MuJoCo `requirements.txt` ile kurulur.
 
 ## Kullanım
 
@@ -42,6 +42,11 @@ PDF üretimi için ayrıca Google Chrome gerekir (pandoc, `pypandoc_binary` ile 
 .venv/bin/python -m denge.ikiz --senaryo O1-4+ --motor 333 --pil bos --kontrolcu pid --grafik g.png --gif a.gif   # tek senaryo
 .venv/bin/python -m denge.ikiz --lqr-tasarla   # parametreler değişince LQI kazançlarını Q, R'den yeniden hesaplar (kontrol.lqr.K'ye yazılır)
 .venv/bin/python -m denge.ikiz --pay           # Ö1-4'ün geçtiği en büyük başlangıç eğimi, her motor ve pil için
+.venv/bin/python -m denge.ikiz3d --senaryo O1-4+       # 3D ikiz (MuJoCo), tek senaryo
+.venv/bin/mjpython -m denge.ikiz3d --senaryo O2 --oneri --canli   # canlı 3D izleme (macOS'ta mjpython gerekir)
+.venv/bin/python -m denge.ikiz3d --senaryo O5 --video o5.mp4      # MP4: sabit yan + çapraz kamera
+.venv/bin/python -m denge.ikiz3d --karsilastir         # 2D ve 3D yan yana (§12.11)
+.venv/bin/python -m denge.ikiz3d --sunum               # toplantı videoları → docs/video/ (python -m denge bunları yenilemez)
 .venv/bin/python -m denge.motor --gerilim 12 --bosta-devir 300 --durma-torku 8 \
     --durma-akimi 3 --bosta-akim 0.2 --reduksiyon 30 --ppr 11   # başka bir adayı veri sayfası değerleriyle sınar
 ```
@@ -69,6 +74,8 @@ Her hafta: yeni şablonları `docs/sablon/` altına ekle, yukarıdaki hafta tabl
 | `denge/kutle_merkezi.py` | KM, atalet tensörü, yere değme açısı, yuvadaki özgül kuvvet |
 | `denge/yuva_analizi.py` | Kutulu/kutusuz KM, kutu kayması, KM yüksekliği taraması, yuva seçenekleri |
 | `denge/ikiz/` | Dijital ikiz (§12): `fizik` (7 serbestlikli model, teker kayması, dişli boşluğu, motor, pil), `sensorler` (MPU6050, enkoder), `kestirim` (Kalman, tamamlayıcı; ESP32'ye taşınabilir), `kontrol` (PID, LQI, çıkış katı; ESP32'ye taşınabilir), `senaryolar` (Ö1-1 … Ö2, geçti/kaldı, düşme nedeni), `toplu`, `cizim` (grafik, GIF), `rapor_bolumu` |
+| `denge/ikiz3d/` | 3D ikiz (§12.11, MuJoCo): `mjcf` (parametre dosyasından model; kütle/atalet 2D ile aynı), `kosucu` (MuJoCo fiziği + 2D ikizin motor, sensör, kestirici, kontrolcü kodu), `karsilastirma` (2D/3D tablo), `video` (MP4, sunum karesi) |
+| `docs/video/` | 3D toplantı videoları (`python -m denge.ikiz3d --sunum`) |
 | `docs/simulasyon/sonuclar.csv` | Simülasyonun her koşusu ve alt testi: sonuç, metrikler, kalma nedeni (üretilir) |
 | `denge/sekiller.py`, `denge/rapor.py`, `denge/pdf.py` | Şekiller, belge ve özet üretimi, PDF çevirisi |
 | `docs/sablon/` | Tam belge ve özet şablonları, PDF stilleri |

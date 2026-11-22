@@ -897,6 +897,9 @@ def hesapla_ve_ciz(tasarim: Tasarim, testler: bool = True, simulasyon: bool = Tr
         from .ikiz.rapor_bolumu import simulasyon_bolumu
 
         D |= simulasyon_bolumu(tasarim, SEKIL, SIM_CSV)
+        from .ikiz3d.karsilastirma import belge_bolumu  # §12.11: 3D (MuJoCo) çapraz kontrol
+
+        D |= belge_bolumu(tasarim, SEKIL)
 
     # -- Duyarlılık -------------------------------------------------------------
     satirlar, taban = duyarlilik(tasarim)

@@ -6,7 +6,7 @@
 | **Proje** | YTÜ EEF Çok Disiplinli Tasarım Projesi, 2026-2027 Güz: İki Tekerlekli Ev İçi Hasta Destek Robotu |
 | **Hazırlayan** | Sefa Nurali Uçak (23015008), Kontrol ve Otomasyon Mühendisliği, Modül A ve E |
 | **Toplantı** | 3. hafta danışman toplantısı, 19 Ekim 2026 (Parça Seçimi, Mimari ve Tasarım Toplantısı) |
-| **Belge** | Parametre sürümü 0.5, üretim 22.11.2026. `parametreler.toml` dosyasından `python -m denge` ile üretilir. |
+| **Belge** | Parametre sürümü 0.6, üretim 23.11.2026. `parametreler.toml` dosyasından `python -m denge` ile üretilir. |
 
 > **Danışman planındaki teslimat:** "Ters sarkaç matematiksel modeli, motor tork/hız hesapları ve ilaç kutusu yuvasının kütle merkezi analizi dokümanı."
 >
@@ -805,7 +805,7 @@ Aralığı tanımlı her fiziksel parametre, diğerleri nominalde tutularak aral
 
 Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 
-> **155 passed in 36.45s**
+> **167 passed in 46.71s**
 
 | İstenen kontrol | Nasıl yapıldı | Test dosyası |
 |---|---|---|
@@ -818,6 +818,7 @@ Testler `pytest` ile çalıştırılır. Bu belge üretilirken alınan sonuç:
 | Satın alınan motor | Veri sayfası değerleri okunur; ölçüm girilince ölçülen değerler kullanılır; ek redüksiyon torku k·verim katına, enkoderi k katına çıkarır; teker küçülünce devir artar, çekiş ve enkoder hedefi ∝ r, el hesabı değişmez; PWM oranı boşta devirde 1; karar ölçütü | `test_satin_alinan.py` |
 | Step motor seçeneği | DC değerleri sürüm 0.2 ile aynı; ivme girişli kutup = tork modelindeki $X/U$ sıfırı, bağıl ivme girişli kutup = kilitli teker kutbu; $J_m$, $b$ ivme girişli modeli değiştirmez; $a(t)$ tam modelle tutarlı; eğri devirle artmaz, gerilimle düşmez; ölçüm girilince geçici eğri kullanılmaz; detent düşmeyi engellemez; birimler (`pint`) | `test_step.py` |
 | Dijital ikiz | Kısıtlar etkinken fizik çekirdeği §3 modeliyle aynı ivmeleri verir; serbest düşme açık çevrim simülasyonuyla örtüşür; fizik adımı yarıya inince sonuç değişmez; boşta devir ve kilitlenme akımı motor sabitleriyle tutarlı; kaymada sürtünme μN'de; enkoder boşluğu görür; sensör gürültüsü veri sayfasıyla tutarlı; Kalman sapmayı kestirir; kontrolcüler aynı arayüzü kullanır ve kazançlar dosyadan gelir; LQI kararlı; değerlendirici düşmeyi, kutuyu ve nedenleri doğru yazar; senaryolar tekrarlanabilir | `test_ikiz.py` |
+| 3D ikiz (MuJoCo) | MJCF'in kütlesi, KM'si ve atalet tensörü 2D modelle aynı (kutulu ve kutusuz); teker ataleti; kutu serbest cisim ve yuva boşluğu; 3D ve 2D aynı motor, kestirici ve kontrolcü kodunu kullanır; kontrolsüz düşmede gövde 2D'deki yere değme açısına yakın değer; Ö1-4 geçer; varsayılan ayarla dönüş kısa kalır, öneriyle geçer; MP4 yazılır | `test_ikiz3d.py` |
 | Motor hesapları | Tutma torku doğrusal olmayan modelde $\ddot\theta = 0$ verir; tutma ≤ referans manevra ≤ el hesabı; uzun manevrada tepe tork → tutma torku; sınır motor eğrisi noktalara teğet | `test_motor.py` |
 
 ## 9. Sınırlamalar ve sonraki adımlar
@@ -1136,7 +1137,7 @@ Step seçilirse 6. haftanın "motor ölü bölgesi telafisi" görevi kalkar, yer
 
 ## 11. Satın alınan motor: JGB37-520 12 V 1000 RPM
 
-> **Durum (22.11.2026).** Ekip 2 adet JGB37-520 12 V 1000 RPM, Hall enkoderli motor aldı (direnc.net). Önerimiz 333 RPM'ydi (§4.7). Değerlerin kaynağı: satıcının veri sayfası, [doğrulanamadı]; motor henüz ölçülmedi. **Karar: SINIRDA.** Motor robotu dengeleyebilir, ama boş pilde önerilen 2 kat emniyet payını sağlamaz ve enkoder çözünürlüğü hedefin altında kalır. Değişim mümkünse 333 RPM; değilse motor ile teker arasına 1:3 kayış önerilir (§11.6).
+> **Durum (23.11.2026).** Ekip 2 adet JGB37-520 12 V 1000 RPM, Hall enkoderli motor aldı (direnc.net). Önerimiz 333 RPM'ydi (§4.7). Değerlerin kaynağı: satıcının veri sayfası, [doğrulanamadı]; motor henüz ölçülmedi. **Karar: SINIRDA.** Motor robotu dengeleyebilir, ama boş pilde önerilen 2 kat emniyet payını sağlamaz ve enkoder çözünürlüğü hedefin altında kalır. Değişim mümkünse 333 RPM; değilse motor ile teker arasına 1:3 kayış önerilir (§11.6).
 >
 > **Güncelleme: §12.8.** Kapalı çevrim simülasyonunda 1000 RPM motor final testlerini geçiyor ve 333 RPM daha fazla pay sağlamıyor; bu yüzden aşağıdaki değişim önerisi askıya alındı. Bu bölüm el hesabına dayanan ilk sınama olarak duruyor.
 
@@ -1262,7 +1263,7 @@ Motorlar elimizde olduğu için ilk iş ölçmektir; değerler `parametreler.tom
 
 ## 12. Simülasyon: kapalı çevrim dijital ikiz
 
-> **Durum (22.11.2026).** Donanım gelmeden kontrolcüyü, durum kestirimini ve satın alınan motoru şartnamenin final testlerine karşı sınamak için §3'teki modelin üstüne kapalı çevrim bir simülasyon kuruldu. Satın alınan 1000 RPM motorla ana matriste (2 kontrolcü × 2 kestirici × kutu takılı/değil × dolu/boş pil) **128/128 alt test geçti**. Motor karşılaştırmasında ±10° yerine toparlanabilen en büyük eğim boş pilde 1000 RPM için 27,4°, 530 RPM için 28,8°, 333 RPM için 23,2°. Bütün sonuçlar ölçülmemiş parametrelere dayanır; en hassas olanlar rotor ataleti, dişli boşluğu ve motor sürtünmesidir (§12.9). Tek komut: `python -m denge.ikiz` (160 koşu, 8 çekirdekte ≈ 1 dk).
+> **Durum (23.11.2026).** Donanım gelmeden kontrolcüyü, durum kestirimini ve satın alınan motoru şartnamenin final testlerine karşı sınamak için §3'teki modelin üstüne kapalı çevrim bir simülasyon kuruldu. Satın alınan 1000 RPM motorla ana matriste (2 kontrolcü × 2 kestirici × kutu takılı/değil × dolu/boş pil) **128/128 alt test geçti**. Motor karşılaştırmasında ±10° yerine toparlanabilen en büyük eğim boş pilde 1000 RPM için 27,4°, 530 RPM için 28,8°, 333 RPM için 23,2°. Bütün sonuçlar ölçülmemiş parametrelere dayanır; en hassas olanlar rotor ataleti, dişli boşluğu ve motor sürtünmesidir (§12.9). Tek komut: `python -m denge.ikiz` (160 koşu, 8 çekirdekte ≈ 1 dk).
 
 ### 12.1 Amaç, kapsam ve döngü
 
@@ -1314,6 +1315,9 @@ Normal kuvvet $N = (m_b + 2m_w)g - m_b l(\ddot\theta\sin\theta + \dot\theta^2\co
 | `ikiz.pil_ic_direnci` | 0,15 | ohm | tahmini | Kaba tahmin: 3S Li-ion, hücre başına ≈ 30–60 mΩ + BMS + sigorta + kablo. Ölçülmedi: yüklü ve yüksüz gerilim farkından ölçülecek. |
 | `ikiz.surucu_olu_bolge` | 0,02 | - | tahmini | Kaba tahmin: 20 kHz PWM'de çok kısa darbelerde BTS7960 çıkışı tam anahtarlanmaz; bu doluluk oranının altı sıfır sayılır. Ölçülmedi. |
 | `ikiz.pil_olcum_hatasi` | 0,02 | - | tahmini | Kaba tahmin: ESP32 ADC + gerilim bölücü ile pil gerilimi ölçümünün kazanç hatası (oran). Ölçülmedi; kalibre edilirse küçülür. |
+| `ikiz.disli_rijitligi` | 30 | N·m/rad | tahmini | Kaba tahmin: redüktör çıkışında burulma rijitliği; durma torkunda ≈ 0,3° esneme. Ölçülmedi. Yalnız 3D ikizde (boşluğun iki ucundaki temas yayı). |
+| `ikiz.disli_sonumu` | 0,03 | N·m·s/rad | tahmini | Kaba tahmin: dişli temasındaki sönüm (yağ, malzeme); tekerin kendi ataleti için ≈ 0,5 sönüm oranı. Ölçülmedi. Yalnız 3D ikizde. |
+| `ikiz.teker_temas_genisligi` | 0,025 | m | tahmini | 3D modelde tekerin zemine değen genişliği: tekerin tamamı (teker.genislik) kabul edildi, tahmini. Gerçek lastik yuvarlatılmış ve esnek olduğu için daha dar değer; MuJoCo silindiri zemine iki kenarından değer ve yerinde dönerken bu kenarlar kayar. Duyarlılık için 8 mm de koşuldu (§12.11). |
 | `imu.jiroskop_gurultu_yogunlugu` | 0,005 | °/s/√Hz | [doğrulanamadı] | InvenSense MPU-6000/MPU-6050 Product Specification PS-MPU-6000A-00 Rev 3.4, Tablo 6.1: Rate Noise Spectral Density 0,005 °/s/√Hz (10 Hz'de, tipik). Modül klon olabilir [doğrulanamadı]. |
 | `imu.jiroskop_kalan_sapma` | 0,2 | °/s | tahmini | Açılışta 2 s ortalamayla kalibrasyondan sonra kalan sapma, kaba tahmin. Kalibrasyonsuz değer çok daha büyüktür: veri sayfası Rev 3.4 Tablo 6.1, Initial ZRO Tolerance ±20 °/s, sıcaklıkla ±20 °/s. |
 | `imu.ivme_gurultu_yogunlugu` | 400 | µg/√Hz | [doğrulanamadı] | InvenSense PS-MPU-6000A-00 Rev 3.4, Tablo 6.2: Power Spectral Density @10 Hz, AFS_SEL = 0, 400 µg/√Hz (tipik). Modül klon olabilir [doğrulanamadı]. |
@@ -1394,6 +1398,7 @@ Kestirim, kontrol ve senaryo ayarları:
 | `kestirim.ivme_telafisi` | evet | - | [öneri] | İvmeölçer açısından enkoderle bulunan ileri ivmeyi ve IMU yüksekliğinden gelen teğetsel/merkezcil ivmeyi çıkarmak [öneri]: ±10° toparlanmada ileri ivme ≈ 2–3 m/s², telafisiz eğim hatası 10°'yi aşar (§12.4). |
 | `kestirim.ivme_suzgec_zaman_sabiti` | 0,02 | s | [öneri] | İvme telafisinde kullanılan ileri ivme ve eğim ivmesi kestirimlerinin süzgeci [öneri]. |
 | `kestirim.hiz_suzgec_zaman_sabiti` | 0,02 | s | [öneri] | Enkoderden hız kestirimine birinci dereceden alçak geçiren süzgeç [öneri]: 1000 RPM motorda bir sayımın hız karşılığı büyük olduğu için gerekir. |
+| `kestirim.sapma_jiroskopla` | hayır | - | [öneri] | Sapma açısını enkoder farkı yerine MPU6050'nin z jiroskobundan kestirmek [öneri]; jiroskobun kalan sapması açılıştan sonraki ilk 1 s'de (robot yerinde, komut yok) öğrenilip dondurulur. 3D ikizde (§12.11) yerinde dönüşte teker kenarları kayınca enkoderle sapma 90° yerine ≈ 70° dönüşte '90°' gösterdi. Varsayılan kapalı: §12 sonuçları bununla üretildi. |
 | `kontrol.yontem` | lqr | - | [öneri] | Firmware'in kullanacağı kontrolcü: 'lqr' ya da 'pid' [öneri]. İkiz ikisini de çalıştırır (§12.5). |
 | `kontrol.denge_acisi` | -1,38 | ° | [öneri] | Kontrolcünün dik duruş referansı (gövdenin fiziksel eğimi) [öneri]: kutulu KM tahmininden (§5.2). Parça gelince robot elle dengede tutulup IMU'dan ölçülerek kalibre edilecek. |
 | `kontrol.dusme_esigi` | 45 | ° | [öneri] | |eğim| bunu aşınca firmware motorları durdurur [öneri]: düşmüş robotun tekerleri boşa dönmesin. |
@@ -1409,8 +1414,15 @@ Kestirim, kontrol ve senaryo ayarları:
 | `senaryo.toparlanma_acisi` | 2 | ° | [öneri] | Ö1-4 toparlanma ölçütü [öneri]: gövde eğimi dik duruşun (KM aksın üstünde) ±2°'si içine girer ve simülasyon sonuna (12 s) kadar orada kalır. Sonrasında robotun yavaşça gidip gelmesi not olarak raporlanır. |
 | `senaryo.statik_kayma_siniri` | 0,25 | m | [öneri] | Ö1-1'de başlangıç noktasından uzaklaşma için uyarı eşiği [öneri]: şartnamede sınır yok, geçti/kaldıyı etkilemez. |
 | `senaryo.tepki_esigi` | 0,01 | m | [öneri] | Ö2 tepki süresi: komut verildikten sonra teker 1 cm (dönüşte 2°) hareket edince fiziksel tepki başlamış sayılır [öneri]. |
+| `senaryo.o5_bekleme` | 5 | s | şartname | Şartname TR v14 §8 Ö5: hedefte kutuyu düşürmeden 5 s bekleme; danışman iş planı 11. hafta: görevin başında da 5 s bekleme. |
+| `senaryo.o5_hedef_toleransi` | 0,15 | m | [öneri] | Ö5'in denge/hareket kısmında hedef noktasına uzaklık için kabul payı [öneri]. Rota (ileri 1 m, sola 90°, ileri 0,5 m; hedefte bekleme; sola 90°, ileri 1 m istasyon yönüne) jüri parkuru bilinmediği için seçildi [öneri]; IR ile yanaşma (Ö3) modellenmedi. |
 | `simulasyon.fizik_adimi` | 0,0005 | s | [öneri] | Fizik çekirdeğinin sabit adımı [öneri]: kontrol periyodunun onda biri; yakınsama testi tests/test_ikiz.py'de. |
 | `simulasyon.tohum` | 2026 | - | [öneri] | Gürültü üreteci tohumu [öneri]: her senaryo bundan türetilen sabit tohumla koşar, sonuçlar tekrarlanabilir. |
+| `simulasyon.adim_3d` | 0,00025 | s | [öneri] | MuJoCo zaman adımı [öneri]: dişli yayı ile tekerin küçük ataleti için kararlı; kontrol periyodunun yirmide biri. |
+| `simulasyon.temas_zaman_sabiti` | 0,004 | s | [öneri] | MuJoCo yumuşak temasının zaman sabiti (solref) [öneri]: zaman adımının en az iki katı olmalı; daha küçüğü sertliği artırır. |
+| `simulasyon.impratio` | 10 | - | [öneri] | MuJoCo eliptik sürtünme konisinde sürtünme/normal empedans oranı [öneri]: tekerin tutunurken sürünmesini (creep) azaltır. |
+| `simulasyon.kayma_esigi_3d` | 0,005 | m/s | [öneri] | 3D'de temas noktasının kayma hızı bunu aşınca teker kayıyor sayılır [öneri]; yumuşak temas tutunurken de çok küçük bir sürünme yapar. |
+| `simulasyon.video_fps` | 30 | 1/s | [öneri] | 3D video kare hızı [öneri]. |
 
 ### 12.6 Senaryolar ve geçti/kaldı ölçütleri
 
@@ -1547,7 +1559,73 @@ Aynı senaryolar aynı gürültüyle 530 RPM (1:19) ve 333 RPM (1:30) ile de ko�
 2. **5. hafta:** `kestirim.py`'deki Kalman süzgeci ESP32'ye taşınır; seri port çizicisinde ivme telafisi açık/kapalı karşılaştırılır. Simülasyondaki kestirim hatası (Şekil 18) gerçek kayıtla karşılaştırılarak sensör parametreleri güncellenir.
 3. **6. hafta:** `kontrol.py`'deki LQI ve çıkış katı C'ye çevrilir; ilk aktif denge LQI ile, PID yedek olarak. Ölü bölge telafisi gerçek motorda başlatma PWM'i ölçülerek ayarlanır.
 4. **Ousmane ve Mohamad:** eldiven → robot komut gecikmesinin ölçülmüş değeri (şu an 0,20 s tahmini).
-5. **3D simülasyon önerisi [öneri].** 2D ikiz kontrolcü ve motor kararları için yeterlidir; 3D ancak şu sorular için gerekir: IR ile istasyona yaklaşma (Ö3; ışın geometrisi, açılı yaklaşma), şarj kontaklarının hizalanması, eğik zeminde ya da eşikte davranış, kutunun yuvada gerçekten kayıp devrilmesi. Bunun için **MuJoCo** önerilir: açık kaynaklıdır, temas ve sürtünme modeli robot kontrolü çalışmalarında yaygın kullanılır, MJCF dosyasındaki eklem ve aktüatörler buradaki parametre dosyasından üretilebilir ve Python bağlantısı mevcut kontrolcü kodunu doğrudan çalıştırabilir. **PyBullet** kurulumu daha kolaydır ve robot tanımı URDF ile yapılır, ama son yıllarda güncellemeleri seyrekleşti ve temas sonuçları adım süresine duyarlı olabilir [doğrulanamadı]. Önerilen yol: (a) `parametreler.toml`'dan MJCF üreten küçük bir betik, (b) aynı `kestirim.py` ve `kontrol.py`'yi MuJoCo döngüsünde koşturup bu 2D ikizle aynı senaryolarda sonuçların örtüştüğünü göstermek, (c) ardından yalnız Ö3 ve kutu senaryolarını 3D'de eklemek. 9.–10. haftalardaki Ö3 çalışmasından önce, Ömer Faruk'un IR verisi geldikten sonra başlanması uygundur.
+5. **3D simülasyon önerisi [öneri].** 2D ikiz kontrolcü ve motor kararları için yeterlidir; 3D ancak şu sorular için gerekir: IR ile istasyona yaklaşma (Ö3; ışın geometrisi, açılı yaklaşma), şarj kontaklarının hizalanması, eğik zeminde ya da eşikte davranış, kutunun yuvada gerçekten kayıp devrilmesi. Bunun için **MuJoCo** önerilir: açık kaynaklıdır, temas ve sürtünme modeli robot kontrolü çalışmalarında yaygın kullanılır, MJCF dosyasındaki eklem ve aktüatörler buradaki parametre dosyasından üretilebilir ve Python bağlantısı mevcut kontrolcü kodunu doğrudan çalıştırabilir. **PyBullet** kurulumu daha kolaydır ve robot tanımı URDF ile yapılır, ama son yıllarda güncellemeleri seyrekleşti ve temas sonuçları adım süresine duyarlı olabilir [doğrulanamadı]. Önerilen yol: (a) `parametreler.toml`'dan MJCF üreten küçük bir betik, (b) aynı `kestirim.py` ve `kontrol.py`'yi MuJoCo döngüsünde koşturup bu 2D ikizle aynı senaryolarda sonuçların örtüştüğünü göstermek, (c) ardından yalnız Ö3 ve kutu senaryolarını 3D'de eklemek. 9.–10. haftalardaki Ö3 çalışmasından önce, Ömer Faruk'un IR verisi geldikten sonra başlanması uygundur. **Uygulandı:** MuJoCo ikizi ve 2D ile karşılaştırması §12.11'de; Ö3 ve IR henüz eklenmedi.
+
+### 12.11 3D simülasyon (MuJoCo): çapraz kontrol ve videolar
+
+İki amaç için §12'deki ikiz MuJoCo 3.17.0 ile 3D'ye taşındı: (1) final testlerini danışman ve Proje Pazarı için 3D video olarak göstermek, (2) 2D ikizi bağımsız bir fizik motoruyla sınamak. Model `parametreler.toml`'dan üretilir (`denge/ikiz3d/mjcf.py`); motor, sensörler, kestirici, kontrolcü ve değerlendirme 2D ikizin kodunun aynısıdır, yalnız fizik değişir.
+
+| | 2D ikiz (§12.2) | 3D ikiz (MuJoCo) |
+|---|---|---|
+| Gövde | 3 serbestlik (ileri, eğim, sapma) | Serbest cisim, 6 serbestlik (yalpa ve yanal kayma dahil); 16 serbestlik, 43 geometri |
+| Kütle, atalet, KM | Bileşen kutuları (§2.2) | Aynı kutulardan MuJoCo hesaplar. Fark: kütle 2e-16 kg, KM 1e-17 m, atalet (bağıl) 3e-15 (testte denetlenir) |
+| Teker–zemin | Tek nokta; tutunma ya da kayma (Coulomb) | Silindir, zemine iki kenarından yumuşak temas; temas genişliği 25 mm (tahmini), eliptik sürtünme konisi |
+| Dişli boşluğu | Rijit; uçlarda plastik çarpma | Boşluğun uçlarında esnek yay: 30 N·m/rad, sönüm 0,03 N·m·s/rad (tahmini) |
+| Rotor sürtünmesi | Tutunma/kayma kısıtı, $K_t I_0$ | MuJoCo kuru sürtünme kısıtı (frictionloss), aynı $K_t I_0$ |
+| İlaç kutusu | Gövdeye rijit; görünür eğimle değerlendirilir | Yuvada serbest cisim: kayabilir, devrilebilir; yuvadan çıkarsa alt test kalır |
+| Zemine değme | Geometrik yere değme açısı | Gövdenin çarpışma geometrisi zemine değerse |
+| Motor (PWM → akım → tork, pil), sensör gürültüsü (aynı tohum), kestirici, kontrolcü, 200 Hz, gecikmeler, geçti/kaldı | aynı kod | aynı kod |
+
+Zaman adımı 0,25 ms; 3D ikiz gerçek zamanın ≈ 5 katı hızında çalışır. Ö5'in denge ve hareket kısmı [öneri rota]: başta 5 s bekleme, eldivenle 1 m ileri, sola 90°, 0,5 m ileri, hedefte kutuyla 5 s bekleme, sola 90° ve istasyon yönüne 1 m (IR ile yanaşma, Ö3, modellenmedi). Hedefe uzaklık ≤ 0,15 m [öneri].
+
+**Sonuçlar** (kutulu, LQI + Kalman, satın alınan motor):
+
+| Senaryo (kutulu, LQI + Kalman) | Pil | Sonuç 2D / 3D / 3D + öneri | Ölçülen 2D | Ölçülen 3D | Ölçülen 3D + öneri | En büyük eğim [°] | Doyum [s] | Tepe akım [A] | Teker kayması [s] | Dişli boşlukta [%] | Kestirim hatası [°] | Kutu: 2D görünür eğim [°] / 3D kayma [mm], dönme [°] |
+| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Ö1-1 statik denge (30 s) | dolu | geçti / geçti / geçti | en çok 0,04 m uzaklaştı | en çok 0,02 m uzaklaştı | en çok 0,02 m uzaklaştı | 2,4 / 2,2 | 0,00 / 0,00 | 1,12 / 1,35 | 0,43 / 0,00 | 63 / 76 | 0,62 / 0,63 | 3,2 / 2,0, 0,0 |
+| Ö1-1 statik denge (30 s) | boş | geçti / geçti / geçti | en çok 0,02 m uzaklaştı | en çok 0,03 m uzaklaştı | en çok 0,03 m uzaklaştı | 2,3 / 3,1 | 0,00 / 0,00 | 1,21 / 1,69 | 0,49 / 0,00 | 74 / 74 | 0,60 / 0,63 | 3,0 / 2,0, 0,0 |
+| Ö1-2/3 ≈1 m ileri/geri + 3 s dur | dolu | geçti / geçti / geçti | +0,946 m / -0,976 m | +0,982 m / -0,996 m | +0,983 m / -0,994 m | 6,4 / 5,5 | 0,00 / 0,00 | 1,33 / 1,81 | 0,35 / 0,06 | 55 / 61 | 0,64 / 0,64 | 3,8 / 2,1, 0,0 |
+| Ö1-2/3 ≈1 m ileri/geri + 3 s dur | boş | geçti / geçti / geçti | +0,939 m / -0,993 m | +0,965 m / -1,000 m | +0,962 m / -0,993 m | 6,2 / 5,5 | 0,00 / 0,00 | 1,37 / 1,91 | 0,33 / 0,05 | 55 / 61 | 0,67 / 0,68 | 3,5 / 2,1, 0,0 |
+| Ö1-4 +10°'den toparlanma | dolu | geçti / geçti / geçti | 0,71 s | 1,31 s | 1,31 s | 10,0 / 10,0 | 0,01 / 0,03 | 4,56 / 4,56 | 0,22 / 0,02 | 63 / 67 | 0,59 / 1,08 | 6,5 / 2,1, 0,0 |
+| Ö1-4 +10°'den toparlanma | boş | geçti / geçti / geçti | 0,69 s | 1,31 s | 1,32 s | 10,0 / 10,0 | 0,02 / 0,04 | 3,58 / 3,58 | 0,23 / 0,02 | 67 / 67 | 0,54 / 1,07 | 7,1 / 2,1, 0,0 |
+| Ö1-4 −10°'den toparlanma | dolu | geçti / geçti / geçti | 0,66 s | 1,11 s | 1,12 s | 10,0 / 10,0 | 0,00 / 0,02 | 4,19 / 4,56 | 0,21 / 0,02 | 62 / 68 | 0,57 / 0,94 | 7,2 / 2,1, 0,0 |
+| Ö1-4 −10°'den toparlanma | boş | geçti / geçti / geçti | 0,76 s | 0,54 s | 0,94 s | 10,0 / 10,0 | 0,00 / 0,02 | 3,23 / 3,58 | 0,17 / 0,01 | 54 / 73 | 0,57 / 0,67 | 6,9 / 2,0, 0,0 |
+| Ö2 0,5 m ileri/geri, 90° sol/sağ | dolu | geçti / **kaldı** / geçti | +0,476 m / -0,502 m / +89,9° / -89,7° | +0,503 m / -0,500 m / +69,3° / -59,3° | +0,499 m / -0,489 m / +91,1° / -92,8° | 5,7 / 5,6 | 0,00 / 0,00 | 1,22 / 1,65 | 0,57 / 2,37 | 62 / 37 | 0,61 / 0,66 | 3,8 / 2,0, 0,0 |
+| Ö2 0,5 m ileri/geri, 90° sol/sağ | boş | geçti / **kaldı** / geçti | +0,474 m / -0,502 m / +89,8° / -89,6° | +0,490 m / -0,489 m / +69,2° / -58,9° | +0,476 m / -0,477 m / +91,1° / -92,6° | 5,3 / 5,2 | 0,00 / 0,00 | 1,20 / 1,77 | 0,57 / 2,38 | 64 / 37 | 0,62 / 0,61 | 3,7 / 2,1, 0,0 |
+| Ö5 denge/hareket kısmı (bekle, hedef, 5 s, istasyon yönü) | dolu | geçti / **kaldı** / geçti | en çok 0,03 m uzaklaştı / hedefe 0,019 m / hedefe 0,012 m | en çok 0,02 m uzaklaştı / hedefe 0,174 m / hedefe 0,575 m | en çok 0,02 m uzaklaştı / hedefe 0,011 m / hedefe 0,011 m | 5,7 / 5,4 | 0,00 / 0,00 | 1,29 / 1,94 | 0,95 / 2,73 | 62 / 21 | 0,61 / 0,62 | 3,7 / 2,0, 0,0 |
+| Ö5 denge/hareket kısmı (bekle, hedef, 5 s, istasyon yönü) | boş | geçti / **kaldı** / geçti | en çok 0,03 m uzaklaştı / hedefe 0,002 m / hedefe 0,004 m | en çok 0,03 m uzaklaştı / hedefe 0,182 m / hedefe 0,580 m | en çok 0,03 m uzaklaştı / hedefe 0,011 m / hedefe 0,009 m | 5,2 / 5,1 | 0,00 / 0,00 | 1,42 / 1,91 | 0,92 / 2,72 | 62 / 21 | 0,56 / 0,57 | 3,9 / 2,0, 0,0 |
+
+*Geçen alt test: 2D 24/24, 3D 16/24, 3D + öneri 24/24, 2D + öneri 24/24. "Öneri": sapmayı z jiroskobuyla kestirmek ve dönüşe integral (2,0 N·m/(rad·s)) eklemek. Sütunlardaki ikili değerler 2D / 3D (varsayılan ayarlar).*
+
+![Şekil 19](sekiller/sekil_19_ikiz3d_karsilastirma.png)
+
+*Şekil 19: 2D ve 3D ikiz üst üste (boş pil): Ö1-4'te eğim, Ö1-2/3'te konum, Ö5'te sapma (varsayılan ayarlar; 3D'de dönüşler kısa kalır).*
+
+**Farklar ve nedenleri.** Varsayılan ayarlarla sonucu değişen alt testler:
+
+- Ö2 sol 90° (dolu pil): 2D geçti, 3D kaldı — ≈90° (±10°): +69,3°
+- Ö2 sağ 90° (dolu pil): 2D geçti, 3D kaldı — ≈90° (±10°): −59,3°
+- Ö2 sol 90° (boş pil): 2D geçti, 3D kaldı — ≈90° (±10°): +69,2°
+- Ö2 sağ 90° (boş pil): 2D geçti, 3D kaldı — ≈90° (±10°): −58,9°
+- Ö5 hedefe gider, kutuyla 5 s bekler (dolu pil): 2D geçti, 3D kaldı — Hedefe ≤ 0,15 m: 0,174 m
+- Ö5 istasyon yönüne döner ve yaklaşır (dolu pil): 2D geçti, 3D kaldı — Hedefe ≤ 0,15 m: 0,575 m
+- Ö5 hedefe gider, kutuyla 5 s bekler (boş pil): 2D geçti, 3D kaldı — Hedefe ≤ 0,15 m: 0,182 m
+- Ö5 istasyon yönüne döner ve yaklaşır (boş pil): 2D geçti, 3D kaldı — Hedefe ≤ 0,15 m: 0,580 m
+
+- **Yerinde dönüş (temas ve kayma): en önemli fark.** 90° komutu 2D'de +89,9°, −89,7°, +89,8°, −89,6° verir, 3D'de +69,3°, −59,3°, +69,2°, −58,9°. MuJoCo'daki geniş teker zemine iki kenarından değer; robot yerinde dönerken iç ve dış kenar farklı yol aldığı için kayar ve dönmeye karşı bir sürtünme momenti doğar. 2D modelde teker tek noktadan değdiği için bu moment yoktur. İki sonucu olur: (1) dönüş kontrolcüsü integralsiz olduğu için bu momenti yenemez ve hedefe varmadan durur; (2) tekerler kaydığı için enkoder farkından hesaplanan sapma gerçek dönüşten büyük çıkar. Teker kayması 2D'de en çok 0,95 s, 3D'de 2,73 s. Temas 8 mm alınınca dönüşler +84,8°, −80,9°, +84,0°, −79,2° olur: etki temas genişliğiyle büyür. Gerçek lastik yuvarlatılmış ve esnek olduğu için ikisinin arasında bir yerdedir; donanımda ölçülmelidir.
+- **Öneri ve doğrulaması [öneri].** Sapmayı MPU6050'nin z jiroskobundan kestirmek (kalan sapması açılışta 1 s ortalamayla öğrenilip dondurulur) ve dönüşe integral eklemek bu farkı kapatır: 3D'de dönüşler +91,1°, −92,8°, +91,1°, −92,6° olur, Ö5'te hedefe uzaklık (hedef / istasyon yönü) 0,011 m / 0,011 m, 0,011 m / 0,009 m. Aynı ayarlarla 2D de bütün alt testleri geçer (24/24). Hareket sırasında jiroskop sapmasını öğrenmek denendi ve bırakıldı: robot dururken sapma yönünde yavaşça kayınca bu gerçek dönüş sapma sanılıyor ve Ö5'te hedef 0,26 m kaçıyordu. İki ayar parametre dosyasında [öneri] olarak duruyor ve varsayılanda kapalı, böylece §12'nin sonuçları değişmiyor; firmware'de açılması önerilir.
+- **Toparlanma.** ±10°'den toparlanma 3D'de çoğunlukla daha uzun sürer (en çok 1,31 s, 2D'de 0,76 s), eğim kestirim hatası ortalama 0,73° (2D'de 0,60°). Dişlilerin boşlukta geçirdiği süre benzerdir (3D %55, 2D %62); olası neden, 3D'de dişli yayının ve yumuşak temasın ilk anlardaki teker ivmesini geciktirmesidir. İki ikizde de süre şartnamenin 10 s sınırının çok altındadır.
+- **Teker kayması.** 2D'deki kısa kaymaların çoğu rijit dişli çarpmalarından gelir; 3D'de esnek dişliyle düz gidişte ve dururken kayma neredeyse yoktur. Bu, §12.9'daki "2D çarpma anı kaymasını abartır" çekincesini doğrular.
+- **Kutu hareketi.** 3D'de kutu serbest olduğu hâlde hiçbir senaryoda yuvadan çıkmadı: en çok 2,1 mm kaydı (yuva boşluğu 2 mm) ve 0,01° döndü. Bu, 2D'deki görünür eğim ölçütüyle aynı sonuçtur.
+- **Zemine değme.** Hiçbir senaryoda gövde zemine değmedi.
+
+**Görüntü.** `mjpython -m denge.ikiz3d --senaryo O1-4+ --canli` canlı izleme açar (macOS'ta MuJoCo'nun görüntüleyicisi `mjpython` ister; sanal ortamda `.venv/bin/mjpython`). `python -m denge.ikiz3d --senaryo O2 --oneri --video o2.mp4` sabit yan ve çapraz kamerayla MP4 yazar. `python -m denge.ikiz3d --sunum` toplantı videolarını üretir: [Ö1-4 +10°](video/o1_4_arti_10.mp4) ve [Ö1-4 −10°](video/o1_4_eksi_10.mp4) yarı hızda, [Ö1-2/3 kutulu](video/o1_23_kutulu.mp4), [Ö2 varsayılan](video/o2_varsayilan.mp4) ve [Ö2 öneriyle](video/o2_oneri.mp4) (dönüş farkı yan yana görülür), [Ö5 öneriyle](video/o5_oneri.mp4); hepsi boş pil ve kutulu.
+
+![Şekil 20](sekiller/sekil_20_ikiz3d.png)
+
+*Şekil 20: 3D model (çapraz görünüş): üç pleksi kat, pil (orta kat), elektronik (alt kat), üst katta yuvadaki aspirin kutusu, acil durdurma, önde IR modülü.*
+
+**Sınırlamalar.** MuJoCo teması yumuşaktır (temas zaman sabiti, eliptik koni); lastik esnekliği, yuvarlanma direnci ve zemin pürüzü yok. Dişli yayı, teker temas genişliği ve iki ikizin ortak tahmini parametreleri ölçülmedi. Videolar `python -m denge` ile yenilenmez; parametreler değişince `--sunum` ayrıca çalıştırılır.
 
 ## Ek A: Dosyalar ve yeniden üretim
 
@@ -1561,6 +1639,7 @@ denge/satin_alinan.py    Satın alınan motor: sınama, karar, çözümler (pyth
 denge/kutle_merkezi.py   KM, atalet, yere değme açısı, yuvadaki özgül kuvvet
 denge/yuva_analizi.py    Kutulu/kutusuz KM, kayma, KM yüksekliği ve yuva karşılaştırması
 denge/ikiz/              Dijital ikiz (python -m denge.ikiz): fizik, sensörler, kestirim, kontrol, senaryolar, çizim
+denge/ikiz3d/            3D ikiz, MuJoCo (python -m denge.ikiz3d): MJCF üretimi, döngü, karşılaştırma, video
 denge/rapor.py           Bu belgeyi ve şekilleri üretir (python -m denge)
 tests/                   Doğrulama testleri (pytest)
 ```
@@ -1570,6 +1649,8 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m denge          # şekiller + bu belge + test özeti
 .venv/bin/python -m pytest -q      # testler
 .venv/bin/python -m denge.ikiz     # dijital ikiz: senaryo matrisi, özet tablo, docs/simulasyon/sonuclar.csv
+.venv/bin/python -m denge.ikiz3d --sunum           # 3D toplantı videoları (docs/video/)
+.venv/bin/mjpython -m denge.ikiz3d --senaryo O2 --canli   # canlı 3D izleme (macOS)
 ```
 
 ## Kaynaklar
@@ -1587,5 +1668,5 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 11. direnc.net, *JGB37-520 - 12V 1000RPM Enkoderli Motor* ürün sayfası ve bağlı veri sayfası (pdf.direnc.net/upload/jgb37-520-datasheet.pdf), 22 Kasım 2026'da okundu. Değerler [doğrulanamadı].
 12. robotistan.com, *GT2 20 Diş Kasnak + 6 mm Kayış (2 m) Seti*, arama özetindeki fiyat, 22 Kasım 2026 [doğrulanamadı].
 13. InvenSense, *MPU-6000 and MPU-6050 Product Specification*, PS-MPU-6000A-00, Revision 3.4, 19 Ağustos 2013: Tablo 6.1 (jiroskop) ve 6.2 (ivmeölçer), 22 Kasım 2026'da mikrocontroller.net kopyasından okundu. DLPF tablosu Register Map belgesindedir, okunamadı [doğrulanamadı].
-14. MuJoCo (Google DeepMind, açık kaynak) ve PyBullet (Bullet Physics): 3D simülasyon önerisi için genel bilgi; sürüm ve özellikler kurulumda doğrulanmalı [doğrulanamadı].
+14. MuJoCo 3.17.0 (Google DeepMind, açık kaynak; PyPI `mujoco`), §12.11'de kullanıldı. PyBullet (Bullet Physics): yalnız §12.10'daki karşılaştırma için genel bilgi [doğrulanamadı].
 15. Hareket denklemleri bu çalışmada temel ilkelerden (Lagrange–d'Alembert) türetilmiş ve sembolik olarak doğrulanmıştır (`denge/model.py`, `tests/test_model.py`).
